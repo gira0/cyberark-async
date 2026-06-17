@@ -2,7 +2,7 @@ import asyncio
 import copy
 
 from .accounts import PrivilegedAccount
-from .exceptions import AiobastionException, CyberarkAPIException, AiobastionConfigurationException
+from .exceptions import AiobastionException, CyberarkAPIException, CyberarkException, AiobastionConfigurationException
 
 
 def clone_privileged_account(account: PrivilegedAccount, replace: dict, update_name=True) -> PrivilegedAccount:
@@ -106,7 +106,7 @@ class Utilities:
                     self.epv.logger.info(f"{account.userName};{address};Password successfully changed")
                 else:
                     self.epv.logger.info(f"{account.userName};{address};Password NOT changed")
-            except Exception as err:
+            except (CyberarkAPIException, CyberarkException, AiobastionException) as err:
                 self.epv.logger.error(f"{account.userName};{address};An error occured when trying to change password : {err}")
 
     async def reconcile(self, address, username_filter: list = None):
@@ -327,6 +327,6 @@ class Utilities:
                 try:
                     await self.epv.account.update_using_list(acc.id, data)
                     self.epv.logger.info(f"{acc.address};{acc.userName};Platform changed")
-                except Exception as e:
+                except (CyberarkAPIException, CyberarkException, AiobastionException) as e:
                     self.epv.logger.error(
                         f"{acc.address};{acc.userName};An error occured when trying to change platform : {e}")

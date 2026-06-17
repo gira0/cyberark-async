@@ -27,6 +27,7 @@ recon = PrivilegedAccount("recon", "UnixSSH", "sample-it-dept", address="222.192
 
 class TestAccount(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
+        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
         self.vault = EPV(tests.CONFIG)
         await self.vault.login()
 

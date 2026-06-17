@@ -3,15 +3,17 @@ name = "aiobastion"
 version = "0.1.9"
 description = "Manage your Cyberark implementation"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.12"
 license = {file = "LICENSE"}
-keywords = ["cyberark"]
+keywords = ["cyberark", "bastion", "password vault", "privileged access management", "PAM", "secrets management", "credential management", "cybersecurity", "devops", "automation"]
 
 authors = [
-  {name = "Gautier Leveille", email = "gleveille@pm.me" }
+  {name = "Gautier Leveille", email = "gleveille@pm.me" },
+    {name = "Simon Seelig", email = "19488367+gira0@users.noreply.github.com" }
 ]
 
 maintainers = [
+    {name = "Simon Seelig", email = "19488367+gira0@users.noreply.github.com" }
 ]
 
 classifiers = [
@@ -25,11 +27,9 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
 
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: 3 :: Only",
 ]
 
@@ -38,19 +38,39 @@ dependencies = [ # Optional
   "aiohttp",
 ]
 
-[project.optional-dependencies]
-dev = []
-test = ["coverage", "unittest"]
+[dependency-groups]
+dev = [
+  "build>=1.2",
+  "check-manifest>=0.42",
+  "pre-commit>=3.7",
+  "ruff>=0.8",
+  "twine>=5",
+]
+test = [
+  "coverage>=7",
+  "pytest>=8",
+  "pytest-asyncio>=0.24",
+]
 
 [project.urls]
-"Homepage" = "https://github.com/labanquepostale/aiobastion"
-"Bug Reports" = "https://github.com/labanquepostale/aiobastion/issues"
-"Source" = "https://github.com/labanquepostale/aiobastion/"
+"Homepage" = "https://github.com/gira0/aiobastion"
+"Bug Reports" = "https://github.com/gira0/aiobastion/issues"
+"Source" = "https://github.com/gira0/aiobastion/"
 
 [project.scripts]
 
 [tool.setuptools]
 
+[tool.ruff]
+target-version = "py312"
+
+[tool.uv]
+exclude-newer = "1 week"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
 [build-system]
-requires = ["setuptools>=43.0.0", "wheel"]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 import warnings
 from typing import AsyncIterator, Union
 
@@ -158,11 +157,13 @@ class Safe:
         :return: boolean
         """
         if isinstance(profile, str):
-            assert profile.lower() in ["admin", "use", "show", "audit", "prov", "power", "cpm", "manager"]
+            if profile.lower() not in ["admin", "use", "show", "audit", "prov", "power", "cpm", "manager"]:
+                raise AiobastionException(f"Unsupported safe profile {profile!r}")
             perm = permissions(profile)
         else:
             # ensure there is at least one right for the safe username
-            assert any(k in profile.keys() for k in DEFAULT_PERMISSIONS.keys())
+            if not any(k in profile.keys() for k in DEFAULT_PERMISSIONS.keys()):
+                raise AiobastionException("Profile dictionary must contain at least one known permission key")
             perm = profile
 
         url = f"api/Safes/{safe}/Members"
@@ -219,7 +220,7 @@ class Safe:
         :return: boolean
         """
 
-        url = f"api/Safes"
+        url = "api/Safes"
         data = {
             "SafeName": safe_name,
             "Description": description,
@@ -345,7 +346,7 @@ class Safe:
         try:
             search_results = await self.epv.handle_request("get", url, params=params,
                                                            filter_func=lambda x: x)
-        except CyberarkAPIException as err:
+        except CyberarkAPIException:
             raise CyberarkAPIException(404, "ERR_404", f"Safe {safe_name} doesn't exist")
 
         safe_members = search_results['value']

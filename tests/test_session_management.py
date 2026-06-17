@@ -1,5 +1,4 @@
 import sys
-import os
 import asyncio
 import random
 import secrets
@@ -12,9 +11,10 @@ import tests
 import time
 
 
-@unittest.skipIf(not os.path.exists(tests.AIM_CONFIG), "AIM Config File does Not Exist")
+@unittest.skipUnless(tests.INTEGRATION_TESTS_ENABLED, "Integration tests are disabled. Set AIOBASTION_RUN_INTEGRATION_TESTS=1.")
 class TestSessionManagement(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
+        tests.require_integration_tests(tests.AIM_CONFIG, "AIOBASTION_TEST_AIM_CONFIG")
         self.vault = aiobastion.EPV(tests.AIM_CONFIG)
         await self.vault.login()
 

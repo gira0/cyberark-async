@@ -32,6 +32,13 @@ If you wish to contribute with code the workflow is :
 
 ## Test
 
+- Most tests are offline and run without a Vault or PVWA.
+- To run the live CyberArk integration tests, set `AIOBASTION_RUN_INTEGRATION_TESTS=1` before invoking pytest.
+- Optional overrides:
+  - `AIOBASTION_TEST_CONFIG=/path/to/config_tests.yml`
+  - `AIOBASTION_TEST_AIM_CONFIG=/path/to/config_aim_hp.yml`
+  - `AIOBASTION_TEST_API_USER=admin_test_restapi`
+- When the live tests are disabled or the config files are missing, the integration suites skip instead of failing.
 - In order to test you need a working Vault and a PVWA.
 - Then, generate some accounts with mockaroo and the following schemas : https://www.mockaroo.com/1e429890. See "Troubleshoot"
   section of some cleanup to avoid issues.
@@ -42,6 +49,20 @@ If you wish to contribute with code the workflow is :
 - Create the configuration file for your testing Vault
 - Check the \_\_init__.py file for the location of this file
 - Ensure all tests are passed (or skipped)
+
+### Offline test commands
+
+Run the pure unit and config tests without any CyberArk environment:
+
+```bash
+uv run --group test pytest tests/test_config_value.py tests/test_utilities.py
+```
+
+Run the live integration tests only when the environment variables above are set:
+
+```bash
+uv run --group test pytest tests/test_accounts.py tests/test_cyberark.py tests/test_safe.py
+```
 
 ### Prepare CyberArk to Run the Testing
 #### Test Accounts and Permissions

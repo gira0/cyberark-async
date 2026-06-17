@@ -10,6 +10,7 @@ from aiobastion import CyberarkAPIException, CyberarkException, AiobastionExcept
 
 class TestSafe(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
+        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
         self.vault = aiobastion.EPV(tests.CONFIG)
         await self.vault.login()
         self.api_user = tests.API_USER

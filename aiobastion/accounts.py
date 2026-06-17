@@ -757,7 +757,8 @@ class Account:
         url, head = self.epv.get_url(f"API/Accounts/{account_id}/PSMConnect")
         head["Accept"] = 'RDP'
         body = {"ConnectionComponent": connection_component}
-        if reason: body["Reason"] = reason
+        if reason:
+            body["Reason"] = reason
 
         async with aiohttp.ClientSession(headers=head, cookies = self.epv.cookies) as session:
             async with session.post(url, json=body, **self.epv.request_params) as req:
@@ -890,7 +891,7 @@ class Account:
         data = [{"path": f"{self.detect_fc_path(file_category)}{file_category}", "op": "remove"}]
         try:
             return await self.update_using_list(account, data)
-        except CyberarkAPIException as err:
+        except CyberarkAPIException:
             raise
 
     async def update_single_fc(self,  account, file_category, new_value, operation="replace"):
@@ -936,13 +937,9 @@ class Account:
         """
         data = []
         if isinstance(file_category, list):
-            try:
-                assert isinstance(new_value, list)
-            except AssertionError:
+            if not isinstance(new_value, list):
                 raise AiobastionException("If file_category is a list, then new value must be a list as well")
-            try:
-                assert len(file_category) == len(new_value)
-            except AssertionError:
+            if len(file_category) != len(new_value):
                 raise AiobastionException("You must provide the same list size for file_category and values")
 
             for f, n in zip(file_category, new_value):
@@ -1015,7 +1012,8 @@ class Account:
             raise AiobastionException("The version must be a non-zero natural integer")
 
         data = {"Version": version}
-        if reason: data["Reason"] = reason
+        if reason:
+            data["Reason"] = reason
         account_id = await self.get_account_id(account)
 
         url = f"API/Accounts/{account_id}/Password/Retrieve"
@@ -1034,7 +1032,8 @@ class Account:
         :raises CyberarkException: If retrieve failed
         """
         data = {}
-        if reason: data = {"Reason": reason}
+        if reason:
+            data = {"Reason": reason}
         return await self._handle_acc_id_list(
             "post",
             lambda account_id: f"API/Accounts/{account_id}/Password/Retrieve",
@@ -1068,7 +1067,8 @@ class Account:
         :return: Account password value
         """
         data = {}
-        if reason: data = {"Reason": reason}
+        if reason:
+            data = {"Reason": reason}
         versions = await self._handle_acc_id_list(
             "get",
             lambda account_id: f"API/Accounts/{account_id}/Secret/Versions/",
@@ -1296,8 +1296,8 @@ class Account:
             else:
                 try:
                     await self.epv.accountgroup.delete_member(acc, groupid)
-                except Exception as err:
-                    raise CyberarkException("Unable to remove address group " + str(err))
+                except (CyberarkAPIException, CyberarkException, AiobastionException) as err:
+                    raise CyberarkException("Unable to remove address group " + str(err)) from err
                 return True
 
         return await self._handle_acc_list(_del_accountgroup, account)

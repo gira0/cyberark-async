@@ -10,6 +10,7 @@ from aiobastion import GetTokenException
 # Automatic login using configuration setup
 async def login_cyberark():
     # tests.CONFIG="/path/to/config_file.yml"
+    tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
     epv_env = aiobastion.EPV(tests.CONFIG)
     try:
         await epv_env.login()

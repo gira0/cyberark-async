@@ -287,8 +287,10 @@ class EPV:
 
     # start of functions definition
     async def __login_cyberark(self, username: str, password: str, auth_type: str) -> str:
-        assert self.__token is None
-        assert auth_type.upper() in ("CYBERARK", "WINDOWS", "LDAP", "RADIUS")
+        if self.__token is not None:
+            raise AiobastionException("Token is already set for this EPV instance")
+        if auth_type.upper() not in ("CYBERARK", "WINDOWS", "LDAP", "RADIUS"):
+            raise AiobastionException(f"Unsupported auth_type {auth_type!r}")
         url, head = self.get_url("API/Auth/" + auth_type + "/Logon")
         request_data = {"username": username, "password": password, "concurrentSession": True}
         try:
@@ -297,7 +299,7 @@ class EPV:
                 if req.status != 200:
                     try:
                         error = await req.text()
-                    except Exception as err:  # pylint: disable=broad-exception-caught
+                    except (aiohttp.ClientError, UnicodeError) as err:
                         error = f"Unable to get error message {err}"
                         raise CyberarkException(error) from err
 
@@ -327,7 +329,7 @@ class EPV:
             raise
         except (ConnectionError, TimeoutError) as err:
             raise CyberarkException("Network problem connecting to PVWA") from err
-        except Exception as err:
+        except (aiohttp.ClientError, asyncio.TimeoutError, OSError, UnicodeError) as err:
             raise CyberarkException(err) from err
 
     async def logoff(self):
@@ -749,7 +751,8 @@ class EPV:
         :param data: valid json data if needed
         :return:
         """
-        assert method.lower() in ("post", "delete", "get", "patch", "put")
+        if method.lower() not in ("post", "delete", "get", "patch", "put"):
+            raise AiobastionException(f"Unsupported HTTP method {method!r}")
 
         url, head = self.get_url(short_url)
 
@@ -796,5 +799,3 @@ class EPV:
                                                    content["ErrorMessage"], details)
                     else:
                         raise CyberarkAPIException(req.status, "NO_ERR_CODE", content)
-            # except Exception as err:
-            #     raise CyberarkException(err)

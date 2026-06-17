@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import asyncio
+import json
 import base64
 
 import aiohttp
@@ -162,14 +163,14 @@ class Platform:
                         content = await req.json()
                         try:
                             raise CyberarkAPIException(req.status, content["ErrorCode"], content["ErrorMessage"])
-                        except Exception:
+                        except (KeyError, TypeError):
                             raise CyberarkException(content)
 
                     file_content = await req.read()
                     with open(outdir + "/" + pfid + ".zip", "wb") as pf_file:
                         pf_file.write(file_content)
 
-        except Exception as err:
+        except (CyberarkAPIException, CyberarkException, aiohttp.ClientError, OSError, json.JSONDecodeError) as err:
             return f"{pfid} is not exportable : {str(err)}"
         return True
 
@@ -219,5 +220,5 @@ class Platform:
         data = {"ImportFile": fb64}
         return await self.epv.handle_request(
             "post",
-            f"API/ConnectionComponents/Import", data=data
+            "API/ConnectionComponents/Import", data=data
         )

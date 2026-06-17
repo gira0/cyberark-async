@@ -145,7 +145,7 @@ class AccountGroup:
         try:
             await self.epv.handle_request("post", "api/AccountGroups", data=account_group.to_json(),
                                              filter_func=lambda x: x['GroupID'])
-        except CyberarkNotFoundException as err:
+        except CyberarkNotFoundException:
             raise CyberarkNotFoundException(f"Privileged Account group's platform \"{account_group.group_platform}\" not found")
 
     async def add_member(self, account: Union[PrivilegedAccount, str], group: Union[PrivilegedAccountGroup, str]):
@@ -216,10 +216,7 @@ class AccountGroup:
 
                 ag_members = await self.epv.accountgroup.members(account_group)
                 # Moving accounts
-                try:
-                    moved_accounts = await self.epv.account.move(ag_members, dst_safe)
-                except CyberarkAPIException as err:
-                    raise
+                moved_accounts = await self.epv.account.move(ag_members, dst_safe)
 
                 self.epv.logger.debug("Accounts moved !")
 
@@ -227,7 +224,7 @@ class AccountGroup:
                     try:
                         await self.add_member(agm, new_group_id)
                         self.epv.logger.debug(f"Moved {agm} into {new_group_id}")
-                    except:
+                    except CyberarkAPIException:
                         # Account are moved with their account group
                         pass
 
@@ -258,18 +255,13 @@ class AccountGroup:
                 filtered = False
                 for a in ag_members:
                     for filter_file_category, filter_value in account_filter.items():
-                        try:
-                            if _case_insensitive_getattr(a, filter_file_category) == filter_value:
-                                filtered = True
-                        except Exception as err:
-                            # Most likely the filtered file category is not a basic one
-                            raise AiobastionException(f"Your filter doesn't exist on account {a} "
-                                                      f"(bad file category ? {filter_file_category})")
+                        if _case_insensitive_getattr(a, filter_file_category) == filter_value:
+                            filtered = True
                 if filtered:
                     self.epv.logger.debug("Account group skipped ....")
                     continue
 
             try:
                 await self.move_account_group(ag.name, ag.safe, dst_safe)
-            except CyberarkAPIException as err:
+            except CyberarkAPIException:
                 raise

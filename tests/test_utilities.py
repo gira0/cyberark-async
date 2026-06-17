@@ -1,5 +1,6 @@
 import sys
 import asyncio
+import os
 import random
 import secrets
 import unittest
@@ -7,12 +8,43 @@ from unittest import TestCase, IsolatedAsyncioTestCase
 import aiobastion
 from aiobastion.exceptions import CyberarkAPIException, CyberarkException, AiobastionException
 from aiobastion.accounts import PrivilegedAccount
+from aiobastion.utilities import clone_privileged_account, case_insensitive_getattr
 import tests
 import time
 
 
+class TestUtilitiesPure(TestCase):
+    def test_case_insensitive_getattr(self):
+        class Dummy:
+            SomeValue = 123
+
+        self.assertEqual(case_insensitive_getattr(Dummy(), "somevalue"), 123)
+
+    def test_clone_privileged_account_does_not_mutate_original(self):
+        account = PrivilegedAccount(
+            "name",
+            "platform",
+            "safe",
+            address="1.2.3.4",
+            userName="admin",
+            platformAccountProperties={"foo": "bar"},
+        )
+
+        cloned = clone_privileged_account(account, {"address": "5.6.7.8", "custom": "value"})
+
+        self.assertEqual(account.address, "1.2.3.4")
+        self.assertEqual(cloned.address, "5.6.7.8")
+        self.assertEqual(cloned.platformAccountProperties["custom"], "value")
+        self.assertEqual(cloned.name, "5.6.7.8-admin")
+
+    def test_privileged_account_rejects_invalid_secret_type(self):
+        with self.assertRaises(AiobastionException):
+            PrivilegedAccount("name", "platform", "safe", secretType="invalid")
+
+
 class TestUtilities(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
+        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
         self.vault = aiobastion.EPV(tests.CONFIG)
         await self.vault.login()
 
