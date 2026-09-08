@@ -64,6 +64,16 @@ Run the live integration tests only when the environment variables above are set
 uv run --group test pytest tests/test_accounts.py tests/test_cyberark.py tests/test_safe.py
 ```
 
+Build the documentation locally with warnings treated as errors:
+
+```bash
+uv run --locked --extra docs sphinx-build -W -b html docs /tmp/aiobastion-docs
+```
+
+Documentation is built automatically for pushes and pull requests targeting
+the `main` or `dev` branches. Read the Docs publishes the configured branch
+after its build succeeds.
+
 ### Prepare CyberArk to Run the Testing
 #### Test Accounts and Permissions
 You need an API user, such as **"admin_bot"**, to run the testing. This account is similar to Administrator for
@@ -122,3 +132,15 @@ backend my_backend
 ## Update documentation
 
 If your commit has an impact on documentation, please don't forget to update it accordingly.
+
+## Releases
+
+Releases are published to PyPI from GitHub Releases. Update the version in
+`pyproject.toml`, merge the change, create a matching tag such as `v0.1.10`,
+and publish the GitHub Release. The release workflow verifies that the tag and
+package version match, builds both wheel and source distributions, checks them
+with Twine, and publishes through PyPI Trusted Publishing.
+
+The repository must be configured as a PyPI trusted publisher for the
+`pypa/gh-action-pypi-publish` workflow, using the `pypi` GitHub environment.
+No PyPI API token is stored in GitHub Actions.

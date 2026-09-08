@@ -6,38 +6,36 @@
 # OS path commands should be uncommented in conf.py file
 # so that html utility could access the right project files to
 # generate documentation.
-import os
+from pathlib import Path
 import sys
-sys.path.insert(0, os.path.abspath('..'))
 
 
-# -- Project information -----------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
 
-project = 'aiobastion'
-copyright = '2023, Gautier Léveillé'
-author = 'Gautier Léveillé'
-
-# -- General configuration ---------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+project = "aiobastion"
+copyright = "2023, Gautier Léveillé"
+author = "Gautier Léveillé"
+language = "en"
+html_title = "aiobastion documentation"
 
 extensions = [
-    'sphinx_rtd_theme',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode'
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
 ]
 
+templates_path = ["_templates"]
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
-# Custom adds
 add_module_names = False
+autodoc_member_order = "bysource"
+autodoc_typehints = "description"
 
-
-# -- Options for HTML output -------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-#
-# html_theme = 'alabaster'
-# html_static_path = ['_static']
-html_theme = 'sphinx_rtd_theme'
+html_theme = "furo"
+html_theme_options = {
+    "source_repository": "https://github.com/gira0/cyberark-async",
+    "source_branch": "dev",
+    "source_directory": "docs/",
+}

@@ -55,7 +55,7 @@ class TestEPV(IsolatedAsyncioTestCase):
         PVWA_CONFIG = '../../confs/config_test_pvwa_only.yml'
         self.vault = aiobastion.EPV(PVWA_CONFIG)
         with self.assertRaises(aiobastion.exceptions.GetTokenException):
-            await self.vault.login(username="admin", password="wrong_password")
+            await self.vault.login(username="admin", password=os.getenv("AIOBASTION_TEST_PASSWORD", ""))
         # For a relevant test we need a correct login password that we cant display in code
         # It could be stored in a test safe. For now, we use a wrong password ane assert token exception.
         # self.assertTrue(await self.vault.check_token())

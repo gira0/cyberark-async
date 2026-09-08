@@ -54,7 +54,7 @@ class TestEPV(IsolatedAsyncioTestCase):
         self.skipTest("Need harcoded credentials")
         PVWA_CONFIG = '../../confs/config_test_pvwa_only.yml'
         self.vault = aiobastion.EPV(PVWA_CONFIG)
-        await self.vault.login(username="admin", password="Cyberark1")
+        await self.vault.login(username="admin", password=os.getenv("AIOBASTION_TEST_PASSWORD", ""))
         print(await self.vault.safe.list())
         self.assertTrue(await self.vault.check_token())
 

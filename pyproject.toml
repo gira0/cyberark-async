@@ -1,6 +1,6 @@
 [project]
-name = "aiobastion"
-version = "0.1.9"
+name = "cyberark-async"
+version = "0.1.10a1"
 description = "Manage your Cyberark implementation"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -34,8 +34,14 @@ classifiers = [
 ]
 
 dependencies = [ # Optional
-  "pyyaml",
-  "aiohttp",
+  "pyyaml>=6.0.3",
+  "aiohttp>=3.14.3",
+]
+
+[project.optional-dependencies]
+docs = [
+  "furo>=2025.9.25",
+  "sphinx>=8.2",
 ]
 
 [dependency-groups]
@@ -53,9 +59,9 @@ test = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/gira0/aiobastion"
-"Bug Reports" = "https://github.com/gira0/aiobastion/issues"
-"Source" = "https://github.com/gira0/aiobastion/"
+"Homepage" = "https://github.com/gira0/cyberark-async"
+"Bug Reports" = "https://github.com/gira0/cyberark-async/issues"
+"Source" = "https://github.com/gira0/cyberark-async/"
 
 [project.scripts]
 

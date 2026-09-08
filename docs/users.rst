@@ -1,5 +1,10 @@
 User Management
 ======================
+
+Manage Vault users and groups asynchronously through the ``EPV.user`` and
+``EPV.group`` interfaces. The API reference below is grouped by the resource
+you want to manage.
+
 Users
 ---------------------------
 .. currentmodule:: aiobastion.users.User
