@@ -13,3 +13,9 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     versioning-strategy: increase-if-necessary
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

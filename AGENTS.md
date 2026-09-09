@@ -17,10 +17,14 @@
 - Refresh `uv.lock` with `uv lock` after dependency changes. Resolution is intentionally limited by `exclude-newer` in `pyproject.toml`.
 - Make focused changes and run the narrowest relevant test file first, then the full offline suite when practical.
 
+## Collaboration
+
+- Call out clear typos, naming mismatches, and other obvious inconsistencies before applying the requested change, especially when they could create confusing filenames, commands, or public references.
+
 ## Versioning and Releases
 
 - Use calendar versioning for releases: `YYYY.MM.DD`, with PEP 440 prerelease suffixes such as `a1`, `b1`, or `rc1` when needed.
-- The current initial alpha version is `2026.09.08a1`; its Git tag is `v2026.09.08a1`.
+- The current initial alpha version is `2026.09.09a1`; its Git tag is `v2026.09.09a1`.
 - The GitHub release workflow requires the tag to exactly match the version in `pyproject.toml`.
 - Publish through GitHub Releases and PyPI Trusted Publishing; do not add PyPI API tokens to the repository or workflow.
 

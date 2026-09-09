@@ -1,0 +1,11 @@
+{
+  "name": "cyberark-async-contract-tests",
+  "private": true,
+  "description": "Offline API contract testing for cyberark-async",
+  "scripts": {
+    "prism": "prism mock tests/test_data/cyberark-pvwa-swagger.json"
+  },
+  "devDependencies": {
+    "@stoplight/prism-cli": "5.15.11"
+  }
+}

@@ -24,7 +24,7 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
 
-      - name:  Setup Snyk  🐕
+      - name:  Setup Snyk 🐕
         uses: snyk/actions/setup@master
 
       - name: Snyk dependency scan 🛡️

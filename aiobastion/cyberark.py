@@ -3,7 +3,6 @@ import logging
 import os.path
 import asyncio
 import json
-import ssl
 from typing import Tuple, Optional, Union
 
 from aiohttp import ContentTypeError
@@ -24,6 +23,7 @@ from .system_health import SystemHealth
 from .users import User, Group
 from .utilities import Utilities
 from .session_management import SessionManagement
+from .http_session import HttpSession
 
 class EPV:
     """ Class that represent the connection, or future connection, to the Vault.
@@ -72,6 +72,7 @@ class EPV:
 
         # Execution parameters
         self.request_params = None  # timeout & ssl setup default value
+        self._http = HttpSession()
 
         # Session management
         self.session = None
@@ -253,29 +254,10 @@ class EPV:
                     f"CA certificat File not found {self.verify!r} (Parameter 'verify' in PVWA).")
 
     def validate_and_setup_ssl(self):
-        if self.verify is None:
-            self.verify = Config.CYBERARK_DEFAULT_VERIFY
-
-        if not (isinstance(self.verify, str) or isinstance(self.verify, bool)):
-            raise AiobastionException(
-                f"Invalid type for parameter 'verify' (or 'CA') in PVWA: {type(self.verify)} value: {self.verify!r}")
-
-        if isinstance(self.verify, str):
-            if not os.path.exists(self.verify):
-                raise AiobastionException(
-                    f"CA certificat File not found {self.verify!r} (Parameter 'verify' in PVWA).")
-
-            if os.path.isdir(self.verify):
-                self.request_params = {"timeout": self.timeout,
-                                       "ssl": ssl.create_default_context(capath=self.verify)}
-            else:
-                self.request_params = {"timeout": self.timeout,
-                                       "ssl": ssl.create_default_context(cafile=self.verify)}
-        elif self.verify:  # True
-            self.request_params = {"timeout": self.timeout,
-                                   "ssl": ssl.create_default_context()}
-        else:  # False
-            self.request_params = {"timeout": self.timeout, "ssl": False}
+        self._http.max_concurrent_tasks = self.max_concurrent_tasks
+        self._http.timeout = self.timeout
+        self._http.setup_ssl(self.verify)
+        self.request_params = self._http.request_params
 
     # Context manager
     async def __aenter__(self):
@@ -322,7 +304,7 @@ class EPV:
                 # only by recreating a new session (or passing the headers on each request). However, since the session
                 # token is only recognized by the PVWA instance that issued the token, load-balancers need to enable session
                 # stickiness which is often done with cookies.
-                await session.close()
+                await self._http.close()
                 return tok.replace('"', '')
 
         except ChallengeResponseException:
@@ -618,33 +600,12 @@ class EPV:
         #     await self.close_session()
 
     def get_session(self):
-        self.logger.debug(f"Getting aiobastion session ({self.session})")
-        if self.__token is None and self.session is None:
-            head = {"Content-type": "application/json", "Authorization": "None"}
-            self.session = aiohttp.ClientSession(headers=head)
-            self.logger.debug(f"Building session ID : {self.session}")
-        elif self.__token is None and self.session is not None:
-            # This should never happen
-            return self.session
-        elif self.session is None:
-            head = {'Content-type': 'application/json',
-                    'Authorization': self.__token}
-            self.session = aiohttp.ClientSession(headers=head, cookies=self.cookies)
-            self.logger.debug(f"Building session ID (token is known) : {self.session}")
-
-        elif self.session.closed:
-            # This should never happen, but it's a security in case of unhandled exceptions
-            self.logger.debug("Never happens scenario happened (Session closed but not None)")
-            head = {'Content-type': 'application/json',
-                    'Authorization': self.__token}
-            self.session = aiohttp.ClientSession(headers=head, cookies=self.cookies)
-
-        if self.__sema is None:
-            self.__sema = asyncio.Semaphore(self.max_concurrent_tasks)
-
-            if self.AIM:
-                self.AIM.set_semaphore(self.__sema, self.session)
-
+        self._http.max_concurrent_tasks = self.max_concurrent_tasks
+        self._http.timeout = self.timeout
+        self.session = self._http.get_session(token=self.__token, cookies=self.cookies)
+        self.__sema = self._http.semaphore
+        if self.AIM:
+            self.AIM.set_semaphore(self.__sema, self.session)
         return self.session
 
     async def close_session(self):
@@ -653,8 +614,7 @@ class EPV:
             if self.AIM:  # This is used, at least, when login is perform
                 await self.AIM.close_aim_session()
 
-            if self.session:
-                await self.session.close()
+            await self._http.close()
         except (CyberarkException, AttributeError):
             pass
         self.session = None

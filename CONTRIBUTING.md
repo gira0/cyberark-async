@@ -58,6 +58,19 @@ Run the pure unit and config tests without any CyberArk environment:
 uv run --group test pytest tests/test_config_value.py tests/test_utilities.py
 ```
 
+Run the offline API contract test with the local Swagger mock:
+
+```bash
+npm ci --ignore-scripts
+npm run prism -- --host 127.0.0.1 --port 4010
+AIOBASTION_PRISM_URL=http://127.0.0.1:4010 uv run --group test pytest tests/test_prism_contract.py
+```
+
+The Prism CLI and its npm dependency tree are used only for contract testing;
+they are not runtime dependencies of the Python package. The GitHub Actions
+contract workflow starts Prism on localhost and runs the same test against
+`tests/test_data/cyberark-pvwa-swagger.json`.
+
 Run the live integration tests only when the environment variables above are set:
 
 ```bash
@@ -137,7 +150,7 @@ If your commit has an impact on documentation, please don't forget to update it 
 
 Releases are published to PyPI from GitHub Releases. Update the version in
 `pyproject.toml`, merge the change, create a matching CalVer tag such as
-`v2026.09.08a1`,
+`v2026.09.09a1`,
 and publish the GitHub Release. The release workflow verifies that the tag and
 package version match, builds both wheel and source distributions, checks them
 with Twine, and publishes through PyPI Trusted Publishing.

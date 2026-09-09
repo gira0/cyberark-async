@@ -1,8 +1,6 @@
-import asyncio
 import copy
 import json
 import os
-import ssl
 from collections import namedtuple
 from http import HTTPStatus
 from typing import Union, Tuple, Optional
@@ -12,6 +10,7 @@ from aiohttp import ContentTypeError
 
 from .exceptions import AiobastionException, CyberarkException, CyberarkAPIException, CyberarkAIMnotFound, AiobastionConfigurationException
 from .config import Config, validate_integer
+from .http_session import HttpSession
 # from .cyberark import EPV
 
 # AIM section
@@ -88,6 +87,7 @@ class EPV_AIM:
         self.__sema = None
         self.session = None
         self.request_params = None
+        self._http = HttpSession(max_concurrent_tasks=max_concurrent_tasks, timeout=timeout)
 
         if serialized:
             for k, v in serialized.items():
@@ -222,7 +222,7 @@ class EPV_AIM:
         if self.host is None or \
            self.appid is None or \
            self.cert is None:
-            raise AiobastionException(f"Missing AIM mandatory parameters. "
+            raise AiobastionException("Missing AIM mandatory parameters. "
                                        "Required parameters are: host, appid, cert.")
 
         if not os.path.exists(self.cert):
@@ -232,38 +232,12 @@ class EPV_AIM:
             raise AiobastionException(f"Parameter 'key' in AIM: Private key certificat file not found: {self.key!r}")
 
         # Set verify if it is not set
-        if self.verify is None:
-            self.verify = Config.CYBERARK_DEFAULT_VERIFY
-
-        if not (isinstance(self.verify, str) or isinstance(self.verify, bool)):
-            raise AiobastionException(
-                f"Invalid type for parameter 'verify' in AIM: {type(self.verify)} value: {self.verify!r}")
-
-        if (isinstance(self.verify, str) and not os.path.exists(self.verify)):
-            raise AiobastionException(f"Parameter 'verify' in AIM: file not found {self.verify!r}")
-
-        if isinstance(self.verify, str):
-            if not os.path.exists(self.verify):
-                raise AiobastionException(f"Parameter 'verify' in AIM: file not found {self.verify!r}")
-
-            if os.path.isdir(self.verify):
-                ssl_context = ssl.create_default_context(capath=self.verify)
-            else:
-                ssl_context = ssl.create_default_context(cafile=self.verify)
-        else:  # True or False
-            ssl_context = ssl.create_default_context()
-
-            if not self.verify:  # False
-                ssl_context.check_hostname = False
-
-        # if self.key is None:
-        #     ssl_context.load_cert_chain(self.cert, keyfile=self.key, password=self.passphrase)
-        # else:
-        ssl_context.load_cert_chain(self.cert, keyfile=self.key, password=self.passphrase)
-
-        self.request_params = \
-            {"timeout": self.timeout,
-             "ssl": ssl_context}
+        self._http.max_concurrent_tasks = self.max_concurrent_tasks
+        self._http.timeout = self.timeout
+        self._http.setup_ssl_with_client_cert(
+            self.verify, self.cert, self.key, self.passphrase
+        )
+        self.request_params = self._http.request_params
 
     @staticmethod
     def valid_secret_params(params: dict = None) -> str:
@@ -322,26 +296,17 @@ class EPV_AIM:
         await self.close_aim_session()
 
     def get_aim_session(self):
-        if self.session is None:
-            if self.request_params is None:
-                self.validate_and_setup_aim_ssl()
-                # Previously we tried to use aiohttp session,
-                # but now we are always doing our own session for AIM
-                # TODO: test this with aiohttp.ClientSession(cookies = self.cookies)
-            self.session = aiohttp.ClientSession()
-
-        if self.__sema is None:
-            self.__sema = asyncio.Semaphore(self.max_concurrent_tasks)
-
+        if self.request_params is None:
+            self.validate_and_setup_aim_ssl()
+        self._http.max_concurrent_tasks = self.max_concurrent_tasks
+        self._http.timeout = self.timeout
+        self.session = self._http.get_anonymous_session()
+        self.__sema = self.__sema or self._http.semaphore
         return self.session
 
     async def close_aim_session(self):
         try:
-            if self.session:
-                # Are we using the epv.session, if so don't close it
-                # if self.epv is None or self.epv.session is None or \
-                #         (self.epv.session and self.epv.session != self.session):
-                await self.session.close()
+            await self._http.close()
         except (CyberarkException, AttributeError):
             pass
 
