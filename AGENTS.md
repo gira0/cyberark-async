@@ -24,7 +24,7 @@
 ## Versioning and Releases
 
 - Use calendar versioning for releases: `YYYY.MM.DD`, with PEP 440 prerelease suffixes such as `a1`, `b1`, or `rc1` when needed.
-- The current initial alpha version is `2026.09.09a1`; its Git tag is `v2026.09.09a1`.
+- The current initial alpha version is `2026.09.09a2`; its Git tag is `v2026.09.09a2`.
 - The GitHub release workflow requires the tag to exactly match the version in `pyproject.toml`.
 - Publish through GitHub Releases and PyPI Trusted Publishing; do not add PyPI API tokens to the repository or workflow.
 
