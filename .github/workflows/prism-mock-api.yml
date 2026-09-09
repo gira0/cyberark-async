@@ -24,7 +24,10 @@ jobs:
           cache: npm
 
       - name: Install Prism
-        run: npm ci --ignore-scripts
+        run: |
+          mkdir -p /tmp/prism
+          cp package.json package-lock.json /tmp/prism/
+          npm ci --ignore-scripts --prefix /tmp/prism
 
       - name: Install uv
         uses: astral-sh/setup-uv@557e51de59eb14aaaba2ed9621916900a91d50c6 # v6.6.1
@@ -36,7 +39,7 @@ jobs:
 
       - name: Start Prism
         run: |
-          npx prism mock tests/test_data/cyberark-pvwa-swagger.json \
+          /tmp/prism/node_modules/.bin/prism mock tests/test_data/cyberark-pvwa-swagger.json \
             --host 127.0.0.1 --port 4010 > prism.log 2>&1 &
           echo $! > prism.pid
           curl --fail --silent --show-error --retry 30 --retry-all-errors \
