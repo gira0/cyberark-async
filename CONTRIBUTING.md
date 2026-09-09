@@ -71,6 +71,29 @@ they are not runtime dependencies of the Python package. The GitHub Actions
 contract workflow starts Prism on localhost and runs the same test against
 `tests/test_data/cyberark-pvwa-swagger.json`.
 
+Run the PVWA API support report locally:
+
+```bash
+uv run --group test pytest tests/test_api_support_report.py -q -s
+```
+
+The report compares the reviewed operation manifest with the Swagger fixture.
+The workflow adds it to the Actions job summary and comments on same-repository
+pull requests. AIM and legacy `WebServices` routes are intentionally outside
+this PVWA percentage.
+
+The two manifest files serve different purposes:
+
+- `tests/test_data/support_manifest.json` is the current list of supported PVWA
+  method and path pairs.
+- `tests/test_data/support_manifest_baseline.json` is the regression baseline;
+  the test fails if a baseline operation disappears from the current manifest.
+
+When adding a supported operation, update both files after verifying the
+implementation against the Swagger method and path. When removing support
+intentionally, remove the operation from both files and document the breaking
+change.
+
 Run the live integration tests only when the environment variables above are set:
 
 ```bash

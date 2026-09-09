@@ -9,6 +9,7 @@ name: Mock API tests
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   contract-test:
@@ -50,6 +51,41 @@ jobs:
         env:
           AIOBASTION_PRISM_URL: http://127.0.0.1:4010
         run: uv run --locked --group test pytest tests/test_prism_contract.py -q
+
+      - name: Run API support report
+        run: |
+          uv run --locked --group test pytest tests/test_api_support_report.py -q -s \
+            | tee api-support-report.md
+          {
+            echo "## CyberArk PVWA API support"
+            cat api-support-report.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment API support on same-repository PR
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo "## CyberArk PVWA API support"
+            cat api-support-report.md
+            echo "<!-- aiobastion-api-support-report -->"
+          } > api-support-comment.md
+          gh api --paginate \
+            "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            --jq '.[] | select(.body | contains("aiobastion-api-support-report")) | .id' \
+            | while read -r comment_id; do
+                gh api --method PATCH \
+                  "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" \
+                  -f body="$(cat api-support-comment.md)"
+              done
+          if ! gh api --paginate \
+            "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            --jq '.[] | select(.body | contains("aiobastion-api-support-report")) | .id' \
+            | grep -q .; then
+            gh pr comment "$PR_NUMBER" --body-file api-support-comment.md
+          fi
 
       - name: Stop Prism
         if: always()
