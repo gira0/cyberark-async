@@ -136,7 +136,8 @@ If your commit has an impact on documentation, please don't forget to update it 
 ## Releases
 
 Releases are published to PyPI from GitHub Releases. Update the version in
-`pyproject.toml`, merge the change, create a matching tag such as `v0.1.10`,
+`pyproject.toml`, merge the change, create a matching CalVer tag such as
+`v2026.09.08a1`,
 and publish the GitHub Release. The release workflow verifies that the tag and
 package version match, builds both wheel and source distributions, checks them
 with Twine, and publishes through PyPI Trusted Publishing.

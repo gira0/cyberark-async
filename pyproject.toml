@@ -1,6 +1,6 @@
 [project]
 name = "cyberark-async"
-version = "0.1.10a1"
+version = "2026.09.08a1"
 description = "Manage your Cyberark implementation"
 readme = "README.md"
 requires-python = ">=3.12"
