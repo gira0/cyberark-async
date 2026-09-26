@@ -15,7 +15,7 @@
 ## How to contribute
 
 Any kind of contribution is welcomed. Because this project is quite new the best way to contribute right now is to start to use this module and give feedback about it.
- 
+
 
 ## Bugs and issues
 
@@ -23,12 +23,19 @@ If ou find an error, a bug or an issue, feel free to [log an issue][new-issue]
 
 ## Code contribution
 
+`main` is the only long-lived branch. All work happens on short-lived feature
+branches that are merged into `main` through pull requests.
+
 If you wish to contribute with code the workflow is :
 - Clone the Github repo
+- Create a feature branch from the latest `main`, named after the change, e.g.
+  `fix/safe-details-include-accounts`, `feat/ssh-key-reason`, `chore/ci-tests`
+  or `docs/readme-rename`
 - Make any change
 - Make sure [all tests are passed](#test)
-- [Update documentation](#updating-documentation)
-- Submit a pull request the dev branch
+- [Update documentation](#update-documentation)
+- Submit a pull request to the `main` branch
+- Delete the feature branch once the pull request is merged
 
 ## Test
 
@@ -107,7 +114,7 @@ uv run --locked --extra docs sphinx-build -W -b html docs /tmp/aiobastion-docs
 ```
 
 Documentation is built automatically for pushes and pull requests targeting
-the `main` or `dev` branches. Read the Docs publishes the configured branch
+the `main` branch. Read the Docs publishes the configured branch
 after its build succeeds.
 
 ### Prepare CyberArk to Run the Testing
@@ -159,7 +166,7 @@ backend my_backend
 ```
 ### Troubleshoot Test Issues
 * `PASWS167E There are some invalid parameters`: The secrets should not include "," or "<".
-* `PASWS159E Parameter [manualManagementReason] cannot be specified with parameter [enableAutomaticManagement]=[True]`: 
+* `PASWS159E Parameter [manualManagementReason] cannot be specified with parameter [enableAutomaticManagement]=[True]`:
   all the test accounts the "manualManagementReason" need to be empty, if `enableAutomaticManagement == True`.
 * `The number of concurrent dynamic sessions for user admin_bot has reached its limit (300)`: Make sure the tearDown
   logs off.
