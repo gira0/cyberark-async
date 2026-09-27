@@ -18,11 +18,11 @@ from .config import Config, validate_integer, validate_bool
 from .exceptions import (
     CyberarkException,
     GetTokenException,
-    AiobastionException,
+    CyberarkAsyncException,
     CyberarkAPIException,
     ChallengeResponseException,
     CyberarkAIMnotFound,
-    AiobastionConfigurationException,
+    CyberarkAsyncConfigurationException,
     CyberarkNotFoundException,
 )
 from .platforms import Platform
@@ -60,7 +60,7 @@ class EPV:
         serialized: Optional[dict] = None,
     ):
         # Logging stuff
-        logger: logging.Logger = logging.getLogger("aiobastion")
+        logger: logging.Logger = logging.getLogger("cyberark_async")
         self.logger = logger
 
         # PVWA initialization (this initialization is only for pylint)
@@ -137,7 +137,7 @@ class EPV:
         from configuration file or serialization
 
         :param serialized:      Dictionary of the serialized attributes
-        :raise AiobastionConfigurationException:  Invalid string or boolean value
+        :raise CyberarkAsyncConfigurationException:  Invalid string or boolean value
         :return:                Dictionary of the EPV attributes class to define
 
 
@@ -200,7 +200,7 @@ class EPV:
 
             if k in ["api_host", "host"]:
                 if self.api_host:
-                    raise AiobastionConfigurationException(
+                    raise CyberarkAsyncConfigurationException(
                         f"Duplicate parameter '{section_name(k)}' in {self.config.config_source}. Specify only one."
                     )
 
@@ -214,7 +214,7 @@ class EPV:
             elif k == "maxtasks" or k == "max_concurrent_tasks":
                 if k == "maxtasks" and self.api_options.deprecated_warning:
                     warnings.warn(
-                        f"aiobastion - Deprecated parameter '{section_name(k)}' use 'max_concurrent_tasks' parameter instead.",
+                        f"cyberark_async - Deprecated parameter '{section_name(k)}' use 'max_concurrent_tasks' parameter instead.",
                         DeprecationWarning,
                         stacklevel=3,
                     )
@@ -225,7 +225,7 @@ class EPV:
                 )
 
                 if synonym_max_concurrent_tasks > 1:
-                    raise AiobastionConfigurationException(
+                    raise CyberarkAsyncConfigurationException(
                         f"Duplicate synonym parameter '{section_name(k)}': "
                         f"in {self.config.config_source}. Specify only 'max_concurrent_tasks' and remove 'maxtasks'."
                     )
@@ -244,7 +244,7 @@ class EPV:
                 err = EPV_AIM.valid_secret_params(v)
 
                 if err:
-                    raise AiobastionConfigurationException(
+                    raise CyberarkAsyncConfigurationException(
                         f"invalid parameter in '{section_name(k)}': {err}"
                     )
 
@@ -256,26 +256,26 @@ class EPV:
                 if isinstance(v, str) or isinstance(v, bool):
                     self.verify = v
                 else:
-                    raise AiobastionConfigurationException(
+                    raise CyberarkAsyncConfigurationException(
                         f"Parameter type invalid '{section_name(k)}' "
                         f"in {self.config.config_source}: {v!r}"
                     )
 
                 if k == "ca" and self.api_options.deprecated_warning:
                     warnings.warn(
-                        f"aiobastion - Deprecated parameter '{section_name(k)}' use 'verify' parameter instead.",
+                        f"cyberark_async - Deprecated parameter '{section_name(k)}' use 'verify' parameter instead.",
                         DeprecationWarning,
                         stacklevel=3,
                     )
 
                 if synonym_verify > 1:
-                    raise AiobastionConfigurationException(
+                    raise CyberarkAsyncConfigurationException(
                         f"Duplicate synonym parameter '{section_name(k)}': "
                         f"in {self.config.config_source}. Specify only 'verifiy' and remove 'ca'."
                     )
 
             else:
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     f"Unknown attribute '{k}' in {self.config.config_source}: {v!r}"
                 )
 
@@ -294,7 +294,7 @@ class EPV:
 
         if isinstance(self.verify, str):
             if not os.path.exists(self.verify):
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     f"CA certificat File not found {self.verify!r} (Parameter 'verify' in PVWA)."
                 )
 
@@ -317,9 +317,9 @@ class EPV:
         self, username: str, password: str, auth_type: str
     ) -> str:
         if self.__token is not None:
-            raise AiobastionException("Token is already set for this EPV instance")
+            raise CyberarkAsyncException("Token is already set for this EPV instance")
         if auth_type.upper() not in ("CYBERARK", "WINDOWS", "LDAP", "RADIUS"):
-            raise AiobastionException(f"Unsupported auth_type {auth_type!r}")
+            raise CyberarkAsyncException(f"Unsupported auth_type {auth_type!r}")
         url, head = self.get_url("API/Auth/" + auth_type + "/Logon")
         request_data = {
             "username": username,
@@ -464,19 +464,19 @@ class EPV:
                   the PVWA user.  Refer to  `CyberArk Central Credential Provider - REST web service`_.
 
         :raise GetTokenException: Logon error
-        :raise AiobastionException: AIM configuration setup error
+        :raise CyberarkAsyncException: AIM configuration setup error
         :raise CyberarkException: Runtime error
         """
         # For compatibility with older versions
         if verify is not None and root_ca is not None and verify != root_ca:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 "You can't specify both parameters: 'verify' and 'root_ca'."
             )
 
         if root_ca is not None:
             if self.api_options.deprecated_warning:
                 warnings.warn(
-                    "aiobastion - Deprecated parameter 'root_ca' in login_with_aim function use 'verify' parameter instead.",
+                    "cyberark_async - Deprecated parameter 'root_ca' in login_with_aim function use 'verify' parameter instead.",
                     DeprecationWarning,
                     stacklevel=2,
                 )
@@ -566,7 +566,7 @@ class EPV:
 
         # Check mandatory attributs
         if self.AIM.host is None or self.AIM.appid is None or self.AIM.cert is None:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 "Missing AIM mandatory parameters: host, appid, cert."
             )
 
@@ -575,7 +575,7 @@ class EPV:
             username = self.username
 
         if username is None:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 "Username must be provided on login_with_aim call or in configuration file."
             )
 
@@ -594,7 +594,7 @@ class EPV:
             CyberarkAIMnotFound,
             CyberarkAPIException,
             CyberarkException,
-            AiobastionException,
+            CyberarkAsyncException,
         ) as err:
             raise GetTokenException(str(err)) from err
 
@@ -617,7 +617,7 @@ class EPV:
                   the PVWA user.  Refer to  `CyberArk Central Credential Provider - REST web service`_.
 
         :raise GetTokenException: Logon error
-        :raise AiobastionException: AIM configuration setup error
+        :raise CyberarkAsyncException: AIM configuration setup error
         :raise ChallengeResponseException: User should enter passcode now
         """
 
@@ -625,13 +625,13 @@ class EPV:
             return
 
         if self.api_host is None:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 "Host must be provided in configuration file or in EPV(serialized={'api_host: 'CyberArk-host'})."
             )
 
         if username is None:
             if self.username is None:
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     "Username must be provided on login call or in configuration file."
                     " You may also configure the AIM section."
                 )
@@ -654,7 +654,7 @@ class EPV:
                 self.password = None
             else:
                 if not self.AIM:
-                    raise AiobastionException(
+                    raise CyberarkAsyncException(
                         "Password must be provided on login call or in configuration file."
                         " You may configure the AIM section or call the login_with_aim function."
                     )
@@ -826,7 +826,7 @@ class EPV:
         :return:
         """
         if method.lower() not in ("post", "delete", "get", "patch", "put"):
-            raise AiobastionException(f"Unsupported HTTP method {method!r}")
+            raise CyberarkAsyncException(f"Unsupported HTTP method {method!r}")
 
         url, head = self.get_url(short_url)
 

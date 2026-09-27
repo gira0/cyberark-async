@@ -7,7 +7,7 @@ import aiohttp
 from .exceptions import (
     CyberarkException,
     CyberarkAPIException,
-    AiobastionConfigurationException,
+    CyberarkAsyncConfigurationException,
 )
 
 
@@ -25,7 +25,7 @@ class Platform:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
             )
 

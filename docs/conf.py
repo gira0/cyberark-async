@@ -13,11 +13,11 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-project = "aiobastion"
+project = "cyberark-async"
 copyright = "2023, Gautier Léveillé"
 author = "Gautier Léveillé"
 language = "en"
-html_title = "aiobastion documentation"
+html_title = "cyberark-async documentation"
 
 extensions = [
     "sphinx.ext.autodoc",

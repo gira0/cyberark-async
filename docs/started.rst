@@ -25,7 +25,7 @@ Example 1: Find all red accounts in a particular safe and verify them
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: python
 
-    production = aiobastion.EPV("path/to/config.yml")
+    production = cyberark_async.EPV("path/to/config.yml")
     async with production as vault:
         # Returns a list of all accounts in the safe
         safe_account = await vault.account.search_account_by(safe="dba-admin-safe")
@@ -41,7 +41,7 @@ Example 2 : Link all account named "root" to a Logon account "admin"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: python
 
-    production = aiobastion.EPV("path/to/config.yml")
+    production = cyberark_async.EPV("path/to/config.yml")
     async with production as vault:
         # Returns a list of all root accounts in the safe
         root_accounts = await vault.account.search_account_by(safe="linux-safe", username="root")
@@ -79,7 +79,7 @@ Do this :
 .. code-block:: python
 
     # Perform a CPM change a list of accounts for specific host (here host_list) in a specific safe
-    production = aiobastion.EPV("path/to/config.yml")
+    production = cyberark_async.EPV("path/to/config.yml")
     async with production as vault:
         # Dump all safe in a list of account
         admin_accounts = await vault.account.search_account_by(safe="Admins-Accounts-Safe")
@@ -95,7 +95,7 @@ Don't do this :
 
 .. code-block:: python
 
-    production = aiobastion.EPV("path/to/config.yml")
+    production = cyberark_async.EPV("path/to/config.yml")
     async with production as vault:
         # Initiate an empty task list
         tasks_list = []

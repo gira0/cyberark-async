@@ -8,17 +8,17 @@ import unittest
 from unittest import IsolatedAsyncioTestCase
 
 
-# import aiobastion.EPV
+# import cyberark_async.EPV
 import tests
-from aiobastion.exceptions import (
+from cyberark_async.exceptions import (
     CyberarkAPIException,
     CyberarkException,
-    AiobastionException,
+    CyberarkAsyncException,
     CyberarkAIMnotFound,
 )
-from aiobastion.accounts import PrivilegedAccount
-from aiobastion.accountgroup import PrivilegedAccountGroup
-from aiobastion import EPV
+from cyberark_async.accounts import PrivilegedAccount
+from cyberark_async.accountgroup import PrivilegedAccountGroup
+from cyberark_async import EPV
 from typing import List, Union
 
 privileged = PrivilegedAccount(
@@ -55,7 +55,7 @@ recon = PrivilegedAccount(
 
 class TestAccount(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
+        tests.require_integration_tests(tests.CONFIG, "CYBERARK_ASYNC_TEST_CONFIG")
         self.vault = EPV(tests.CONFIG)
         await self.vault.login()
 
@@ -547,13 +547,13 @@ class TestAccount(IsolatedAsyncioTestCase):
     async def test_restore_last_cpm_version(self):
         # Unfortunately we have no CPM working on sample accounts
         account = await self.get_random_account()
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             await self.vault.account.restore_last_cpm_version(account, "CPM")
 
     async def test_restore_last_cpm_version_by_cpm(self):
         # Unfortunately we have no CPM working on sample accounts
         account = await self.get_random_account()
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             await self.vault.account.restore_last_cpm_version_by_cpm(account, "CPM")
 
     async def test_get_password_version(self):

@@ -3,14 +3,14 @@ import asyncio
 import os
 import unittest
 from unittest import IsolatedAsyncioTestCase, mock
-import aiobastion
+import cyberark_async
 import tests
 
 
 class TestEPV(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
-        self.vault = aiobastion.EPV(tests.CONFIG)
+        tests.require_integration_tests(tests.CONFIG, "CYBERARK_ASYNC_TEST_CONFIG")
+        self.vault = cyberark_async.EPV(tests.CONFIG)
         await self.vault.login()
 
     async def asyncTearDown(self):
@@ -37,7 +37,7 @@ class TestEPV(IsolatedAsyncioTestCase):
             self.skipTest("AIM_CONFIG is not set in init file")
         await self.vault.logoff()
         self.assertFalse(await self.vault.check_token())
-        self.vault = aiobastion.EPV(tests.AIM_CONFIG)
+        self.vault = cyberark_async.EPV(tests.AIM_CONFIG)
         await self.vault.login()
         self.assertTrue(await self.vault.check_token())
         await self.vault.close_session()
@@ -49,7 +49,7 @@ class TestEPV(IsolatedAsyncioTestCase):
         self.skipTest("Need harcoded credentials")
         config = {"api_host": "pvwa.acme.fr"}
 
-        production_vault = aiobastion.EPV(serialized=config)
+        production_vault = cyberark_async.EPV(serialized=config)
         await production_vault.login("admin", "Cyberark1")
         async with production_vault as epv:
             print(await epv.safe.list())
@@ -57,9 +57,9 @@ class TestEPV(IsolatedAsyncioTestCase):
     async def test_login_pvwa_only(self):
         self.skipTest("Need harcoded credentials")
         PVWA_CONFIG = "../../confs/config_test_pvwa_only.yml"
-        self.vault = aiobastion.EPV(PVWA_CONFIG)
+        self.vault = cyberark_async.EPV(PVWA_CONFIG)
         await self.vault.login(
-            username="admin", password=os.getenv("AIOBASTION_TEST_PASSWORD", "")
+            username="admin", password=os.getenv("CYBERARK_ASYNC_TEST_PASSWORD", "")
         )
         print(await self.vault.safe.list())
         self.assertTrue(await self.vault.check_token())
@@ -102,7 +102,7 @@ class TestSerializedTokenOffline(IsolatedAsyncioTestCase):
     """Offline regression tests for EPV instances built from a serialized token (issue #2)."""
 
     async def test_check_token_sets_up_request_params(self):
-        vault = aiobastion.EPV(
+        vault = cyberark_async.EPV(
             serialized={"api_host": "pvwa.example.invalid", "token": "abc"}
         )
         self.assertIsNone(vault.request_params)
@@ -130,7 +130,7 @@ class TestSerializedTokenOffline(IsolatedAsyncioTestCase):
         with mock.patch(
             "aiohttp.ClientSession.request", new=lambda *a, **kw: _FakeResponse()
         ):
-            async with aiobastion.EPV(
+            async with cyberark_async.EPV(
                 serialized={"api_host": "pvwa.example.invalid", "token": "abc"}
             ) as vault:
                 self.assertIsNotNone(vault.request_params)

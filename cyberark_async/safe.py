@@ -6,8 +6,8 @@ from .config import permissions, DEFAULT_PERMISSIONS, get_v2_profile, validate_i
 from .exceptions import (
     CyberarkAPIException,
     CyberarkException,
-    AiobastionException,
-    AiobastionConfigurationException,
+    CyberarkAsyncException,
+    CyberarkAsyncConfigurationException,
     CyberarkNotFoundException,
 )
 
@@ -36,7 +36,7 @@ class Safe:
         if cpm is None:
             self.cpm = Safe._SAFE_DEFAULT_CPM
         elif not isinstance(cpm, str):
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Invalid attribute '{_section}/cpm' in {_config_source}: "
                 f" must be a string: {cpm!r}"
             )
@@ -45,7 +45,7 @@ class Safe:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
             )
 
@@ -149,7 +149,7 @@ class Safe:
         data = {"MemberName": username, "Permissions": perm, "searchIn": search_in}
 
         if not await self.exists(safe):
-            raise AiobastionException(f'Safe : "{safe}" was not found')
+            raise CyberarkAsyncException(f'Safe : "{safe}" was not found')
 
         try:
             return await self.epv.handle_request("post", url, data=data)
@@ -181,12 +181,12 @@ class Safe:
                 "cpm",
                 "manager",
             ]:
-                raise AiobastionException(f"Unsupported safe profile {profile!r}")
+                raise CyberarkAsyncException(f"Unsupported safe profile {profile!r}")
             perm = permissions(profile)
         else:
             # ensure there is at least one right for the safe username
             if not any(k in profile.keys() for k in DEFAULT_PERMISSIONS.keys()):
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     "Profile dictionary must contain at least one known permission key"
                 )
             perm = profile
@@ -372,7 +372,7 @@ class Safe:
 
         """
         if member_type not in [None, "user", "group"]:
-            raise AiobastionException(f"Invalid member_type : {member_type}")
+            raise CyberarkAsyncException(f"Invalid member_type : {member_type}")
 
         params = {}
         safe_members_filter = []
@@ -451,7 +451,7 @@ class Safe:
                 "requestsAuthorizationLevel2",
             ]
             if filter_perm not in valid_filter:
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     f"filter_perm {filter_perm} is not one of : {valid_filter} "
                 )
 
@@ -564,7 +564,7 @@ class Safe:
             )
         except CyberarkAPIException as err:
             if err.err_code == "CAWS00001E":
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     "Please don't list safes with a user member of PSMMaster (Cyberark bug)"
                 )
             else:
@@ -608,7 +608,7 @@ class Safe:
         :return: A dict of the safe details
         """
         if not safename:
-            raise AiobastionException("A safe name must be provided")
+            raise CyberarkAsyncException("A safe name must be provided")
         return await self.epv.handle_request(
             "get",
             f"API/Safes/{safename}",
@@ -648,7 +648,7 @@ class Safe:
                 _s for _s in found_safes if _s["safeName"].upper() == safename.upper()
             )
         except StopIteration:
-            raise AiobastionException(f"Safe {safename} was not found")
+            raise CyberarkAsyncException(f"Safe {safename} was not found")
 
         safe_url_id = good_safe["safeUrlId"]
         url = f"API/Safes/{safe_url_id}/"

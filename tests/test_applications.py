@@ -2,15 +2,15 @@ import sys
 import unittest
 import asyncio
 from unittest import IsolatedAsyncioTestCase
-import aiobastion
-from aiobastion.exceptions import AiobastionException
+import cyberark_async
+from cyberark_async.exceptions import CyberarkAsyncException
 import tests
 
 
 class TestApplication(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
-        self.vault = aiobastion.EPV(tests.CONFIG)
+        tests.require_integration_tests(tests.CONFIG, "CYBERARK_ASYNC_TEST_CONFIG")
+        self.vault = cyberark_async.EPV(tests.CONFIG)
         await self.vault.login()
 
         self.app_name = "TestApp"
@@ -60,7 +60,7 @@ class TestApplication(IsolatedAsyncioTestCase):
         try:
             app = await self.vault.application.details("TestAp")
         except Exception as err:
-            self.assertIsInstance(err, AiobastionException)
+            self.assertIsInstance(err, CyberarkAsyncException)
 
     async def test_search(self):
         apps = await self.vault.application.search("App")

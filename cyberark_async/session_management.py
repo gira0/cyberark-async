@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .exceptions import (
-    AiobastionConfigurationException,
+    CyberarkAsyncConfigurationException,
 )
 
 
@@ -19,7 +19,7 @@ class SessionManagement:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
             )
 

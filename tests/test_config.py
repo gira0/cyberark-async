@@ -3,14 +3,14 @@ import sys
 import asyncio
 import unittest
 from unittest import IsolatedAsyncioTestCase
-import aiobastion
+import cyberark_async
 import tests
 
 
 class TestEPV(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
-        self.vault = aiobastion.EPV(tests.CONFIG)
+        tests.require_integration_tests(tests.CONFIG, "CYBERARK_ASYNC_TEST_CONFIG")
+        self.vault = cyberark_async.EPV(tests.CONFIG)
         await self.vault.login()
 
     async def asyncTearDown(self):
@@ -37,7 +37,7 @@ class TestEPV(IsolatedAsyncioTestCase):
             self.skipTest("AIM_CONFIG is not set in init file")
         await self.vault.logoff()
         self.assertFalse(await self.vault.check_token())
-        self.vault = aiobastion.EPV(tests.AIM_CONFIG)
+        self.vault = cyberark_async.EPV(tests.AIM_CONFIG)
         await self.vault.login()
         self.assertTrue(await self.vault.check_token())
         await self.vault.close_session()
@@ -49,17 +49,17 @@ class TestEPV(IsolatedAsyncioTestCase):
         self.skipTest("Need harcoded credentials")
         config = {"api_host": "pvwa.acme.fr"}
 
-        production_vault = aiobastion.EPV(serialized=config)
+        production_vault = cyberark_async.EPV(serialized=config)
         await production_vault.login("admin", "Cyberark1")
         async with production_vault as epv:
             print(await epv.safe.list())
 
     async def test_login_pvwa_only(self):
         PVWA_CONFIG = "../../confs/config_test_pvwa_only.yml"
-        self.vault = aiobastion.EPV(PVWA_CONFIG)
-        with self.assertRaises(aiobastion.exceptions.GetTokenException):
+        self.vault = cyberark_async.EPV(PVWA_CONFIG)
+        with self.assertRaises(cyberark_async.exceptions.GetTokenException):
             await self.vault.login(
-                username="admin", password=os.getenv("AIOBASTION_TEST_PASSWORD", "")
+                username="admin", password=os.getenv("CYBERARK_ASYNC_TEST_PASSWORD", "")
             )
         # For a relevant test we need a correct login password that we cant display in code
         # It could be stored in a test safe. For now, we use a wrong password ane assert token exception.

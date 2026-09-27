@@ -47,11 +47,11 @@ so a change to the review rules takes effect on the PR that makes it.
 
 - Most tests are offline and run without a Vault or PVWA.
 - The `Tests` GitHub Actions workflow runs the offline suite on Python 3.12, 3.13, and 3.14 for every pull request and push to `main`. It also runs `ruff check` and `ruff format --check`, and fails the build on any finding, so run `uv run --group dev ruff format .` and `uv run --group dev ruff check .` before pushing.
-- To run the live CyberArk integration tests, set `AIOBASTION_RUN_INTEGRATION_TESTS=1` before invoking pytest.
+- To run the live CyberArk integration tests, set `CYBERARK_ASYNC_RUN_INTEGRATION_TESTS=1` before invoking pytest.
 - Optional overrides:
-  - `AIOBASTION_TEST_CONFIG=/path/to/config_tests.yml`
-  - `AIOBASTION_TEST_AIM_CONFIG=/path/to/config_aim_hp.yml`
-  - `AIOBASTION_TEST_API_USER=admin_test_restapi`
+  - `CYBERARK_ASYNC_TEST_CONFIG=/path/to/config_tests.yml`
+  - `CYBERARK_ASYNC_TEST_AIM_CONFIG=/path/to/config_aim_hp.yml`
+  - `CYBERARK_ASYNC_TEST_API_USER=admin_test_restapi`
 - When the live tests are disabled or the config files are missing, the integration suites skip instead of failing.
 - In order to test you need a working Vault and a PVWA.
 - Then, generate some accounts with mockaroo and the following schemas : https://www.mockaroo.com/1e429890. See "Troubleshoot"
@@ -77,7 +77,7 @@ Run the offline API contract test with the local Swagger mock:
 ```bash
 npm ci --ignore-scripts
 npm run prism -- --host 127.0.0.1 --port 4010
-AIOBASTION_PRISM_URL=http://127.0.0.1:4010 uv run --group test pytest tests/test_prism_contract.py
+CYBERARK_ASYNC_PRISM_URL=http://127.0.0.1:4010 uv run --group test pytest tests/test_prism_contract.py
 ```
 
 The Prism CLI and its npm dependency tree are used only for contract testing;
@@ -117,7 +117,7 @@ uv run --group test pytest tests/test_accounts.py tests/test_cyberark.py tests/t
 Build the documentation locally with warnings treated as errors:
 
 ```bash
-uv run --locked --extra docs sphinx-build -W -b html docs /tmp/aiobastion-docs
+uv run --locked --extra docs sphinx-build -W -b html docs /tmp/cyberark-async-docs
 ```
 
 Documentation is built automatically for pushes and pull requests targeting

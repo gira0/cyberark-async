@@ -3,12 +3,12 @@ import asyncio
 import random
 import unittest
 from unittest import TestCase, IsolatedAsyncioTestCase
-import aiobastion
-from aiobastion.exceptions import (
-    AiobastionException,
+import cyberark_async
+from cyberark_async.exceptions import (
+    CyberarkAsyncException,
 )
-from aiobastion.accounts import PrivilegedAccount
-from aiobastion.utilities import clone_privileged_account, case_insensitive_getattr
+from cyberark_async.accounts import PrivilegedAccount
+from cyberark_async.utilities import clone_privileged_account, case_insensitive_getattr
 import tests
 import time
 
@@ -40,14 +40,14 @@ class TestUtilitiesPure(TestCase):
         self.assertEqual(cloned.name, "5.6.7.8-admin")
 
     def test_privileged_account_rejects_invalid_secret_type(self):
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             PrivilegedAccount("name", "platform", "safe", secretType="invalid")
 
 
 class TestUtilities(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
-        self.vault = aiobastion.EPV(tests.CONFIG)
+        tests.require_integration_tests(tests.CONFIG, "CYBERARK_ASYNC_TEST_CONFIG")
+        self.vault = cyberark_async.EPV(tests.CONFIG)
         await self.vault.login()
 
         self.test_safe = "sample-it-dept"
@@ -110,7 +110,7 @@ class TestUtilities(IsolatedAsyncioTestCase):
 class TestPlatformUtilies(IsolatedAsyncioTestCase):
     async def test_count_platform(self):
         self.skipTest("This test takes too long to execute")
-        qualif = aiobastion.EPV(tests.AIM_CONFIG)
+        qualif = cyberark_async.EPV(tests.AIM_CONFIG)
 
         async with qualif:
             for c in await qualif.utils.platform.count_platforms():
@@ -118,7 +118,7 @@ class TestPlatformUtilies(IsolatedAsyncioTestCase):
 
     async def test_connection_component_usage(self):
         self.skipTest("This test takes too long to execute")
-        qualif = aiobastion.EPV(tests.AIM_CONFIG)
+        qualif = cyberark_async.EPV(tests.AIM_CONFIG)
 
         async with qualif:
             for c in await qualif.utils.platform.connection_component_usage():

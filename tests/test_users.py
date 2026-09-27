@@ -3,16 +3,16 @@ import asyncio
 import unittest
 from unittest import IsolatedAsyncioTestCase
 import secrets
-import aiobastion
+import cyberark_async
 import random
 import tests
-from aiobastion import CyberarkAPIException, AiobastionException
+from cyberark_async import CyberarkAPIException, CyberarkAsyncException
 
 
 class TestUsers(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
-        self.vault = aiobastion.EPV(tests.CONFIG)
+        tests.require_integration_tests(tests.CONFIG, "CYBERARK_ASYNC_TEST_CONFIG")
+        self.vault = cyberark_async.EPV(tests.CONFIG)
         await self.vault.login()
         self.api_user = tests.API_USER
         self.test_safe = "sample-it-dept"
@@ -50,7 +50,7 @@ class TestUsers(IsolatedAsyncioTestCase):
         req = await self.vault.user.get_id(self.api_user)
         self.assertIsInstance(req, int)
 
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             await self.vault.user.get_id("vdsv,pnovdope,vb")
 
     async def test_exists(self):
@@ -65,7 +65,7 @@ class TestUsers(IsolatedAsyncioTestCase):
         try:
             req = await self.vault.user.delete("newAdmin")
             self.assertEqual(req, True)
-        except AiobastionException:
+        except CyberarkAsyncException:
             # The user doesn't exist
             pass
 
@@ -83,7 +83,7 @@ class TestUsers(IsolatedAsyncioTestCase):
         req = await self.vault.user.delete("newAdmin")
         self.assertEqual(req, True)
 
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             await self.vault.user.delete("thisuserdoesnotexists")
 
     async def test_safes(self):
@@ -155,7 +155,7 @@ class TestUsers(IsolatedAsyncioTestCase):
         req = await self.vault.group.get_id("Vault Admins")
         self.assertIsInstance(req, int)
 
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             req = await self.vault.group.get_id("Les Poneys")
 
     async def test_add_group(self):
@@ -163,7 +163,7 @@ class TestUsers(IsolatedAsyncioTestCase):
 
         try:
             await self.vault.group.delete(new_group_name)
-        except (CyberarkAPIException, AiobastionException):
+        except (CyberarkAPIException, CyberarkAsyncException):
             pass
 
         await self.vault.group.add(new_group_name, "New awesome group")

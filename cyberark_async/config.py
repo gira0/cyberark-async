@@ -2,7 +2,7 @@
 
 import yaml
 import warnings
-from .exceptions import AiobastionConfigurationException
+from .exceptions import CyberarkAsyncConfigurationException
 from typing import Union
 from .api_options import Api_options
 
@@ -13,7 +13,7 @@ class Config:
     account, accountgroup, aim, applications, cyberark, group, platform, safe, sessionmanagement, systemhealth, user, utilities.
     """
 
-    # Because of a conflict (circular import) with EPV definition at intialization for AIOBASTION
+    # Because of a conflict (circular import) with EPV definition at intialization for cyberark_async
     # The following default values are defined here (instead of EPV class)
     CYBERARK_DEFAULT_KEEP_COOKIES = False
     CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS = 10
@@ -76,7 +76,7 @@ class Config:
             self.label = "serialized"
 
         if not configfile and not serialized:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 "Internal error: no configfile and no serialized"
             )
 
@@ -201,13 +201,13 @@ class Config:
             "api_options",  # Global API options: for all modules
             "pvwa",  # options modules: cyberark
             "retention",  # deprecated, move to safe section
-            "custom",  # Config.custom: Customer use only (not aiobastion)
+            "custom",  # Config.custom: Customer use only (not cyberark_async)
         ] + Config.CYBERARK_OPTIONS_MODULES_LIST
 
         # Check the global section defined in the configuration file
         for k in configuration.keys():
             if k not in global_sections:
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     f"Unknown attribute in global section in {self.configfile}: {k} unknown."
                 )
 
@@ -269,13 +269,13 @@ class Config:
         # Don't allow 'safe' and ('cpm' or 'retention').
         if "cpm" in configuration or "retention" in configuration:
             if "safe" in configuration:
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     f"Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition in {self.configfile}."
                 )
             else:
                 if self.deprecated_warning:
                     warnings.warn(
-                        f"aiobastion - Deprecated parameter 'cpm' and 'retention' in 'global' section from {self.configfile}: "
+                        f"cyberark_async - Deprecated parameter 'cpm' and 'retention' in 'global' section from {self.configfile}: "
                         "move definitions from global to 'safe' section.",
                         DeprecationWarning,
                         stacklevel=4,
@@ -345,7 +345,7 @@ class Config:
                 This will be done in the EPV class.
 
         Raises:
-            AiobastionConfigurationException:
+            CyberarkAsyncConfigurationException:
                 Type error: Parameter 'serialized' must be a dictionary.
                 Move 'cpm' and 'retention' to the 'safe' definition in serialization.
                 Duplicate 'aim' definition in seralized. Specify only 'aim' and remove 'AIM'.
@@ -353,7 +353,7 @@ class Config:
         """
 
         if not isinstance(serialized, dict):
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 "Type error: Parameter 'serialized' must be a dictionary."
             )
 
@@ -383,13 +383,13 @@ class Config:
         # Don't allow 'safe' and ('cpm' or 'retention').
         if "cpm" in serialized or "retention" in serialized:
             if "safe" in serialized:
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     "Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition in serialization."
                 )
             else:
                 if self.deprecated_warning:
                     warnings.warn(
-                        f"aiobastion - Deprecated parameter 'cpm' and 'retention' in 'global' section from {self.config_source}: "
+                        f"cyberark_async - Deprecated parameter 'cpm' and 'retention' in 'global' section from {self.config_source}: "
                         "move definitions from global to 'safe'.",
                         DeprecationWarning,
                         stacklevel=4,
@@ -412,7 +412,7 @@ class Config:
             elif k == "custom":
                 self.custom = v
             else:
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     f"Unknown attribute '{k}' in serialization: {serialized[k]!r}"
                 )
 
@@ -429,7 +429,7 @@ class Config:
                 and v != self.options_modules[module][k]
             ):
                 # Raise an error only want values are different.
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     f"Duplicate key '{module}/{k}' in {self.config_source}."
                 )
 
@@ -444,7 +444,7 @@ class Config:
             and value != self.options_modules[module][keyname]
         ):
             # Raise an error only when values are different.
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Duplicate key '{module}/{keyname}' in {self.config_source}."
             )
 
@@ -464,7 +464,7 @@ class Config:
 
                     if self.deprecated_warning:
                         warnings.warn(
-                            f"aiobastion - Deprecated parameter 'custom/logon_account_index' and 'custom/reconcile_account_index' from {self.config_source}: "
+                            f"cyberark_async - Deprecated parameter 'custom/logon_account_index' and 'custom/reconcile_account_index' from {self.config_source}: "
                             "move definitions from 'custom' to 'account' section.",
                             DeprecationWarning,
                             stacklevel=5,
@@ -473,7 +473,7 @@ class Config:
             if keyname_list:
                 # Don't allow 'account' and 'custom'.
                 if self.options_modules["account"]:
-                    raise AiobastionConfigurationException(
+                    raise CyberarkAsyncConfigurationException(
                         "Duplicate definition: move 'logon_account_index' and "
                         "'reconcile_account_index' from 'custom' to 'account' section in {configfile}."
                     )
@@ -506,7 +506,7 @@ class Config:
             first_level {str}       Is this the primary dictionary (not a sub-dictionary) ?
 
         Raises:
-            AiobastionConfigurationException:
+            CyberarkAsyncConfigurationException:
                 Invalid dictionary type '{section_name}' in {self.config_source}
                 Duplicate key '{section_name}/{keyname}' in {self.config_source}
 
@@ -514,7 +514,7 @@ class Config:
             rt      New dictionary/sub-dictionary with lowercase keys
         """
         if not isinstance(src, dict):
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Invalid dictionary type '{section_name}' in {self.config_source}"
             )
 
@@ -523,7 +523,7 @@ class Config:
             keyname = k.lower()
 
             if keyname in rt:
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     f"Duplicate key '{section_name}/{keyname}' in {self.config_source}"
                 )
 
@@ -693,7 +693,7 @@ def validate_integer(
     try:
         v = int(val)
     except (ValueError, TypeError):
-        raise AiobastionConfigurationException(
+        raise CyberarkAsyncConfigurationException(
             f"Invalid value '{section_name}' in {config_source} (expected int): {val!r}"
         )
 
@@ -711,7 +711,7 @@ def validate_bool(
     if isinstance(val, bool):
         rt = val
     else:
-        raise AiobastionConfigurationException(
+        raise CyberarkAsyncConfigurationException(
             f"Invalid value '{section_name}' "
             f"in {config_source}  (expected bool): {val!r}"
         )

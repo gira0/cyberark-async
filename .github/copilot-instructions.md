@@ -1,6 +1,6 @@
 # Copilot instructions for cyberark-async
 
-cyberark-async (import name `aiobastion`) is an asynchronous Python 3.12+ client for the CyberArk PVWA REST API, built on `asyncio` and `aiohttp`. `AGENTS.md` describes the project layout, workflow and conventions; read it for context. This file lists what matters most when reviewing a pull request.
+cyberark-async (import name `cyberark_async`) is an asynchronous Python 3.12+ client for the CyberArk PVWA REST API, built on `asyncio` and `aiohttp`. `AGENTS.md` describes the project layout, workflow and conventions; read it for context. This file lists what matters most when reviewing a pull request.
 
 ## Review priorities
 
@@ -16,9 +16,9 @@ Report problems in this order, and say which category each finding belongs to:
 
 - Feature modules must send HTTP requests through `self.epv.handle_request()`. Flag any direct `get_session()`, `aiohttp.ClientSession(...)` or session HTTP call (`session.request(...)` or any verb method such as `.get`, `.post`, `.put`, `.patch`, `.delete`, `.head`, `.options`) use outside the EPV transport and authentication code (`cyberark.py`, `http_session.py`, `aim.py`): it bypasses the shared concurrency semaphore, TLS and timeout settings, and the normalised non-2xx error handling. Existing bypasses are tracked in #12; new ones should not be added.
 - Keep public APIs `async`. Do not add synchronous wrappers.
-- Raise the exceptions from `aiobastion/exceptions.py` (`AiobastionException`, `CyberarkException`, `CyberarkAPIException`, ...) instead of bare `Exception` or `ValueError`, following the neighbouring functions.
+- Raise the exceptions from `cyberark_async/exceptions.py` (`CyberarkAsyncException`, `CyberarkException`, `CyberarkAPIException`, ...) instead of bare `Exception` or `ValueError`, following the neighbouring functions.
 - Use the canonical configuration names `api_host`, `max_concurrent_tasks` and `verify`. Legacy aliases stay only for compatibility and must not appear in new examples or docs.
-- New exported names belong in `aiobastion/__init__.py` `__all__`.
+- New exported names belong in `cyberark_async/__init__.py` `__all__`.
 - Dependencies are managed with uv (0.9.17 or newer). A `uv.lock` change is only expected when `pyproject.toml` dependencies change; otherwise ask why it changed.
 - Never suggest disabling TLS verification (`verify: False`) as a fix.
 

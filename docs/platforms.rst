@@ -3,7 +3,7 @@ Platforms
 Functions
 ------------------------------
 
-.. currentmodule:: aiobastion.platforms.Platform
+.. currentmodule:: cyberark_async.platforms.Platform
 .. autofunction:: get_target_platforms
 .. autofunction:: get_platforms_details
 .. autofunction:: search_target_platform
@@ -272,4 +272,3 @@ Or something like this:
             pf_uid = await epv.platform.get_target_platform_unique_id(pf_name)
             await epv.platform.del_target_plaform(pf_uid)
             print(f"{pf_name} successfully deleted !")
-
