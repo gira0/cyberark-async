@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from .exceptions import CyberarkException, CyberarkAPIException, AiobastionConfigurationException
+from .exceptions import (
+    CyberarkException,
+    CyberarkAPIException,
+    AiobastionConfigurationException,
+)
 
 
 class SessionManagement:
@@ -17,14 +21,15 @@ class SessionManagement:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}")
+            raise AiobastionConfigurationException(
+                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
+            )
 
     async def get_all_connection_components(self):
         """
         :return: A list of all connection components
         """
         return await self.epv.handle_request("get", f"API/PSM/Connectors/")
-
 
     def to_json(self):
         serialized = {}

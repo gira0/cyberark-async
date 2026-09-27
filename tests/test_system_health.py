@@ -36,8 +36,9 @@ class TestSystemHealth(IsolatedAsyncioTestCase):
         summary = await self.vault.system_health.details("AIM")
         self.assertIsInstance(summary, list)
 
-if __name__ == '__main__':
-    if sys.platform == 'win32':
+
+if __name__ == "__main__":
+    if sys.platform == "win32":
         # Turned out, using WindowsSelectorEventLoop has functionality issues such as:
         #     Can't support more than 512 sockets
         #     Can't use pipe
@@ -45,4 +46,3 @@ if __name__ == '__main__':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     unittest.main()
-

@@ -69,7 +69,9 @@ class HttpSession:
         if not os.path.exists(cert):
             raise AiobastionException(f"Public certificate file not found: {cert!r}")
         if key and not os.path.exists(key):
-            raise AiobastionException(f"Private key certificate file not found: {key!r}")
+            raise AiobastionException(
+                f"Private key certificate file not found: {key!r}"
+            )
 
         self.setup_ssl(verify)
         ssl_context = self.request_params["ssl"]

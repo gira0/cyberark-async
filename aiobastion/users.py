@@ -19,7 +19,9 @@ class User:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}")
+            raise AiobastionConfigurationException(
+                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
+            )
 
     def to_json(self):
         serialized = {}
@@ -32,7 +34,6 @@ class User:
 
         return serialized
 
-
     async def get_logged_on_user_details(self):
         """
         Returns information about the logged on user
@@ -42,7 +43,13 @@ class User:
         url = "WebServices/PIMServices.svc/User"
         return await self.epv.handle_request("get", url)
 
-    async def list(self, pattern: str = None, user_type: str = None, details=False, extended_details=False):
+    async def list(
+        self,
+        pattern: str = None,
+        user_type: str = None,
+        details=False,
+        extended_details=False,
+    ):
         """
         Returns a list of users matching criteria
 
@@ -65,7 +72,9 @@ class User:
             data["ExtendedDetails"] = str(extended_details)
 
         url = "api/Users"
-        ret = await self.epv.handle_request("get", url, params=data, filter_func=lambda x: x["Users"])
+        ret = await self.epv.handle_request(
+            "get", url, params=data, filter_func=lambda x: x["Users"]
+        )
         if details or extended_details:
             return ret
         else:
@@ -79,10 +88,12 @@ class User:
         :return: the ID (int)
         """
         url = "api/Users"
-        ret = await self.epv.handle_request("get", url, filter_func=lambda x: x["Users"])
+        ret = await self.epv.handle_request(
+            "get", url, filter_func=lambda x: x["Users"]
+        )
         for r in ret:
-            if r['username'] == username:
-                return r['id']
+            if r["username"] == username:
+                return r["id"]
         raise AiobastionException(f"No such user found : {username}")
 
     async def exists(self, username: str):
@@ -92,8 +103,10 @@ class User:
         :return: Boolean
         """
         if self.user_list is None:
-            results = await self.epv.handle_request("get", 'API/Users', filter_func=lambda result: result["Users"])
-            self.user_list = [u['username'].lower().strip() for u in results]
+            results = await self.epv.handle_request(
+                "get", "API/Users", filter_func=lambda result: result["Users"]
+            )
+            self.user_list = [u["username"].lower().strip() for u in results]
         return username.lower() in self.user_list
 
     async def details(self, username: str = "", user_id=None):
@@ -130,12 +143,11 @@ class User:
         """
         url = f"WebServices/PIMServices.svc/Users/{username}/AuthenticationMethods/SSHKeyAuthentication/AuthorizedKeys"
 
-        key = {
-            "PublicSSHKey": key.replace("\n", "")
-        }
+        key = {"PublicSSHKey": key.replace("\n", "")}
 
-        return await self.epv.handle_request("post", url, data=key,
-                                             filter_func=lambda r: r["AddUserAuthorizedKeyResult"])
+        return await self.epv.handle_request(
+            "post", url, data=key, filter_func=lambda r: r["AddUserAuthorizedKeyResult"]
+        )
 
     async def get_ssh_keys(self, username: str):
         """
@@ -145,7 +157,9 @@ class User:
         :return: list of dict with user's keys (KeyID, PublicSSHKey)
         """
         url = f"WebServices/PIMServices.svc/Users/{username}/AuthenticationMethods/SSHKeyAuthentication/AuthorizedKeys"
-        return await self.epv.handle_request("get", url, filter_func=lambda x: x["GetUserAuthorizedKeysResult"])
+        return await self.epv.handle_request(
+            "get", url, filter_func=lambda x: x["GetUserAuthorizedKeysResult"]
+        )
 
     async def del_ssh_key(self, username: str, key_id: str):
         """
@@ -154,8 +168,10 @@ class User:
         :param key_id: KeyID of the key to delete - Required
         :return: Boolean
         """
-        url = f"WebServices/PIMServices.svc/Users/{username}/AuthenticationMethods/SSHKeyAuthentication" \
-              f"/AuthorizedKeys/{key_id}"
+        url = (
+            f"WebServices/PIMServices.svc/Users/{username}/AuthenticationMethods/SSHKeyAuthentication"
+            f"/AuthorizedKeys/{key_id}"
+        )
 
         return await self.epv.handle_request("delete", url)
 
@@ -170,13 +186,26 @@ class User:
         tasks = [self.del_ssh_key(username, key) for key in all_key_id]
         return await asyncio.gather(*tasks)
 
-    async def add(self, username: str, user_type: str = "EPVUser", non_authorized_interfaces: List = None,
-                  location: str = "\\", expiry_date: int = None, enable_user: bool = True,
-                  authentication_method: List = None, password: str = None,
-                  change_password_on_the_next_logon: bool = True, password_never_expires: bool = False,
-                  distinguished_name: str = None, vault_authorization: List = None, business_address: dict = None,
-                  internet: dict = None, phones: dict = None, description: str = None, personal_details: dict = None
-                  ):
+    async def add(
+        self,
+        username: str,
+        user_type: str = "EPVUser",
+        non_authorized_interfaces: List = None,
+        location: str = "\\",
+        expiry_date: int = None,
+        enable_user: bool = True,
+        authentication_method: List = None,
+        password: str = None,
+        change_password_on_the_next_logon: bool = True,
+        password_never_expires: bool = False,
+        distinguished_name: str = None,
+        vault_authorization: List = None,
+        business_address: dict = None,
+        internet: dict = None,
+        phones: dict = None,
+        description: str = None,
+        personal_details: dict = None,
+    ):
         """
         Add a new user
         :param username: The name of the user - Required
@@ -219,17 +248,18 @@ class User:
             "businessAddress": business_address,
             "internet": internet,
             "phones": phones,
-            "personalDetails": personal_details
+            "personalDetails": personal_details,
         }
 
         new_user_filtered = {k: v for k, v in new_user.items() if v is not None}
 
-        return await self.epv.handle_request("post", f"API/Users/", data=new_user_filtered)
+        return await self.epv.handle_request(
+            "post", f"API/Users/", data=new_user_filtered
+        )
 
     async def delete(self, username: str):
         user_id = await self.get_id(username)
         return await self.epv.handle_request("delete", f"API/Users/{user_id}/")
-
 
     async def safes(self, username: str, user_id=None, details=False):
         """
@@ -245,11 +275,14 @@ class User:
             user_id = await self.get_id(username)
         url = f"api/Users/{user_id}/safes"
         if details:
-            return await self.epv.handle_request("get", url, filter_func=lambda x: x["Safes"])
+            return await self.epv.handle_request(
+                "get", url, filter_func=lambda x: x["Safes"]
+            )
         else:
-            safes = await self.epv.handle_request("get", url, filter_func=lambda x: x["Safes"])
+            safes = await self.epv.handle_request(
+                "get", url, filter_func=lambda x: x["Safes"]
+            )
             return [s["SafeName"] for s in safes]
-
 
 
 class Group:
@@ -266,8 +299,9 @@ class Group:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}")
-
+            raise AiobastionConfigurationException(
+                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
+            )
 
     def to_json(self):
         serialized = {}
@@ -280,8 +314,13 @@ class Group:
 
         return serialized
 
-    async def list(self, pattern: str = None, group_type: str = None, details: bool = False,
-                   include_members: bool = False):
+    async def list(
+        self,
+        pattern: str = None,
+        group_type: str = None,
+        details: bool = False,
+        include_members: bool = False,
+    ):
         """
 
         :param pattern:
@@ -300,7 +339,9 @@ class Group:
         if include_members:
             params["includeMembers"] = "True"
 
-        groups = await self.epv.handle_request("get", url, params=params, filter_func=lambda x: x["value"])
+        groups = await self.epv.handle_request(
+            "get", url, params=params, filter_func=lambda x: x["value"]
+        )
         if details or include_members:
             return groups
         else:
@@ -330,13 +371,15 @@ class Group:
         :raise: Aiobastion exception if group was not found
         """
         url = f"api/UserGroups"
-        ret = await self.epv.handle_request("get", url, filter_func=lambda x: x["value"])
+        ret = await self.epv.handle_request(
+            "get", url, filter_func=lambda x: x["value"]
+        )
         for r in ret:
-            if r['groupName'].upper() == group_name.upper():
-                return r['id']
+            if r["groupName"].upper() == group_name.upper():
+                return r["id"]
         raise AiobastionException(f"No such user found : {group_name}")
 
-    async def add(self, name: str, description="", location='\\'):
+    async def add(self, name: str, description="", location="\\"):
         """
         Add the group in the Vault
 
@@ -345,13 +388,9 @@ class Group:
         :param location: Location of the group (defaults to \\)
         :return: Boolean
         """
-        group = {
-            'groupName': name,
-            'description': description,
-            'location': location
-        }
+        group = {"groupName": name, "description": description, "location": location}
 
-        return await self.epv.handle_request('post', 'api/UserGroups', data=group)
+        return await self.epv.handle_request("post", "api/UserGroups", data=group)
 
     async def delete(self, group_name: str):
         """
@@ -372,12 +411,13 @@ class Group:
         :return: List of members
         """
         url = f"api/UserGroups"
-        params = {"includeMembers": "True",
-                  "filter": f"groupName eq {group_name}"}
-        ret = await self.epv.handle_request("get", url, params=params, filter_func=lambda x: x["value"])
+        params = {"includeMembers": "True", "filter": f"groupName eq {group_name}"}
+        ret = await self.epv.handle_request(
+            "get", url, params=params, filter_func=lambda x: x["value"]
+        )
         for r in ret:
-            if r['groupName'].upper() == group_name.upper():
-                return r['members']
+            if r["groupName"].upper() == group_name.upper():
+                return r["members"]
         raise AiobastionException(f"No such user found : {group_name}")
 
     async def add_member(self, groupId: str, username: str, type="Vault", domain=None):
@@ -391,12 +431,14 @@ class Group:
         :return: Boolean
         """
         data = {
-            'memberId': username,
-            'memberType': type,
+            "memberId": username,
+            "memberType": type,
         }
         if domain is not None:
-            data['domainName'] = domain
-        return await self.epv.handle_request("post", f'api/UserGroups/{groupId}/Members', data=data)
+            data["domainName"] = domain
+        return await self.epv.handle_request(
+            "post", f"api/UserGroups/{groupId}/Members", data=data
+        )
 
     async def del_member(self, groupId: str, username: str):
         """
@@ -407,5 +449,5 @@ class Group:
         :return: Boolean
         """
 
-        url = f'api/UserGroups/{groupId}/Members/{username}/'
+        url = f"api/UserGroups/{groupId}/Members/{username}/"
         return await self.epv.handle_request("delete", url)

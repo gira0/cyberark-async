@@ -50,6 +50,7 @@ The base YAML file come from ./tests/test_data/custom_config.yml
     - Key attribute must be in lowercase.
 
 """
+
 import asyncio
 import copy
 import datetime
@@ -62,6 +63,7 @@ import pprint
 import sys
 import tempfile
 import unittest
+
 # import tests
 from typing import Optional
 
@@ -93,7 +95,8 @@ EPV_OPTIONS_MODULES_LIST = [
     "system_health",
     "user",
     "utils",
-    "PrivilegedAccount"]
+    "PrivilegedAccount",
+]
 
 
 EPV_ATTRIBUTE_NAME = [
@@ -107,37 +110,40 @@ EPV_ATTRIBUTE_NAME = [
     "user_search",
     "username",
     "verify",
-
     # CyberArk configuration file
     "config",
-
     # CyberArk internal attributes
     "cookies",
     "logger",
     "request_params",
     "session",
-
     # "__sema"
     # "__token"
-    ] + EPV_OPTIONS_MODULES_LIST
+] + EPV_OPTIONS_MODULES_LIST
+
 
 # -----------------------------------
 # Class Definition
 # -----------------------------------
 class TestConfigEpv(unittest.TestCase):
-    """TestConfig_epv - Check EPV initialization """
+    """TestConfig_epv - Check EPV initialization"""
+
     logger = None
     pprint = pprint.PrettyPrinter(indent=3, width=120, depth=5)
 
-    yaml_dict = None                # load yaml dictionary  (may generate a new yaml)
-    serialize_dict = None           # serialization dictionary from loaded yaml dict.
-    epv_validation_dict = None      # EPV Validation definition (adjust from serialize_dict)
+    yaml_dict = None  # load yaml dictionary  (may generate a new yaml)
+    serialize_dict = None  # serialization dictionary from loaded yaml dict.
+    epv_validation_dict = None  # EPV Validation definition (adjust from serialize_dict)
 
     yaml_filename = os.path.join(MODULE_DIRNAME, "test_data", "custom_config.yml")
-    yaml_temp_name = os.path.join(tempfile.gettempdir(),
-                                  f"aiobastion_test_{MODULE_NAME}_{datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')}{os.getppid()}.yml")
-    logging_name = os.path.join(tempfile.gettempdir(),
-                                f"aiobastion_test_{MODULE_NAME}_{datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')}_{os.getppid()}.trc")
+    yaml_temp_name = os.path.join(
+        tempfile.gettempdir(),
+        f"aiobastion_test_{MODULE_NAME}_{datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')}{os.getppid()}.yml",
+    )
+    logging_name = os.path.join(
+        tempfile.gettempdir(),
+        f"aiobastion_test_{MODULE_NAME}_{datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')}_{os.getppid()}.trc",
+    )
 
     @classmethod
     def setUpClass(cls):
@@ -168,7 +174,9 @@ class TestConfigEpv(unittest.TestCase):
         logger.setLevel(logging.DEBUG)
         fh = logging.FileHandler(cls.logging_name)
         fh.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s %(module)20s %(funcName)45s %(lineno)5d: %(message)s')
+        formatter = logging.Formatter(
+            "%(asctime)s %(module)20s %(funcName)45s %(lineno)5d: %(message)s"
+        )
         fh.setFormatter(formatter)
         logger.addHandler(fh)
 
@@ -200,30 +208,53 @@ class TestConfigEpv(unittest.TestCase):
                 cls.yaml_dict[section_name_new] = cls.yaml_dict.pop(section_name)
 
             # Lowercase first level
-            if section_name != "custom" and isinstance(cls.yaml_dict[section_name_new], dict):
+            if section_name != "custom" and isinstance(
+                cls.yaml_dict[section_name_new], dict
+            ):
                 for attrName1 in list(cls.yaml_dict[section_name_new].keys()):
                     attr_name1_new = attrName1.lower()
 
                     if attrName1 != attr_name1_new:
-                        cls.yaml_dict[section_name_new][attr_name1_new] = cls.yaml_dict[section_name_new].pop(attrName1)
+                        cls.yaml_dict[section_name_new][attr_name1_new] = cls.yaml_dict[
+                            section_name_new
+                        ].pop(attrName1)
 
                     # Lowercase second level
-                    if isinstance(cls.yaml_dict[section_name_new][attr_name1_new], dict):
-                        for attrName2 in list(cls.yaml_dict[section_name_new][attr_name1_new].keys()):
+                    if isinstance(
+                        cls.yaml_dict[section_name_new][attr_name1_new], dict
+                    ):
+                        for attrName2 in list(
+                            cls.yaml_dict[section_name_new][attr_name1_new].keys()
+                        ):
                             attr_name2_new = attrName2.lower()
 
                             if attrName2 != attr_name2_new:
-                                cls.yaml_dict[section_name_new][attr_name1_new][attr_name2_new] = cls.yaml_dict[section_name_new][attr_name1_new].pop(attrName2)
+                                cls.yaml_dict[section_name_new][attr_name1_new][
+                                    attr_name2_new
+                                ] = cls.yaml_dict[section_name_new][attr_name1_new].pop(
+                                    attrName2
+                                )
 
                             # Lowercase third level
-                            if isinstance(cls.yaml_dict[section_name_new][attr_name1_new][attr_name2_new], dict):
-                                for attrName3 in list(cls.yaml_dict[section_name_new][attr_name1_new][attr_name2_new].keys()):
+                            if isinstance(
+                                cls.yaml_dict[section_name_new][attr_name1_new][
+                                    attr_name2_new
+                                ],
+                                dict,
+                            ):
+                                for attrName3 in list(
+                                    cls.yaml_dict[section_name_new][attr_name1_new][
+                                        attr_name2_new
+                                    ].keys()
+                                ):
                                     attr_name3_new = attrName3.lower()
 
                                     if attrName3 != attr_name3_new:
-                                        cls.yaml_dict[section_name_new][attr_name1_new][attr_name2_new][attr_name3_new] = \
-                                            cls.yaml_dict[section_name_new][attr_name1_new][attr_name2_new].pop(attrName3)
-
+                                        cls.yaml_dict[section_name_new][attr_name1_new][
+                                            attr_name2_new
+                                        ][attr_name3_new] = cls.yaml_dict[
+                                            section_name_new
+                                        ][attr_name1_new][attr_name2_new].pop(attrName3)
 
         cls.write_pprint("cls.yaml_dict (global definition)", cls.yaml_dict)
 
@@ -236,12 +267,18 @@ class TestConfigEpv(unittest.TestCase):
         for section_name in list(cls.serialize_dict.keys()):
             section_name_new = section_name.lower()
 
-            if section_name_new not in aiobastion.config.Config.CYBERARK_OPTIONS_MODULES_LIST + [
-                "pvwa",
-                "connection",
-                "custom",
-                ]:
-                raise KeyError(f"Unexpected configuration file global section: {section_name}")
+            if (
+                section_name_new
+                not in aiobastion.config.Config.CYBERARK_OPTIONS_MODULES_LIST
+                + [
+                    "pvwa",
+                    "connection",
+                    "custom",
+                ]
+            ):
+                raise KeyError(
+                    f"Unexpected configuration file global section: {section_name}"
+                )
 
             # # convert section in lowercase except AIM
             # if section_name_new == "aim":
@@ -259,7 +296,9 @@ class TestConfigEpv(unittest.TestCase):
                         if "AIM" not in cls.serialize_dict:
                             cls.serialize_dict["AIM"] = {}
 
-                        cls.serialize_dict["AIM"][k] = cls.serialize_dict["connection"][k]
+                        cls.serialize_dict["AIM"][k] = cls.serialize_dict["connection"][
+                            k
+                        ]
                     else:
                         cls.serialize_dict[k] = cls.serialize_dict["connection"][k]
 
@@ -276,7 +315,6 @@ class TestConfigEpv(unittest.TestCase):
 
                 del cls.serialize_dict["pvwa"]
 
-
         cls.write_pprint("cls.serialize_dict (global definition)", cls.serialize_dict)
 
         # Adjust config.custom definition
@@ -284,25 +322,25 @@ class TestConfigEpv(unittest.TestCase):
         cls.epv_validation_dict["config"] = {
             "custom": cls.epv_validation_dict.pop("custom"),
             "label": cls.yaml_dict["label"],
-            "configfile": cls.yaml_temp_name
-            }
+            "configfile": cls.yaml_temp_name,
+        }
 
         # Debug check_section_value
         #   - Test different value
         # cls.epv_validation_dict["api_host"] = "ServerName"
 
-        cls.write_pprint("cls.epv_validation_dict (global definition)", cls.epv_validation_dict)
-
+        cls.write_pprint(
+            "cls.epv_validation_dict (global definition)", cls.epv_validation_dict
+        )
 
     @classmethod
     def tearDownClass(cls):
-        """tearDownClass - cleanup of class test """
+        """tearDownClass - cleanup of class test"""
         fnc_name = inspect.currentframe().f_code.co_name
         cls.writelog(HEADER, fnc_name)
 
         if os.path.exists(TestConfigEpv.yaml_temp_name):
             os.remove(TestConfigEpv.yaml_temp_name)
-
 
     @classmethod
     def writelog(cls, *args, **kwargs):
@@ -316,7 +354,7 @@ class TestConfigEpv(unittest.TestCase):
             else:
                 lines = args[0] % args[1:]
 
-            for line in lines.split('\n'):
+            for line in lines.split("\n"):
                 cls.logger.debug(line, stacklevel=stacklevel, **kwargs)
 
     @classmethod
@@ -324,9 +362,11 @@ class TestConfigEpv(unittest.TestCase):
         """write_pprint - Write a prettyprint dictionary to logger"""
         stacklevel = kwargs.pop("stacklevel", 1) + 1
 
-        cls.writelog(f" {title} " .center(100, "-"), stacklevel=stacklevel, **kwargs)
+        cls.writelog(f" {title} ".center(100, "-"), stacklevel=stacklevel, **kwargs)
         cls.writelog(cls.pprint.pformat(d), stacklevel=stacklevel, **kwargs)
-        cls.writelog(f" {title} (end) " .center(100, "-"), stacklevel=stacklevel, **kwargs)
+        cls.writelog(
+            f" {title} (end) ".center(100, "-"), stacklevel=stacklevel, **kwargs
+        )
 
     @classmethod
     def identify_username(cls):
@@ -336,10 +376,10 @@ class TestConfigEpv(unittest.TestCase):
             username = getpass.getuser()
         else:
             import pwd
+
             username = pwd.getpwuid(os.getuid()).pw_name
 
         return username
-
 
     @classmethod
     def display_header(cls, script, tracename):
@@ -349,21 +389,28 @@ class TestConfigEpv(unittest.TestCase):
             script {str}    -- Program name
             tracename {str} -- Trace file name
         """
-        machine_os, machine_nom, machine_os_version, machine_systeme, machine_type, machine_sorte = platform.uname()
-        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        (
+            machine_os,
+            machine_nom,
+            machine_os_version,
+            machine_systeme,
+            machine_type,
+            machine_sorte,
+        ) = platform.uname()
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         username = cls.identify_username()
 
-        s = "----------------------------------------------------------------------------------------\n" \
-            "Script:  %-50s Date:    %s\n" \
-            "User:    %-50s Server:  %s (%s)\n" \
-            "----------------------------------------------------------------------------------------\n" \
-            "Trace file: %s\n" \
+        s = (
+            "----------------------------------------------------------------------------------------\n"
+            "Script:  %-50s Date:    %s\n"
+            "User:    %-50s Server:  %s (%s)\n"
+            "----------------------------------------------------------------------------------------\n"
+            "Trace file: %s\n"
             % (script, timestamp, username, machine_nom, machine_os, tracename)
+        )
 
         print(s)
         cls.writelog(s)
-
-
 
     @classmethod
     def write_file(cls, filename: str, title=None, **kwargs):
@@ -378,8 +425,9 @@ class TestConfigEpv(unittest.TestCase):
         with open(filename, "r") as fd:
             cls.writelog(fd.read(), stacklevel=stacklevel, **kwargs)
 
-        cls.writelog(f" {title} (end) " .center(100, "-"), stacklevel=stacklevel, **kwargs)
-
+        cls.writelog(
+            f" {title} (end) ".center(100, "-"), stacklevel=stacklevel, **kwargs
+        )
 
     @classmethod
     def write_EPV(cls, title, epv_env: aiobastion.EPV, **kwargs):
@@ -387,24 +435,34 @@ class TestConfigEpv(unittest.TestCase):
         stacklevel = kwargs.pop("stacklevel", 1) + 1
         # kwargs.setdefault("stacklevel", 3)
 
-        d= {}
+        d = {}
 
         for k in vars(epv_env):
             # Is it a class ?
             if k in EPV_OPTIONS_MODULES_LIST + [
                 "config",
                 "logger",
-                ]:
+            ]:
                 d[k] = vars(getattr(epv_env, k, None))
             else:
                 d[k] = getattr(epv_env, k)
 
         cls.write_pprint(title, d, stacklevel=stacklevel, **kwargs)
 
-
-    def call_EPV(self, title: str, /, config_file: str = None, yaml_dict: Optional[dict] = None, serialized: Optional[dict] = None,
-                 trace_input: bool = False, trace_epv: bool = False, trace_check: bool = False, raise_condition = False,
-                 expected_value: Optional[dict] = None, **kwargs):
+    def call_EPV(
+        self,
+        title: str,
+        /,
+        config_file: str = None,
+        yaml_dict: Optional[dict] = None,
+        serialized: Optional[dict] = None,
+        trace_input: bool = False,
+        trace_epv: bool = False,
+        trace_check: bool = False,
+        raise_condition=False,
+        expected_value: Optional[dict] = None,
+        **kwargs,
+    ):
         """call_EPV
 
         1) if yaml_dict, create a yaml file from yaml_dict
@@ -437,7 +495,7 @@ class TestConfigEpv(unittest.TestCase):
             if config_file or yaml_dict:
                 if config_file:
                     file_name = config_file
-                else:   # yaml_dict
+                else:  # yaml_dict
                     file_name = TestConfigEpv.yaml_temp_name
 
                     # Write the configuration file
@@ -445,201 +503,354 @@ class TestConfigEpv(unittest.TestCase):
                         yaml.dump(yaml_dict, tmp_fd)
 
                 if trace_input:
-                    self.write_file(file_name, title=f"{title} - Yaml", stacklevel=stacklevel, **kwargs)
+                    self.write_file(
+                        file_name,
+                        title=f"{title} - Yaml",
+                        stacklevel=stacklevel,
+                        **kwargs,
+                    )
 
-                if expected_value and \
-                        "config" in expected_value and \
-                       "configfile" in expected_value["config"]:
+                if (
+                    expected_value
+                    and "config" in expected_value
+                    and "configfile" in expected_value["config"]
+                ):
                     expected_value["config"]["configfile"] = file_name
 
                 epv_env = aiobastion.EPV(configfile=file_name)
-            else: # serialized
+            else:  # serialized
                 if trace_input:
-                    self.write_pprint(f"{title} - serialization", serialized, stacklevel=stacklevel, **kwargs)
+                    self.write_pprint(
+                        f"{title} - serialization",
+                        serialized,
+                        stacklevel=stacklevel,
+                        **kwargs,
+                    )
 
                 epv_env = aiobastion.EPV(serialized=serialized)
         except Exception as err:
             self.writelog(f"{title}: raise {err}", stacklevel=stacklevel, **kwargs)
             raise err
 
-
         if raise_condition:
             # Raise condition has not been raised, display input information if not already done.
             if not trace_input:
-                self.writelog(f"{title}: raise *** Test not raise ***", stacklevel=stacklevel, **kwargs)
+                self.writelog(
+                    f"{title}: raise *** Test not raise ***",
+                    stacklevel=stacklevel,
+                    **kwargs,
+                )
 
                 if config_file or yaml_dict:
-                    self.write_file(file_name, title=f"{title} - Yaml", stacklevel=stacklevel, **kwargs)
-                else:   # serialized
-                    self.write_pprint(f"{title} - serialization", serialized, stacklevel=stacklevel, **kwargs)
+                    self.write_file(
+                        file_name,
+                        title=f"{title} - Yaml",
+                        stacklevel=stacklevel,
+                        **kwargs,
+                    )
+                else:  # serialized
+                    self.write_pprint(
+                        f"{title} - serialization",
+                        serialized,
+                        stacklevel=stacklevel,
+                        **kwargs,
+                    )
 
         if trace_epv or raise_condition:
             self.write_EPV(f"{title} - EPV", epv_env, stacklevel=stacklevel, **kwargs)
 
         if expected_value:
-            self.check_epv_value_with_dict(f"{title} - check value", epv_env, expected_value, trace_check=trace_check, stacklevel=stacklevel, **kwargs)
+            self.check_epv_value_with_dict(
+                f"{title} - check value",
+                epv_env,
+                expected_value,
+                trace_check=trace_check,
+                stacklevel=stacklevel,
+                **kwargs,
+            )
 
         return epv_env
 
-
-    def check_section_value(self, testname: str, obj, expected_value: dict, trace_check: bool = False, **kwargs):
-        """ check_section_value - Verify if expected values are defined """
+    def check_section_value(
+        self,
+        testname: str,
+        obj,
+        expected_value: dict,
+        trace_check: bool = False,
+        **kwargs,
+    ):
+        """check_section_value - Verify if expected values are defined"""
         stacklevel = kwargs.pop("stacklevel", 1) + 1
 
         # self.writelog(f"{testname} debug obj({type(obj)})  expected_value({type(expected_value)})", stacklevel=stacklevel, **kwargs)
 
         if expected_value is None:
             if trace_check:
-                self.writelog(f"{testname} skip test: expected_value is None; %r", obj, stacklevel=stacklevel, **kwargs)
+                self.writelog(
+                    f"{testname} skip test: expected_value is None; %r",
+                    obj,
+                    stacklevel=stacklevel,
+                    **kwargs,
+                )
 
             # self.assertIsNone(obj, msg=f"{testname}: value not None.")
 
         else:
             if isinstance(expected_value, dict) and isinstance(obj, dict):
                 for k, ev in expected_value.items():
-                    v = obj.get(k, UNDEFINED_VALUE)   # custom
+                    v = obj.get(k, UNDEFINED_VALUE)  # custom
                     # self.writelog(f"{testname} debug dict '{k}' obj({v!r})  expected_value({ev!r})", stacklevel=stacklevel, **kwargs)
 
                     with self.subTest(attrName=f"{testname}/{k}"):
-                        self.check_section_value(f"{testname}/{k}", v, ev, trace_check=trace_check, stacklevel=stacklevel, **kwargs)
+                        self.check_section_value(
+                            f"{testname}/{k}",
+                            v,
+                            ev,
+                            trace_check=trace_check,
+                            stacklevel=stacklevel,
+                            **kwargs,
+                        )
             elif isinstance(expected_value, dict):
                 # We assume it is a class
                 for k, ev in expected_value.items():
                     # keyname = k.lower()
                     with self.subTest(attrName=f"{testname}/{k}"):
                         v = getattr(obj, k, None)
-                        self.check_section_value(f"{testname}/{k}", v, ev, trace_check=trace_check, stacklevel=stacklevel, **kwargs)
+                        self.check_section_value(
+                            f"{testname}/{k}",
+                            v,
+                            ev,
+                            trace_check=trace_check,
+                            stacklevel=stacklevel,
+                            **kwargs,
+                        )
             else:
                 if trace_check:
-                    self.writelog(f"{testname} check - {obj} == {expected_value}", stacklevel=stacklevel, **kwargs)
+                    self.writelog(
+                        f"{testname} check - {obj} == {expected_value}",
+                        stacklevel=stacklevel,
+                        **kwargs,
+                    )
 
                 with self.subTest(testname=testname):
-                    self.assertIsInstance(obj, type(expected_value), msg=f"{testname}: type error expecting a {type(expected_value)}")
-                    self.assertEqual(obj, expected_value, msg=f"{testname}: value error {expected_value!r}")
+                    self.assertIsInstance(
+                        obj,
+                        type(expected_value),
+                        msg=f"{testname}: type error expecting a {type(expected_value)}",
+                    )
+                    self.assertEqual(
+                        obj,
+                        expected_value,
+                        msg=f"{testname}: value error {expected_value!r}",
+                    )
 
+    def check_epv_value_with_dict(
+        self,
+        testname: str,
+        epv_env: aiobastion.EPV,
+        expected_value: dict,
+        trace_check: bool = False,
+        **kwargs,
+    ):
+        """check_epv_value_with_dict - Verify expected values
+        This verification is driven by the dictionary "expected_value".
 
-
-
-    def check_epv_value_with_dict(self, testname: str, epv_env: aiobastion.EPV, expected_value: dict, trace_check: bool = False, **kwargs):
-        """ check_epv_value_with_dict - Verify expected values
-            This verification is driven by the dictionary "expected_value".
-
-            It does not verify EPV.config
+        It does not verify EPV.config
         """
         kwargs.setdefault("stacklevel", 1)
         kwargs["stacklevel"] += 1
 
         # check every field
-        self.assertIsInstance(epv_env, aiobastion.EPV, msg=f"""{testname}: Wrong epv_env type""")
+        self.assertIsInstance(
+            epv_env, aiobastion.EPV, msg=f"""{testname}: Wrong epv_env type"""
+        )
 
         if trace_check:
-            self.writelog(testname .center(100, "-"), **kwargs)
+            self.writelog(testname.center(100, "-"), **kwargs)
 
         # Check all expected value
-        self.check_section_value(testname, epv_env, expected_value, trace_check=trace_check, **kwargs)
+        self.check_section_value(
+            testname, epv_env, expected_value, trace_check=trace_check, **kwargs
+        )
 
         if trace_check:
             self.writelog(testname.center(100, "-"), **kwargs)
 
         return
 
-
-
     def test_01_Config_complete_yml(self):
-        """ test_01_Config_complete_yml  - Test Config instance class (yaml file)
-            Check all fields in Config instance class return.
+        """test_01_Config_complete_yml  - Test Config instance class (yaml file)
+        Check all fields in Config instance class return.
         """
         fnc_name = inspect.currentframe().f_code.co_name
 
         self.writelog(HEADER, fnc_name)
 
-        TestConfigEpv.write_file(TestConfigEpv.yaml_filename, f"{fnc_name} - original Yaml file")
-        #with self.assertWarns()
-        config_instance = aiobastion.config.Config(configfile=TestConfigEpv.yaml_filename)
+        TestConfigEpv.write_file(
+            TestConfigEpv.yaml_filename, f"{fnc_name} - original Yaml file"
+        )
+        # with self.assertWarns()
+        config_instance = aiobastion.config.Config(
+            configfile=TestConfigEpv.yaml_filename
+        )
 
         # check every field
-        self.assertIsInstance(config_instance, Config, msg=f"""("test_data/custom_config.yml") in error""")
+        self.assertIsInstance(
+            config_instance, Config, msg=f"""("test_data/custom_config.yml") in error"""
+        )
 
         # Config class
-        self.assertEqual(config_instance.label, TestConfigEpv.yaml_dict["label"], msg="Label value error")
-        self.assertEqual(config_instance.configfile, TestConfigEpv.yaml_filename, msg="configfile value error")
+        self.assertEqual(
+            config_instance.label,
+            TestConfigEpv.yaml_dict["label"],
+            msg="Label value error",
+        )
+        self.assertEqual(
+            config_instance.configfile,
+            TestConfigEpv.yaml_filename,
+            msg="configfile value error",
+        )
         self.assertIsNotNone(config_instance.custom, msg="custom section not define")
 
         for sectionName in config_instance.options_modules.keys():
             with self.subTest(section=sectionName):
-                self.assertIn(sectionName, aiobastion.config.Config.CYBERARK_OPTIONS_MODULES_LIST,
-                            msg=f"{sectionName} Unknowed section '{sectionName}' in options_modules.")
+                self.assertIn(
+                    sectionName,
+                    aiobastion.config.Config.CYBERARK_OPTIONS_MODULES_LIST,
+                    msg=f"{sectionName} Unknowed section '{sectionName}' in options_modules.",
+                )
 
                 if sectionName == "cyberark":
                     # Connection
                     for attrName in ["authtype", "password", "user_search", "username"]:
-                        self.assertIn(attrName, config_instance.options_modules[sectionName],
-                                      msg=f"{attrName} not define in options_modules[{sectionName}]")
-                        self.assertEqual(config_instance.options_modules[sectionName][attrName], TestConfigEpv.yaml_dict["connection"][attrName],
-                                         msg=f"""Invalid value in options_modules[{sectionName}][{attrName}]. Expected: {TestConfigEpv.yaml_dict["connection"][attrName]!r}""")
+                        self.assertIn(
+                            attrName,
+                            config_instance.options_modules[sectionName],
+                            msg=f"{attrName} not define in options_modules[{sectionName}]",
+                        )
+                        self.assertEqual(
+                            config_instance.options_modules[sectionName][attrName],
+                            TestConfigEpv.yaml_dict["connection"][attrName],
+                            msg=f"""Invalid value in options_modules[{sectionName}][{attrName}]. Expected: {TestConfigEpv.yaml_dict["connection"][attrName]!r}""",
+                        )
 
                     # pvwa host
                     # self.assertIn("api_host", config_instance.options_modules[sectionName], msg=f"host not define in options_modules[{sectionName}]")
                     # self.assertEqual(config_instance.options_modules[sectionName]["api_host"], TestConfig_epv.yaml_dict["pvwa"]["host"],
                     #                  msg=f"""Invalid value in options_modules[{sectionName}][api_host]. Expected: {TestConfig_epv.yaml_dict["pvwa"]["host"]!r}""")
 
-                    for attrName in ["host", "keep_cookies", "max_concurrent_tasks", "timeout", "verify"]:
-                        self.assertIn(attrName, config_instance.options_modules[sectionName],
-                                      msg=f"{attrName} not define in options_modules[{sectionName}]")
-                        self.assertEqual(config_instance.options_modules[sectionName][attrName], TestConfigEpv.yaml_dict["pvwa"][attrName],
-                                         msg=f"""Invalid value in options_modules[{sectionName}][{attrName}]. Expected: {TestConfigEpv.yaml_dict["pvwa"][attrName]!r}""")
-
+                    for attrName in [
+                        "host",
+                        "keep_cookies",
+                        "max_concurrent_tasks",
+                        "timeout",
+                        "verify",
+                    ]:
+                        self.assertIn(
+                            attrName,
+                            config_instance.options_modules[sectionName],
+                            msg=f"{attrName} not define in options_modules[{sectionName}]",
+                        )
+                        self.assertEqual(
+                            config_instance.options_modules[sectionName][attrName],
+                            TestConfigEpv.yaml_dict["pvwa"][attrName],
+                            msg=f"""Invalid value in options_modules[{sectionName}][{attrName}]. Expected: {TestConfigEpv.yaml_dict["pvwa"][attrName]!r}""",
+                        )
 
                 elif sectionName == "aim":
                     # check information from "connection"
-                    self.assertIn("appid", config_instance.options_modules[sectionName],
-                                  msg=f"appid not define in options_modules[{sectionName}]")
-                    self.assertEqual(config_instance.options_modules[sectionName]["appid"], TestConfigEpv.yaml_dict["connection"]["appid"],
-                                     msg=f"""Invalid value in options_modules[{sectionName}][appid]. Expected: {TestConfigEpv.yaml_dict["connection"]["appid"]!r}""")
+                    self.assertIn(
+                        "appid",
+                        config_instance.options_modules[sectionName],
+                        msg=f"appid not define in options_modules[{sectionName}]",
+                    )
+                    self.assertEqual(
+                        config_instance.options_modules[sectionName]["appid"],
+                        TestConfigEpv.yaml_dict["connection"]["appid"],
+                        msg=f"""Invalid value in options_modules[{sectionName}][appid]. Expected: {TestConfigEpv.yaml_dict["connection"]["appid"]!r}""",
+                    )
 
-                    for attrName in ["key", "max_concurrent_tasks", "passphrase", "timeout", "verify"]:
-                        self.assertIn(attrName, config_instance.options_modules[sectionName],
-                                      msg=f"{attrName} not define in options_modules[{sectionName}]")
-                        self.assertEqual(config_instance.options_modules[sectionName][attrName], TestConfigEpv.yaml_dict["AIM"][attrName],
-                                         msg=f"""Invalid value in options_modules[{sectionName}][{attrName}]. Expected: {TestConfigEpv.yaml_dict["AIM"][attrName]!r}""")
+                    for attrName in [
+                        "key",
+                        "max_concurrent_tasks",
+                        "passphrase",
+                        "timeout",
+                        "verify",
+                    ]:
+                        self.assertIn(
+                            attrName,
+                            config_instance.options_modules[sectionName],
+                            msg=f"{attrName} not define in options_modules[{sectionName}]",
+                        )
+                        self.assertEqual(
+                            config_instance.options_modules[sectionName][attrName],
+                            TestConfigEpv.yaml_dict["AIM"][attrName],
+                            msg=f"""Invalid value in options_modules[{sectionName}][{attrName}]. Expected: {TestConfigEpv.yaml_dict["AIM"][attrName]!r}""",
+                        )
 
                 elif sectionName == "account":
                     for attrName in ["logon_account_index", "reconcile_account_index"]:
-                        self.assertIn(attrName, config_instance.options_modules[sectionName],
-                                      msg=f"{attrName} not define in options_modules[{sectionName}]")
-                        self.assertEqual(config_instance.options_modules[sectionName][attrName], TestConfigEpv.yaml_dict[sectionName][attrName],
-                                         msg=f"""Invalid value in options_modules[{sectionName}][{attrName}]. Expected: {TestConfigEpv.yaml_dict[sectionName][attrName]!r}""")
+                        self.assertIn(
+                            attrName,
+                            config_instance.options_modules[sectionName],
+                            msg=f"{attrName} not define in options_modules[{sectionName}]",
+                        )
+                        self.assertEqual(
+                            config_instance.options_modules[sectionName][attrName],
+                            TestConfigEpv.yaml_dict[sectionName][attrName],
+                            msg=f"""Invalid value in options_modules[{sectionName}][{attrName}]. Expected: {TestConfigEpv.yaml_dict[sectionName][attrName]!r}""",
+                        )
 
                 elif sectionName == "safe":
                     for attrName in ["cpm", "retention"]:
-                        self.assertIn(attrName, config_instance.options_modules[sectionName], msg=f"{attrName} not define in options_modules[{sectionName}]")
-                        self.assertEqual(config_instance.options_modules[sectionName][attrName], TestConfigEpv.yaml_dict[sectionName][attrName],
-                                         msg=f"""Invalid value in options_modules[{sectionName}][{attrName}]. Expected: {TestConfigEpv.yaml_dict[sectionName][attrName]!r}""")
+                        self.assertIn(
+                            attrName,
+                            config_instance.options_modules[sectionName],
+                            msg=f"{attrName} not define in options_modules[{sectionName}]",
+                        )
+                        self.assertEqual(
+                            config_instance.options_modules[sectionName][attrName],
+                            TestConfigEpv.yaml_dict[sectionName][attrName],
+                            msg=f"""Invalid value in options_modules[{sectionName}][{attrName}]. Expected: {TestConfigEpv.yaml_dict[sectionName][attrName]!r}""",
+                        )
                 elif sectionName == "api_options":
                     for attrName in ["deprecated_warning"]:
-                        self.assertIn(attrName, config_instance.options_modules[sectionName], msg=f"{attrName} not define in options_modules[{sectionName}]")
+                        self.assertIn(
+                            attrName,
+                            config_instance.options_modules[sectionName],
+                            msg=f"{attrName} not define in options_modules[{sectionName}]",
+                        )
                 else:
                     if config_instance.options_modules[sectionName]:
-                        self.fail(msg=f"No validation defined for options_modules[{sectionName}]")
-
+                        self.fail(
+                            msg=f"No validation defined for options_modules[{sectionName}]"
+                        )
 
     def test_02_epv_complete_yml(self):
-        """ test_02_epv_complete_yml  - Test complete yaml file
-            Check all fields in EPV instance class returned.
+        """test_02_epv_complete_yml  - Test complete yaml file
+        Check all fields in EPV instance class returned.
         """
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
 
-        epv_env = self.call_EPV(fnc_name, config_file=TestConfigEpv.yaml_filename, expected_value=TestConfigEpv.epv_validation_dict,
-                                trace_input=True, trace_epv=True, trace_check=True)
+        epv_env = self.call_EPV(
+            fnc_name,
+            config_file=TestConfigEpv.yaml_filename,
+            expected_value=TestConfigEpv.epv_validation_dict,
+            trace_input=True,
+            trace_epv=True,
+            trace_check=True,
+        )
 
         # Check for global unknown attributes in case new test should be added
         for attrName in vars(epv_env):
             if not attrName.startswith("_"):
                 with self.subTest(unknowned=attrName):
-                    self.assertIn(attrName, EPV_ATTRIBUTE_NAME,
-                                  msg=f"Unknow attribute '{attrName}' in EPV (verify for new validation test): {attrName}")
-
+                    self.assertIn(
+                        attrName,
+                        EPV_ATTRIBUTE_NAME,
+                        msg=f"Unknow attribute '{attrName}' in EPV (verify for new validation test): {attrName}",
+                    )
 
         # Check for global not defined attributes in case old test should be modified
         vars_def = vars(epv_env)
@@ -647,16 +858,18 @@ class TestConfigEpv(unittest.TestCase):
         for attrName in EPV_ATTRIBUTE_NAME:
             if not attrName.startswith("_"):
                 with self.subTest(undefined=attrName):
-                    self.assertIn(attrName, vars_def,
-                                  msg=f"Undefined attribute '{attrName}' in EPV (verify old validation test): {attrName}")
+                    self.assertIn(
+                        attrName,
+                        vars_def,
+                        msg=f"Undefined attribute '{attrName}' in EPV (verify old validation test): {attrName}",
+                    )
 
     def test_03_epv_complete_ser(self):
-        """ test_03_epv_complete_ser  - Test complete serialization.
-            Check all fields in EPV instance class returned.
+        """test_03_epv_complete_ser  - Test complete serialization.
+        Check all fields in EPV instance class returned.
         """
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
-
 
         # Adjust validation for serialization
         epv_validation_dict = copy.deepcopy(TestConfigEpv.epv_validation_dict)
@@ -669,23 +882,34 @@ class TestConfigEpv(unittest.TestCase):
             if epv_validation_dict["config"].get("configfile", None) is not None:
                 del epv_validation_dict["config"]["configfile"]
 
-
-        epv_env = self.call_EPV(fnc_name, serialized=TestConfigEpv.serialize_dict, expected_value=epv_validation_dict,
-                                trace_input=True, trace_epv=True, trace_check = True)
+        epv_env = self.call_EPV(
+            fnc_name,
+            serialized=TestConfigEpv.serialize_dict,
+            expected_value=epv_validation_dict,
+            trace_input=True,
+            trace_epv=True,
+            trace_check=True,
+        )
 
         # Check for unknown attribute in case new test should be added
         for attrName in vars(epv_env):
             if not attrName.startswith("_"):
-                self.assertIn(attrName, EPV_ATTRIBUTE_NAME,
-                              msg=f"Unknow attribute '{attrName}' in EPV (may add new validation): {attrName}")
+                self.assertIn(
+                    attrName,
+                    EPV_ATTRIBUTE_NAME,
+                    msg=f"Unknow attribute '{attrName}' in EPV (may add new validation): {attrName}",
+                )
 
     @staticmethod
     def build_upperkey_yaml_dict(yaml_dict):
         # account
-        yaml_dict["account"]["LOGON_account_INDEX"] = yaml_dict["account"].pop("logon_account_index")
-        yaml_dict["account"]["RECONCILE_account_INDEX"] = yaml_dict["account"].pop("reconcile_account_index")
+        yaml_dict["account"]["LOGON_account_INDEX"] = yaml_dict["account"].pop(
+            "logon_account_index"
+        )
+        yaml_dict["account"]["RECONCILE_account_INDEX"] = yaml_dict["account"].pop(
+            "reconcile_account_index"
+        )
         yaml_dict["aCCount"] = yaml_dict.pop("account")
-
 
         # safe
         yaml_dict["safe"]["CPM"] = yaml_dict["safe"].pop("cpm")
@@ -695,8 +919,8 @@ class TestConfigEpv(unittest.TestCase):
         return yaml_dict
 
     def test_11_upperkey_from_yml(self):
-        """ test_11_upperkey_from_yml  - Test uppercase attribute name (yaml file).
-            Check some fields in EPV instance class returned.
+        """test_11_upperkey_from_yml  - Test uppercase attribute name (yaml file).
+        Check some fields in EPV instance class returned.
         """
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
@@ -704,18 +928,25 @@ class TestConfigEpv(unittest.TestCase):
         yaml_dict = copy.deepcopy(TestConfigEpv.yaml_dict)
 
         # PVWA
-        yaml_dict["pvwa"]["Max_Concurrent_tAsks"] = yaml_dict["pvwa"].pop("max_concurrent_tasks")
+        yaml_dict["pvwa"]["Max_Concurrent_tAsks"] = yaml_dict["pvwa"].pop(
+            "max_concurrent_tasks"
+        )
         yaml_dict["PVWA"] = yaml_dict.pop("pvwa")
 
         yaml_dict = self.build_upperkey_yaml_dict(yaml_dict)
 
-        self.call_EPV(fnc_name, yaml_dict=yaml_dict, expected_value=TestConfigEpv.epv_validation_dict,
-                                trace_input=True, trace_epv=True, trace_check = True)
-
+        self.call_EPV(
+            fnc_name,
+            yaml_dict=yaml_dict,
+            expected_value=TestConfigEpv.epv_validation_dict,
+            trace_input=True,
+            trace_epv=True,
+            trace_check=True,
+        )
 
     def test_12_upperkey_from_ser(self):
-        """ test_12_upperkey_from_ser  - Test uppercase attribute name (serialization).
-            Check some fields in EPV instance class returned.
+        """test_12_upperkey_from_ser  - Test uppercase attribute name (serialization).
+        Check some fields in EPV instance class returned.
         """
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
@@ -724,7 +955,9 @@ class TestConfigEpv(unittest.TestCase):
         epv_validation_dict = copy.deepcopy(TestConfigEpv.epv_validation_dict)
 
         # EPV
-        serialize_dict["Max_Concurrent_tAsks"] = serialize_dict.pop("max_concurrent_tasks")
+        serialize_dict["Max_Concurrent_tAsks"] = serialize_dict.pop(
+            "max_concurrent_tasks"
+        )
 
         serialize_dict = self.build_upperkey_yaml_dict(serialize_dict)
 
@@ -735,63 +968,100 @@ class TestConfigEpv(unittest.TestCase):
             if "configfile" in epv_validation_dict["config"]:
                 del epv_validation_dict["config"]["configfile"]
 
-
-        self.call_EPV(fnc_name, serialized=serialize_dict, expected_value=epv_validation_dict,
-                                trace_input=True, trace_epv=True, trace_check = True)
+        self.call_EPV(
+            fnc_name,
+            serialized=serialize_dict,
+            expected_value=epv_validation_dict,
+            trace_input=True,
+            trace_epv=True,
+            trace_check=True,
+        )
 
     def epv_env_fields_check(self, epv_env):
         """
         epv_env_fields_check - Check EPV instance class returned
         """
         # Global API options
-        self.assertEqual(epv_env.api_options.deprecated_warning,
-                         aiobastion.config.Api_options.API_OPTIONS_DEFAULT_DEPRECATED_WARNING)
+        self.assertEqual(
+            epv_env.api_options.deprecated_warning,
+            aiobastion.config.Api_options.API_OPTIONS_DEFAULT_DEPRECATED_WARNING,
+        )
         # EPV
-        self.assertEqual(epv_env.keep_cookies, aiobastion.config.Config.CYBERARK_DEFAULT_KEEP_COOKIES)
-        self.assertEqual(epv_env.max_concurrent_tasks, aiobastion.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS)
-        self.assertEqual(epv_env.timeout, aiobastion.config.Config.CYBERARK_DEFAULT_TIMEOUT)
-        self.assertEqual(epv_env.verify, aiobastion.config.Config.CYBERARK_DEFAULT_VERIFY)
+        self.assertEqual(
+            epv_env.keep_cookies, aiobastion.config.Config.CYBERARK_DEFAULT_KEEP_COOKIES
+        )
+        self.assertEqual(
+            epv_env.max_concurrent_tasks,
+            aiobastion.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS,
+        )
+        self.assertEqual(
+            epv_env.timeout, aiobastion.config.Config.CYBERARK_DEFAULT_TIMEOUT
+        )
+        self.assertEqual(
+            epv_env.verify, aiobastion.config.Config.CYBERARK_DEFAULT_VERIFY
+        )
 
         # account
-        self.assertEqual(epv_env.account._ACCOUNT_DEFAULT_LOGON_ACCOUNT_INDEX, epv_env.account.logon_account_index)
-        self.assertEqual(epv_env.account._ACCOUNT_DEFAULT_RECONCILE_ACCOUNT_INDEX, epv_env.account.reconcile_account_index)
+        self.assertEqual(
+            epv_env.account._ACCOUNT_DEFAULT_LOGON_ACCOUNT_INDEX,
+            epv_env.account.logon_account_index,
+        )
+        self.assertEqual(
+            epv_env.account._ACCOUNT_DEFAULT_RECONCILE_ACCOUNT_INDEX,
+            epv_env.account.reconcile_account_index,
+        )
 
         # aim
-        self.assertEqual(epv_env.AIM.max_concurrent_tasks, aiobastion.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS)
-        self.assertEqual(epv_env.AIM.timeout, aiobastion.config.Config.CYBERARK_DEFAULT_TIMEOUT)
-        self.assertEqual(epv_env.AIM.verify, aiobastion.config.Config.CYBERARK_DEFAULT_VERIFY)
+        self.assertEqual(
+            epv_env.AIM.max_concurrent_tasks,
+            aiobastion.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS,
+        )
+        self.assertEqual(
+            epv_env.AIM.timeout, aiobastion.config.Config.CYBERARK_DEFAULT_TIMEOUT
+        )
+        self.assertEqual(
+            epv_env.AIM.verify, aiobastion.config.Config.CYBERARK_DEFAULT_VERIFY
+        )
 
         # safe
         self.assertEqual(epv_env.safe._SAFE_DEFAULT_CPM, epv_env.safe.cpm)
         self.assertEqual(epv_env.safe._SAFE_DEFAULT_RETENTION, epv_env.safe.retention)
 
-
     def test_21_default_from_yml(self):
-        """ test_21_default_from_yml  - Test default value returned (yaml file).
-            Check some fields in EPV instance class returned.
+        """test_21_default_from_yml  - Test default value returned (yaml file).
+        Check some fields in EPV instance class returned.
         """
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
 
         yaml_dict = {"AIM": {"host": "host22"}}
 
-        epv_env = self.call_EPV(fnc_name, yaml_dict=yaml_dict,
-                                trace_input=True, trace_epv=True, trace_check = False)
+        epv_env = self.call_EPV(
+            fnc_name,
+            yaml_dict=yaml_dict,
+            trace_input=True,
+            trace_epv=True,
+            trace_check=False,
+        )
 
         self.epv_env_fields_check(epv_env)
 
-
     def test_22_default_from_ser(self):
-        """ test_22_default_from_ser  - Test default value returned (serialization).
-            Check some fields in EPV instance class returned.
+        """test_22_default_from_ser  - Test default value returned (serialization).
+        Check some fields in EPV instance class returned.
         """
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
 
         serialize_dict = {"AIM": {"host": "host22"}}
 
-        epv_env = self.call_EPV(fnc_name, serialized=serialize_dict,
-                                trace_input=True, trace_epv=True, trace_check = True)
+        epv_env = self.call_EPV(
+            fnc_name,
+            serialized=serialize_dict,
+            trace_input=True,
+            trace_epv=True,
+            trace_check=True,
+        )
 
         self.epv_env_fields_check(epv_env)
         # Global API options
@@ -816,12 +1086,15 @@ class TestConfigEpv(unittest.TestCase):
         # self.assertEqual(epv_env.safe._SAFE_DEFAULT_CPM, epv_env.safe.cpm)
         # self.assertEqual(epv_env.safe._SAFE_DEFAULT_RETENTION, epv_env.safe.retention)
 
-
     @staticmethod
     def check_synonym(yaml_dict):
         # account vs Custom
-        yaml_dict["custom"]["LOGON_ACCOUNT_INDEX"] = yaml_dict["account"].pop("logon_account_index")
-        yaml_dict["custom"]["RECONCILE_ACCOUNT_INDEX"] = yaml_dict["account"].pop("reconcile_account_index")
+        yaml_dict["custom"]["LOGON_ACCOUNT_INDEX"] = yaml_dict["account"].pop(
+            "logon_account_index"
+        )
+        yaml_dict["custom"]["RECONCILE_ACCOUNT_INDEX"] = yaml_dict["account"].pop(
+            "reconcile_account_index"
+        )
 
         if len(yaml_dict["account"]) == 0:
             del yaml_dict["account"]
@@ -836,14 +1109,14 @@ class TestConfigEpv(unittest.TestCase):
         return yaml_dict
 
     def test_31_synonym_from_yml(self):
-        """ test_31_synonym_from_yml  - Test synonym (yaml file).
-            Check some fields in EPV instance class returned.
+        """test_31_synonym_from_yml  - Test synonym (yaml file).
+        Check some fields in EPV instance class returned.
         """
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
 
         yaml_dict = copy.deepcopy(TestConfigEpv.yaml_dict)
-        #epv_validation_dict = copy.deepcopy(TestConfig_epv.epv_validation_dict)
+        # epv_validation_dict = copy.deepcopy(TestConfig_epv.epv_validation_dict)
 
         # PVWA
         yaml_dict["pvwa"]["ca"] = yaml_dict["pvwa"].pop("verify")
@@ -873,13 +1146,18 @@ class TestConfigEpv(unittest.TestCase):
         if len(yaml_dict["safe"]) == 0:
             del yaml_dict["safe"]
 
-        self.call_EPV(fnc_name, yaml_dict=yaml_dict, expected_value=TestConfigEpv.epv_validation_dict,
-                                trace_input=True, trace_epv=True, trace_check = True)
-
+        self.call_EPV(
+            fnc_name,
+            yaml_dict=yaml_dict,
+            expected_value=TestConfigEpv.epv_validation_dict,
+            trace_input=True,
+            trace_epv=True,
+            trace_check=True,
+        )
 
     def test_32_synonym_from_ser(self):
-        """ test_32_synonym_from_ser - Test synonym (serialization).
-            Check some fields in EPV instance class returned.
+        """test_32_synonym_from_ser - Test synonym (serialization).
+        Check some fields in EPV instance class returned.
         """
 
         fnc_name = inspect.currentframe().f_code.co_name
@@ -906,13 +1184,18 @@ class TestConfigEpv(unittest.TestCase):
         if "config" in epv_validation_dict:
             del epv_validation_dict["config"]
 
-        self.call_EPV(fnc_name, serialized=serialize_dict, expected_value=epv_validation_dict,
-                                trace_input=True, trace_epv=True, trace_check = True)
-
+        self.call_EPV(
+            fnc_name,
+            serialized=serialize_dict,
+            expected_value=epv_validation_dict,
+            trace_input=True,
+            trace_epv=True,
+            trace_check=True,
+        )
 
     def test_41_raise_unknown_yml(self):
-        """ test_41_raise_unknown_yml - Test error for unkown attribute (yaml file).
-            Check section fields in EPV instance class returned.
+        """test_41_raise_unknown_yml - Test error for unkown attribute (yaml file).
+        Check section fields in EPV instance class returned.
         """
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
@@ -925,13 +1208,17 @@ class TestConfigEpv(unittest.TestCase):
         yaml_dict["a_wrong_field"] = "This-is-wrong"
 
         with self.subTest(section="global"):
-            with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                        r"^Unknown attribute in global section in"):
-                self.call_EPV(f"{fnc_name} - wrong field in section global", yaml_dict=yaml_dict,
-                            raise_condition=True)
+            with self.assertRaisesRegex(
+                aiobastion.exceptions.AiobastionConfigurationException,
+                r"^Unknown attribute in global section in",
+            ):
+                self.call_EPV(
+                    f"{fnc_name} - wrong field in section global",
+                    yaml_dict=yaml_dict,
+                    raise_condition=True,
+                )
 
         del yaml_dict["a_wrong_field"]
-
 
         # -------------------------------------
         # 2) Wrong EPV section (modules)
@@ -972,9 +1259,16 @@ class TestConfigEpv(unittest.TestCase):
         yaml_dict["connection"]["user_search"]["a_wrong_field"] = "This-is-wrong"
 
         with self.subTest(section="user_search"):
-            with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException, r"^invalid parameter in "):
-                self.call_EPV(f"{fnc_name} - wrong field in connection/user_search", yaml_dict=yaml_dict,
-                                trace_input=True, raise_condition=True)
+            with self.assertRaisesRegex(
+                aiobastion.exceptions.AiobastionConfigurationException,
+                r"^invalid parameter in ",
+            ):
+                self.call_EPV(
+                    f"{fnc_name} - wrong field in connection/user_search",
+                    yaml_dict=yaml_dict,
+                    trace_input=True,
+                    raise_condition=True,
+                )
 
         del yaml_dict["connection"]["user_search"]["a_wrong_field"]
 
@@ -998,17 +1292,26 @@ class TestConfigEpv(unittest.TestCase):
 
             if serialized:
                 with self.subTest(section=section_name):
-                    with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                                f"^Unknown attribute in section '{section_name.lower()}' from "):
-                        self.call_EPV(f"{fnc_name} - wrong field in section_name {section_name}", serialized=yaml_dict,
-                                      raise_condition=True)
+                    with self.assertRaisesRegex(
+                        aiobastion.exceptions.AiobastionConfigurationException,
+                        f"^Unknown attribute in section '{section_name.lower()}' from ",
+                    ):
+                        self.call_EPV(
+                            f"{fnc_name} - wrong field in section_name {section_name}",
+                            serialized=yaml_dict,
+                            raise_condition=True,
+                        )
             else:
                 with self.subTest(section=section_name):
-                    with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                                f"^Unknown attribute in section '{section_name.lower()}' from "):
-                        self.call_EPV(f"{fnc_name} - wrong field in section_name {section_name}", yaml_dict=yaml_dict,
-                                      raise_condition=True)
-
+                    with self.assertRaisesRegex(
+                        aiobastion.exceptions.AiobastionConfigurationException,
+                        f"^Unknown attribute in section '{section_name.lower()}' from ",
+                    ):
+                        self.call_EPV(
+                            f"{fnc_name} - wrong field in section_name {section_name}",
+                            yaml_dict=yaml_dict,
+                            raise_condition=True,
+                        )
 
             if delete_section:
                 del yaml_dict[section_name]
@@ -1019,8 +1322,8 @@ class TestConfigEpv(unittest.TestCase):
             return yaml_dict
 
     def test_42_raise_unknown_ser(self):
-        """ test_42_raise_unknown_ser  - Test error for unknown attribute (serialization).
-            Check section fields in EPV instance class returned.
+        """test_42_raise_unknown_ser  - Test error for unknown attribute (serialization).
+        Check section fields in EPV instance class returned.
         """
 
         fnc_name = inspect.currentframe().f_code.co_name
@@ -1035,11 +1338,16 @@ class TestConfigEpv(unittest.TestCase):
         serialize_dict["a_wrong_field2"] = "This-is-wrong2"
 
         with self.subTest(section="Global"):
-            with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                        r"^Unknown attribute 'a_wrong_field' in serialization"):
+            with self.assertRaisesRegex(
+                aiobastion.exceptions.AiobastionConfigurationException,
+                r"^Unknown attribute 'a_wrong_field' in serialization",
+            ):
                 # epv_env = aiobastion.EPV(serialized=serialize_dict)
-                self.call_EPV(f"{fnc_name} - wrong field in section global", serialized=serialize_dict,
-                            raise_condition=True)
+                self.call_EPV(
+                    f"{fnc_name} - wrong field in section global",
+                    serialized=serialize_dict,
+                    raise_condition=True,
+                )
 
         del serialize_dict["a_wrong_field"]
         del serialize_dict["a_wrong_field2"]
@@ -1047,7 +1355,9 @@ class TestConfigEpv(unittest.TestCase):
         # -------------------------------------
         # 2) Wrong EPV field (all modules)
         # -------------------------------------
-        serialize_dict = self.check_section_fields_raise(serialize_dict, fnc_name, serialized=True)
+        serialize_dict = self.check_section_fields_raise(
+            serialize_dict, fnc_name, serialized=True
+        )
 
         # for section_name in aiobastion.config.Config.CYBERARK_OPTIONS_MODULES_LIST:
         #     if section_name == "cyberark":
@@ -1071,11 +1381,11 @@ class TestConfigEpv(unittest.TestCase):
         #             self.call_EPV(f"{fnc_name} - wrong field in section {section_name}", serialized=serialize_dict,
         #                         raise_condition=True)
 
-            # if delete_section:
-            #     del serialize_dict[section_name]
-            # else:
-            #     del serialize_dict[section_name]["a_wrong_field"]
-            #     del serialize_dict[section_name]["a_wrong_field2"]
+        # if delete_section:
+        #     del serialize_dict[section_name]
+        # else:
+        #     del serialize_dict[section_name]["a_wrong_field"]
+        #     del serialize_dict[section_name]["a_wrong_field2"]
 
         # ---------------------------------------------
         # 3) Wrong EPV field user_search
@@ -1083,9 +1393,15 @@ class TestConfigEpv(unittest.TestCase):
         serialize_dict["user_search"]["a_wrong_field"] = "This-is-wrong"
 
         with self.subTest(section="user_search"):
-            with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException, "^invalid parameter in 'user_search': "):
-                self.call_EPV(f"{fnc_name} - wrong field in user_search", serialized=serialize_dict,
-                                raise_condition=True)
+            with self.assertRaisesRegex(
+                aiobastion.exceptions.AiobastionConfigurationException,
+                "^invalid parameter in 'user_search': ",
+            ):
+                self.call_EPV(
+                    f"{fnc_name} - wrong field in user_search",
+                    serialized=serialize_dict,
+                    raise_condition=True,
+                )
 
         del serialize_dict["user_search"]["a_wrong_field"]
 
@@ -1096,16 +1412,26 @@ class TestConfigEpv(unittest.TestCase):
 
             if serialized:
                 with self.subTest(attrName=attr_name):
-                    with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                                f"^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in"):
-                        self.call_EPV(f"{fnc_name} - duplicate field account/{attr_name}", serialized=yaml_dict,
-                                      raise_condition=True)
+                    with self.assertRaisesRegex(
+                        aiobastion.exceptions.AiobastionConfigurationException,
+                        f"^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in",
+                    ):
+                        self.call_EPV(
+                            f"{fnc_name} - duplicate field account/{attr_name}",
+                            serialized=yaml_dict,
+                            raise_condition=True,
+                        )
             else:
                 with self.subTest(attrName=attr_name):
-                    with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                            f"^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in"):
-                        self.call_EPV(f"{fnc_name} - duplicate field account/{attr_name}", yaml_dict=yaml_dict,
-                                    raise_condition=True)
+                    with self.assertRaisesRegex(
+                        aiobastion.exceptions.AiobastionConfigurationException,
+                        f"^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in",
+                    ):
+                        self.call_EPV(
+                            f"{fnc_name} - duplicate field account/{attr_name}",
+                            yaml_dict=yaml_dict,
+                            raise_condition=True,
+                        )
 
             del yaml_dict["custom"][attr_name]
 
@@ -1117,24 +1443,34 @@ class TestConfigEpv(unittest.TestCase):
 
             if serialized:
                 with self.subTest(attrName=attr_name):
-                    with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                            f"^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition"):
-                        self.call_EPV(f"{fnc_name} - duplicate field safe/{attr_name}", serialized=yaml_dict,
-                                    raise_condition=True)
+                    with self.assertRaisesRegex(
+                        aiobastion.exceptions.AiobastionConfigurationException,
+                        f"^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition",
+                    ):
+                        self.call_EPV(
+                            f"{fnc_name} - duplicate field safe/{attr_name}",
+                            serialized=yaml_dict,
+                            raise_condition=True,
+                        )
             else:
                 with self.subTest(attrName=attr_name):
-                    with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                            f"^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition"):
-                        self.call_EPV(f"{fnc_name} - duplicate field safe/{attr_name}", yaml_dict=yaml_dict,
-                                    raise_condition=True)
+                    with self.assertRaisesRegex(
+                        aiobastion.exceptions.AiobastionConfigurationException,
+                        f"^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition",
+                    ):
+                        self.call_EPV(
+                            f"{fnc_name} - duplicate field safe/{attr_name}",
+                            yaml_dict=yaml_dict,
+                            raise_condition=True,
+                        )
 
             del yaml_dict[attr_name]
 
         return yaml_dict
 
     def test_51_raise_duplicate_yml(self):
-        """ test_51_raise_duplicate_yml  - Test error for duplicate (yaml file).
-            Check some fields in EPV instance class returned.
+        """test_51_raise_duplicate_yml  - Test error for duplicate (yaml file).
+        Check some fields in EPV instance class returned.
         """
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
@@ -1144,7 +1480,9 @@ class TestConfigEpv(unittest.TestCase):
         # ---------------------------------------------
         # 1) accout vs custom
         # ---------------------------------------------
-        yaml_dict = self.check_fields_raise_duplicate(yaml_dict, fnc_name, serialized=False)
+        yaml_dict = self.check_fields_raise_duplicate(
+            yaml_dict, fnc_name, serialized=False
+        )
 
         # for attr_name in ["LOGON_ACCOUNT_INDEX", "reconcile_account_index"]:
         #     yaml_dict["custom"][attr_name] = yaml_dict["account"][attr_name.lower()]
@@ -1185,10 +1523,15 @@ class TestConfigEpv(unittest.TestCase):
         yaml_dict[add_section][attr_name] = "appid_test"
 
         with self.subTest(add_section=add_section, attrName=attr_name):
-            with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                        f"^Duplicate key 'aim/appid' in "):
-                    self.call_EPV(f"{fnc_name} - duplicate field aim/{attr_name}", yaml_dict=yaml_dict,
-                                raise_condition=True)
+            with self.assertRaisesRegex(
+                aiobastion.exceptions.AiobastionConfigurationException,
+                f"^Duplicate key 'aim/appid' in ",
+            ):
+                self.call_EPV(
+                    f"{fnc_name} - duplicate field aim/{attr_name}",
+                    yaml_dict=yaml_dict,
+                    raise_condition=True,
+                )
 
         del yaml_dict[add_section]["appid"]
 
@@ -1199,17 +1542,21 @@ class TestConfigEpv(unittest.TestCase):
         yaml_dict["pvwa"]["HOST"] = yaml_dict["pvwa"][attr_name]
 
         with self.subTest(attrName=attr_name):
-            with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                        f"^Duplicate key '/pvwa/host' in "):
-                    self.call_EPV(f"{fnc_name} - duplicate field pvwa/host (lower/uppercase)", yaml_dict=yaml_dict,
-                            raise_condition=True)
+            with self.assertRaisesRegex(
+                aiobastion.exceptions.AiobastionConfigurationException,
+                f"^Duplicate key '/pvwa/host' in ",
+            ):
+                self.call_EPV(
+                    f"{fnc_name} - duplicate field pvwa/host (lower/uppercase)",
+                    yaml_dict=yaml_dict,
+                    raise_condition=True,
+                )
 
         del yaml_dict["pvwa"]["HOST"]
 
-
     def test_52_raise_duplicate_ser(self):
-        """ test_52_raise_duplicate_ser - Test error for duplicate (serialization).
-            Check some fields in EPV instance class returned.
+        """test_52_raise_duplicate_ser - Test error for duplicate (serialization).
+        Check some fields in EPV instance class returned.
         """
 
         fnc_name = inspect.currentframe().f_code.co_name
@@ -1220,7 +1567,9 @@ class TestConfigEpv(unittest.TestCase):
         # ---------------------------------------------
         # 1) accout vs custom
         # ---------------------------------------------
-        serialize_dict = self.check_fields_raise_duplicate(serialize_dict, fnc_name, serialized=True)
+        serialize_dict = self.check_fields_raise_duplicate(
+            serialize_dict, fnc_name, serialized=True
+        )
 
         # for attrName in ["LOGON_ACCOUNT_INDEX", "reconcile_account_index"]:
         #     serialize_dict["custom"][attrName] = serialize_dict["account"][attrName.lower()]
@@ -1254,15 +1603,19 @@ class TestConfigEpv(unittest.TestCase):
         # ---------------------------------------------
         serialize_dict["API_HOST"] = serialize_dict["api_host"]
 
-        with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException, f"^Duplicate key '/"):
-            self.call_EPV(f"{fnc_name} - duplicate field api_host  (lower/uppercase)", serialized=serialize_dict,
-                          raise_condition=True)
+        with self.assertRaisesRegex(
+            aiobastion.exceptions.AiobastionConfigurationException, f"^Duplicate key '/"
+        ):
+            self.call_EPV(
+                f"{fnc_name} - duplicate field api_host  (lower/uppercase)",
+                serialized=serialize_dict,
+                raise_condition=True,
+            )
 
         del serialize_dict["API_HOST"]
 
-
     def test_61_raise_typecheck_yml(self):
-        """ test_13_raise_typecheck_yml - Test error for type definition (yaml file)
+        """test_13_raise_typecheck_yml - Test error for type definition (yaml file)
 
         type: integer
             pvwa                timeout
@@ -1323,9 +1676,14 @@ class TestConfigEpv(unittest.TestCase):
             else:
                 yaml_dict = {attrName: "err"}
 
-            with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException, f"^Invalid "):
-                self.call_EPV(f"{fnc_name} - Invalid type {section_name}/{attrName}", yaml_dict=yaml_dict,
-                              raise_condition=True)
+            with self.assertRaisesRegex(
+                aiobastion.exceptions.AiobastionConfigurationException, f"^Invalid "
+            ):
+                self.call_EPV(
+                    f"{fnc_name} - Invalid type {section_name}/{attrName}",
+                    yaml_dict=yaml_dict,
+                    raise_condition=True,
+                )
 
         # Test boolean
         for section_name, attrName in check_bool:
@@ -1334,9 +1692,15 @@ class TestConfigEpv(unittest.TestCase):
             else:
                 yaml_dict = {attrName: "err"}
 
-            with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException, f"^Invalid value '{section_name}/{attrName}'"):
-                self.call_EPV(f"{fnc_name} - Invalid type {section_name}/{attrName}", yaml_dict=yaml_dict,
-                              raise_condition=True)
+            with self.assertRaisesRegex(
+                aiobastion.exceptions.AiobastionConfigurationException,
+                f"^Invalid value '{section_name}/{attrName}'",
+            ):
+                self.call_EPV(
+                    f"{fnc_name} - Invalid type {section_name}/{attrName}",
+                    yaml_dict=yaml_dict,
+                    raise_condition=True,
+                )
 
         # Test verify (string or boolean)
         for section_name, attrName in check_bool_str:
@@ -1345,13 +1709,18 @@ class TestConfigEpv(unittest.TestCase):
             else:
                 yaml_dict = {attrName: 1}
 
-            with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException, f"^Parameter type invalid "):
-                self.call_EPV(f"{fnc_name} - Invalid type {section_name}/{attrName}", yaml_dict=yaml_dict,
-                              raise_condition=True)
-
+            with self.assertRaisesRegex(
+                aiobastion.exceptions.AiobastionConfigurationException,
+                f"^Parameter type invalid ",
+            ):
+                self.call_EPV(
+                    f"{fnc_name} - Invalid type {section_name}/{attrName}",
+                    yaml_dict=yaml_dict,
+                    raise_condition=True,
+                )
 
     def test_62_raise_typecheck_ser(self):
-        """ test_14_raise_typecheck_ser - Test error for type definition (serialization)
+        """test_14_raise_typecheck_ser - Test error for type definition (serialization)
 
         type: integer
             timeout
@@ -1409,10 +1778,14 @@ class TestConfigEpv(unittest.TestCase):
                 serialize_dict = {attrName: "err"}
 
             with self.subTest(attrName=attrName, type="integer"):
-                with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                            f"^Invalid "):
-                    self.call_EPV(f"{fnc_name} - Invalid type {section_name}/{attrName}", serialized=serialize_dict,
-                                raise_condition=True)
+                with self.assertRaisesRegex(
+                    aiobastion.exceptions.AiobastionConfigurationException, f"^Invalid "
+                ):
+                    self.call_EPV(
+                        f"{fnc_name} - Invalid type {section_name}/{attrName}",
+                        serialized=serialize_dict,
+                        raise_condition=True,
+                    )
 
         # Test boolean
         for section_name, attrName in check_bool:
@@ -1422,10 +1795,15 @@ class TestConfigEpv(unittest.TestCase):
                 serialize_dict = {attrName: "err"}
 
             with self.subTest(attrName=attrName, type="bool"):
-                with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                            f"^Invalid value '{attrName}'"):
-                    self.call_EPV(f"{fnc_name} - Invalid type {section_name}/{attrName}", serialized=serialize_dict,
-                              raise_condition=True)
+                with self.assertRaisesRegex(
+                    aiobastion.exceptions.AiobastionConfigurationException,
+                    f"^Invalid value '{attrName}'",
+                ):
+                    self.call_EPV(
+                        f"{fnc_name} - Invalid type {section_name}/{attrName}",
+                        serialized=serialize_dict,
+                        raise_condition=True,
+                    )
 
         # Test verify (string or boolean)
         for section_name, attrName in check_bool_str:
@@ -1435,49 +1813,61 @@ class TestConfigEpv(unittest.TestCase):
                 serialize_dict = {attrName: 1}
 
             with self.subTest(attrName=attrName, type="string/bool"):
-                with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                            f"^Parameter type invalid "):
-                    self.call_EPV(f"{fnc_name} - Invalid type {section_name}/{attrName}", serialized=serialize_dict,
-                                raise_condition=True)
-
+                with self.assertRaisesRegex(
+                    aiobastion.exceptions.AiobastionConfigurationException,
+                    f"^Parameter type invalid ",
+                ):
+                    self.call_EPV(
+                        f"{fnc_name} - Invalid type {section_name}/{attrName}",
+                        serialized=serialize_dict,
+                        raise_condition=True,
+                    )
 
     def test_71_raise_account_validation(self):
-        """ test_71_raise_account_validation - Test error for wrong value in Account definition (yaml file and serialization)
-        """
+        """test_71_raise_account_validation - Test error for wrong value in Account definition (yaml file and serialization)"""
         fnc_name = inspect.currentframe().f_code.co_name
 
         for attrName in ["logon_account_index", "reconcile_account_index"]:
             serialize_dict = {"account": {attrName: 10}}
 
-            with self.subTest(attrName=attrName,type="ser"):
-                with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                            f"^Invalid value for 'account/{attrName}' "):
-                    self.call_EPV(f"{fnc_name} - account/reconcile_account_index (ser)", serialized=serialize_dict,
-                                    raise_condition=True)
+            with self.subTest(attrName=attrName, type="ser"):
+                with self.assertRaisesRegex(
+                    aiobastion.exceptions.AiobastionConfigurationException,
+                    f"^Invalid value for 'account/{attrName}' ",
+                ):
+                    self.call_EPV(
+                        f"{fnc_name} - account/reconcile_account_index (ser)",
+                        serialized=serialize_dict,
+                        raise_condition=True,
+                    )
 
-            with self.subTest(attrName=attrName,type="Yaml"):
-                with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
-                                            f"^Invalid value for 'account/{attrName}' "):
-                    self.call_EPV(f"{fnc_name} - account /reconcile_account_index (Yaml)", yaml_dict=serialize_dict,
-                                    raise_condition=True)
-
+            with self.subTest(attrName=attrName, type="Yaml"):
+                with self.assertRaisesRegex(
+                    aiobastion.exceptions.AiobastionConfigurationException,
+                    f"^Invalid value for 'account/{attrName}' ",
+                ):
+                    self.call_EPV(
+                        f"{fnc_name} - account /reconcile_account_index (Yaml)",
+                        yaml_dict=serialize_dict,
+                        raise_condition=True,
+                    )
 
     def test_81_raise_no_parm(self):
-        """ test_81_raise_no_parm - Test error for missing parameter in EPV call
-        """
+        """test_81_raise_no_parm - Test error for missing parameter in EPV call"""
 
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
 
-        with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException, "Internal error: no configfile and no serialized"):
-                    # epv_env = aiobastion.EPV(serialized=serialize_dict)
-                    self.call_EPV(f"{fnc_name} - No param")
-
-
+        with self.assertRaisesRegex(
+            aiobastion.exceptions.AiobastionConfigurationException,
+            "Internal error: no configfile and no serialized",
+        ):
+            # epv_env = aiobastion.EPV(serialized=serialize_dict)
+            self.call_EPV(f"{fnc_name} - No param")
 
     def test_91_to_json(self):
-        """ test_91_to_json - Test <EPV>.to_json function call
-            Check all expected value fro <EPV>.to_json.
+        """test_91_to_json - Test <EPV>.to_json function call
+        Check all expected value fro <EPV>.to_json.
         """
         fnc_name = inspect.currentframe().f_code.co_name
         self.writelog(HEADER, fnc_name)
@@ -1492,24 +1882,31 @@ class TestConfigEpv(unittest.TestCase):
         del validate_to_json["custom"]
         del validate_to_json["AIM"]["passphrase"]
 
-        epv_env = self.call_EPV(fnc_name, serialized=TestConfigEpv.serialize_dict, expected_value=None,
-                                trace_input=True, trace_epv=True, trace_check = False)
+        epv_env = self.call_EPV(
+            fnc_name,
+            serialized=TestConfigEpv.serialize_dict,
+            expected_value=None,
+            trace_input=True,
+            trace_epv=True,
+            trace_check=False,
+        )
 
         json_dict = epv_env.to_json()
 
-        self.write_pprint(f" {fnc_name} - to_json return ",json_dict)
+        self.write_pprint(f" {fnc_name} - to_json return ", json_dict)
 
         self.writelog(f" {fnc_name} - check value ".center(100, "-"))
 
-
         # Check all expected value
-        self.check_section_value(f"{fnc_name}", json_dict, validate_to_json, trace_check=True)
+        self.check_section_value(
+            f"{fnc_name}", json_dict, validate_to_json, trace_check=True
+        )
 
         self.writelog(f" {fnc_name} - check value (end) ".center(100, "-"))
 
 
-if __name__ == '__main__':
-    if sys.platform == 'win32':
+if __name__ == "__main__":
+    if sys.platform == "win32":
         # Turned out, using WindowsSelectorEventLoop has functionality issues such as:
         #     Can't support more than 512 sockets
         #     Can't use pipe

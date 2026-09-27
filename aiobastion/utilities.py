@@ -2,10 +2,17 @@ import asyncio
 import copy
 
 from .accounts import PrivilegedAccount
-from .exceptions import AiobastionException, CyberarkAPIException, CyberarkException, AiobastionConfigurationException
+from .exceptions import (
+    AiobastionException,
+    CyberarkAPIException,
+    CyberarkException,
+    AiobastionConfigurationException,
+)
 
 
-def clone_privileged_account(account: PrivilegedAccount, replace: dict, update_name=True) -> PrivilegedAccount:
+def clone_privileged_account(
+    account: PrivilegedAccount, replace: dict, update_name=True
+) -> PrivilegedAccount:
     new_a = copy.deepcopy(account)
     for k, v in replace.items():
         try:
@@ -40,7 +47,9 @@ class Utilities:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}")
+            raise AiobastionConfigurationException(
+                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
+            )
 
     def to_json(self):
         serialized = {}
@@ -63,16 +72,20 @@ class Utilities:
         for acc in accounts:
             if username_filter is not None and acc.userName not in username_filter:
                 continue
-            if (acc.secretManagement['automaticManagementEnabled'] is False) or \
-                    ("status" not in acc.secretManagement) or (acc.secretManagement["status"] == 'failure'):
+            if (
+                (acc.secretManagement["automaticManagementEnabled"] is False)
+                or ("status" not in acc.secretManagement)
+                or (acc.secretManagement["status"] == "failure")
+            ):
                 try:
                     await self.epv.account.change_password(acc)
                     self.epv.logger.info(f"{address};{acc.userName};MARKED FOR CHANGE")
                 except CyberarkAPIException:
-                    self.epv.logger.error(f"{address};FAILED MARK CHANGE FOR {acc.userName}")
+                    self.epv.logger.error(
+                        f"{address};FAILED MARK CHANGE FOR {acc.userName}"
+                    )
 
-
-    async def cpm_change(self, address,username_filter: list = None):
+    async def cpm_change(self, address, username_filter: list = None):
         """
         CPM Change a list of accounts for an address
         :param address: exact value of field Address in EPV
@@ -81,15 +94,23 @@ class Utilities:
         accounts = await self.epv.account.search_account_by(address=address)
         for account in accounts:
             if username_filter is not None and account.userName not in username_filter:
-                self.epv.logger.debug(f"EPV;SKIPPING;{account.userName};{account.address}")
+                self.epv.logger.debug(
+                    f"EPV;SKIPPING;{account.userName};{account.address}"
+                )
                 continue
             try:
                 await self.epv.account.change_password(account)
-                self.epv.logger.info(f"EPV;MARKED FOR CHANGE;{account.userName};{account.address}")
+                self.epv.logger.info(
+                    f"EPV;MARKED FOR CHANGE;{account.userName};{account.address}"
+                )
             except CyberarkAPIException:
-                self.epv.logger.error(f"EPV;MARK CHANGE FAILED;{account.userName};{account.address}")
+                self.epv.logger.error(
+                    f"EPV;MARK CHANGE FAILED;{account.userName};{account.address}"
+                )
 
-    async def manual_set_password(self, address, password, username_filter: list = None):
+    async def manual_set_password(
+        self, address, password, username_filter: list = None
+    ):
         """
         Set a custom password a list of accounts for an address
         :param address: exact value of field Address in EPV
@@ -99,15 +120,27 @@ class Utilities:
         accounts = await self.epv.account.search_account_by(address=address)
         for account in accounts:
             if username_filter is not None and account.userName not in username_filter:
-                self.epv.logger.debug(f"EPV;SKIPPING;{account.userName};{account.address}")
+                self.epv.logger.debug(
+                    f"EPV;SKIPPING;{account.userName};{account.address}"
+                )
                 continue
             try:
                 if await self.epv.account.set_password(account.id, password):
-                    self.epv.logger.info(f"{account.userName};{address};Password successfully changed")
+                    self.epv.logger.info(
+                        f"{account.userName};{address};Password successfully changed"
+                    )
                 else:
-                    self.epv.logger.info(f"{account.userName};{address};Password NOT changed")
-            except (CyberarkAPIException, CyberarkException, AiobastionException) as err:
-                self.epv.logger.error(f"{account.userName};{address};An error occured when trying to change password : {err}")
+                    self.epv.logger.info(
+                        f"{account.userName};{address};Password NOT changed"
+                    )
+            except (
+                CyberarkAPIException,
+                CyberarkException,
+                AiobastionException,
+            ) as err:
+                self.epv.logger.error(
+                    f"{account.userName};{address};An error occured when trying to change password : {err}"
+                )
 
     async def reconcile(self, address, username_filter: list = None):
         """
@@ -118,15 +151,23 @@ class Utilities:
         accounts = await self.epv.account.search_account_by(address=address)
         for account in accounts:
             if username_filter is not None and account.userName not in username_filter:
-                self.epv.logger.debug(f"EPV;SKIPPING;{account.userName};{account.address}")
+                self.epv.logger.debug(
+                    f"EPV;SKIPPING;{account.userName};{account.address}"
+                )
                 continue
             try:
                 await self.epv.account.reconcile(account)
-                self.epv.logger.info(f"EPV;MARKED FOR RECONCILE;{account.userName};{account.address}")
+                self.epv.logger.info(
+                    f"EPV;MARKED FOR RECONCILE;{account.userName};{account.address}"
+                )
             except CyberarkAPIException:
-                self.epv.logger.error(f"EPV;MARK FOR RECONCILE FAILED;{account.userName};{account.address}")
+                self.epv.logger.error(
+                    f"EPV;MARK FOR RECONCILE FAILED;{account.userName};{account.address}"
+                )
 
-    async def reconcile_failed_accounts(self, address: str, username_filter: list = None):
+    async def reconcile_failed_accounts(
+        self, address: str, username_filter: list = None
+    ):
         """
         Reconcile a list of accounts for a address if they are red in PVWA
         :param address: exact value of field Address in EPV
@@ -135,15 +176,24 @@ class Utilities:
         accounts = await self.epv.account.search_account_by(address=address)
         for account in accounts:
             if username_filter is not None and account.userName not in username_filter:
-                self.epv.logger.debug(f"EPV;SKIPPING;{account.userName};{account.address}")
+                self.epv.logger.debug(
+                    f"EPV;SKIPPING;{account.userName};{account.address}"
+                )
                 continue
-            if "status" not in account.secretManagement or account.secretManagement["status"] == 'failure'\
-                    or account.secretManagement['automaticManagementEnabled'] is False:
+            if (
+                "status" not in account.secretManagement
+                or account.secretManagement["status"] == "failure"
+                or account.secretManagement["automaticManagementEnabled"] is False
+            ):
                 try:
                     await self.epv.account.reconcile(account)
-                    self.epv.logger.info(f"EPV;MARKED FOR RECONCILE;{account.userName};{account.address}")
+                    self.epv.logger.info(
+                        f"EPV;MARKED FOR RECONCILE;{account.userName};{account.address}"
+                    )
                 except CyberarkAPIException:
-                    self.epv.logger.error(f"EPV;RECONCILE_FAILED;{account.userName};{account.address}")
+                    self.epv.logger.error(
+                        f"EPV;RECONCILE_FAILED;{account.userName};{account.address}"
+                    )
 
     async def account_status(self, address: str, accounts: list):
         """
@@ -162,12 +212,15 @@ class Utilities:
             self.epv.logger.info(f"{address};Introuvable !")
 
         for acc in accs:
-            if "status" not in acc.secretManagement or acc.secretManagement["status"] == 'failure':
+            if (
+                "status" not in acc.secretManagement
+                or acc.secretManagement["status"] == "failure"
+            ):
                 if acc.userName in accounts:
                     failed.append(acc.userName)
                     status = False
-            elif acc.secretManagement['automaticManagementEnabled'] is False:
-                reason = acc.secretManagement['manualManagementReason']
+            elif acc.secretManagement["automaticManagementEnabled"] is False:
+                reason = acc.secretManagement["manualManagementReason"]
                 if acc.userName in accounts:
                     failed.append(acc.userName)
                     status = False
@@ -190,7 +243,9 @@ class Utilities:
         results = []
         for acc in del_acc:
             if safe_pattern_filter != "" and safe_pattern_filter in acc.safeName:
-                self.epv.logger.info(f"EPV;User filter matched;{acc.userName};{acc.address}")
+                self.epv.logger.info(
+                    f"EPV;User filter matched;{acc.userName};{acc.address}"
+                )
                 continue
             if await self.epv.account.delete(acc):
                 results.append(acc.name)
@@ -212,7 +267,9 @@ class Utilities:
 
         return await self.epv.account.add_account_to_safe(clones)
 
-    async def clone_account(self, address: str, username: str, replace, update_name=True):
+    async def clone_account(
+        self, address: str, username: str, replace, update_name=True
+    ):
         """
         Find an account identified by address and username, and clone it with new parameters
         :param address: Address of account to clone
@@ -221,9 +278,13 @@ class Utilities:
         :param update_name: automatic update of the name
         :return: Boolean telling if the account was created
         """
-        accounts = await self.epv.account.search_account_by(address=address, username=username)
+        accounts = await self.epv.account.search_account_by(
+            address=address, username=username
+        )
         if len(accounts) != 1:
-            raise AiobastionException(f"More than one address was found with {address} and {username}")
+            raise AiobastionException(
+                f"More than one address was found with {address} and {username}"
+            )
         else:
             account = accounts[0]
         new_account = clone_privileged_account(account, replace, update_name)
@@ -254,11 +315,18 @@ class Utilities:
             result = []
             for pf in all_pf:
                 plateform_id = pf["PlatformID"]
-                uuid = await self.epv.platform.get_target_platform_unique_id(plateform_id)
-                comps = await self.epv.platform.get_target_platform_connection_components(uuid)
-                comps = ",".join([p['PSMConnectorID'] for p in comps if p['Enabled']])
+                uuid = await self.epv.platform.get_target_platform_unique_id(
+                    plateform_id
+                )
+                comps = (
+                    await self.epv.platform.get_target_platform_connection_components(
+                        uuid
+                    )
+                )
+                comps = ",".join([p["PSMConnectorID"] for p in comps if p["Enabled"]])
                 result.append(
-                    f"{pf['ID']},{pf['Name']},{pf['PlatformID']},{pf['SystemType']},{pf['Active']},{nb_element[pf['PlatformID']]},{comps},")
+                    f"{pf['ID']},{pf['Name']},{pf['PlatformID']},{pf['SystemType']},{pf['Active']},{nb_element[pf['PlatformID']]},{comps},"
+                )
 
             return result
 
@@ -270,27 +338,35 @@ class Utilities:
             all_cc = await self.epv.session_management.get_all_connection_components()
             all_pf = await self.epv.platform.get_target_platforms()
 
-            con_comp = {a['ID']: [] for a in all_cc["PSMConnectors"]}
+            con_comp = {a["ID"]: [] for a in all_cc["PSMConnectors"]}
 
             for pf in all_pf:
                 plateform_id = pf["PlatformID"]
-                uuid = await self.epv.platform.get_target_platform_unique_id(plateform_id)
-                comps = await self.epv.platform.get_target_platform_connection_components(uuid)
+                uuid = await self.epv.platform.get_target_platform_unique_id(
+                    plateform_id
+                )
+                comps = (
+                    await self.epv.platform.get_target_platform_connection_components(
+                        uuid
+                    )
+                )
                 for _c in comps:
                     if _c["Enabled"]:
                         cc_name = _c["PSMConnectorID"]
                         if cc_name in con_comp:
-                            con_comp[cc_name].append(pf['PlatformID'])
+                            con_comp[cc_name].append(pf["PlatformID"])
                         else:
-                            self.epv.logger.info(f"Warning for {cc_name} in {pf['PlatformID']} => {_c} "
-                                                 f"(Unknown Component)")
-                            con_comp[cc_name] = [pf['PlatformID']]
+                            self.epv.logger.info(
+                                f"Warning for {cc_name} in {pf['PlatformID']} => {_c} "
+                                f"(Unknown Component)"
+                            )
+                            con_comp[cc_name] = [pf["PlatformID"]]
 
             result = []
             for conn, pfs in con_comp.items():
-                result.append({"Component": conn,
-                               "PlatformCount": len(pfs),
-                               "PlatformList": pfs})
+                result.append(
+                    {"Component": conn, "PlatformCount": len(pfs), "PlatformList": pfs}
+                )
 
             return result
 
@@ -311,8 +387,9 @@ class Utilities:
 
             return platform_dict
 
-
-        async def migrate_platform(self, old_platform: str, new_platform: str, address_filter: list = None):
+        async def migrate_platform(
+            self, old_platform: str, new_platform: str, address_filter: list = None
+        ):
             """
             Migrate all accounts from old platform to new platform
             :param old_platform: Platform to migrate from
@@ -321,12 +398,21 @@ class Utilities:
             """
             for acc in await self.epv.account.search_account_by(platform=old_platform):
                 if address_filter is not None and acc.address not in address_filter:
-                    self.epv.logger.debug(f"{acc.address};{acc.userName};Filtered by user !")
+                    self.epv.logger.debug(
+                        f"{acc.address};{acc.userName};Filtered by user !"
+                    )
                     continue
                 data = [{"path": "/platformID", "op": "replace", "value": new_platform}]
                 try:
                     await self.epv.account.update_using_list(acc.id, data)
-                    self.epv.logger.info(f"{acc.address};{acc.userName};Platform changed")
-                except (CyberarkAPIException, CyberarkException, AiobastionException) as e:
+                    self.epv.logger.info(
+                        f"{acc.address};{acc.userName};Platform changed"
+                    )
+                except (
+                    CyberarkAPIException,
+                    CyberarkException,
+                    AiobastionException,
+                ) as e:
                     self.epv.logger.error(
-                        f"{acc.address};{acc.userName};An error occured when trying to change platform : {e}")
+                        f"{acc.address};{acc.userName};An error occured when trying to change platform : {e}"
+                    )

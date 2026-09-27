@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 
-import sys          # Debug
+import sys  # Debug
 import yaml
 import warnings
 from .exceptions import AiobastionConfigurationException
 from typing import Optional, Union
 from .api_options import Api_options
 
-class Config:
-    """ Config   Transform input information from configuration file or serialization to the different modules.
 
-        account, accountgroup, aim, applications, cyberark, group, platform, safe, sessionmanagement, systemhealth, user, utilities.
+class Config:
+    """Config   Transform input information from configuration file or serialization to the different modules.
+
+    account, accountgroup, aim, applications, cyberark, group, platform, safe, sessionmanagement, systemhealth, user, utilities.
     """
+
     # Because of a conflict (circular import) with EPV definition at intialization for AIOBASTION
     # The following default values are defined here (instead of EPV class)
     CYBERARK_DEFAULT_KEEP_COOKIES = False
@@ -36,20 +38,26 @@ class Config:
 
     # List of EPV attributes from serialization
     _EPV_SERIALIZED_FIELDS_IN = [
-        "api_host",                 # synomym of api_host: host
+        "api_host",  # synomym of api_host: host
         "authtype",
         "keep_cookies",
-        "max_concurrent_tasks",     # synomym of max_concurrent_tasks: masktasks
+        "max_concurrent_tasks",  # synomym of max_concurrent_tasks: masktasks
         "password",
         "timeout",
-        "token",                    # in serializattion only (changed to __token)
+        "token",  # in serializattion only (changed to __token)
         "user_search",
         "username",
         "verify",
     ]
 
-
-    def __init__(self, configfile: str = None, label: str=None, custom: dict=None, serialized=None, token=None):
+    def __init__(
+        self,
+        configfile: str = None,
+        label: str = None,
+        custom: dict = None,
+        serialized=None,
+        token=None,
+    ):
         """Parse the config file or the serialization and populate the options_modules (account, aim, cyberark, safe, ...).
 
         The EPV class will call the appropriate class (module) for initialization and validation
@@ -69,7 +77,9 @@ class Config:
             self.label = "serialized"
 
         if not configfile and not serialized:
-            raise AiobastionConfigurationException("Internal error: no configfile and no serialized")
+            raise AiobastionConfigurationException(
+                "Internal error: no configfile and no serialized"
+            )
 
         self.options_modules = {}
 
@@ -90,9 +100,8 @@ class Config:
         # remove temporary attributes
         del self.deprecated_warning
 
-
     def _mngt_configfile(self):
-        """ _mngt_configfile    management of the configuration file
+        """_mngt_configfile    management of the configuration file
 
         Cross-reference between the configuration file and the Config class attributes (for information)
 
@@ -177,41 +186,51 @@ class Config:
                 This will be done in the EPV class.
 
         """
-        with open(self.configfile, 'r') as config:
+        with open(self.configfile, "r") as config:
             configuration = yaml.safe_load(config)
 
         # Translate keys of dictionary and subdirectories in lowercase
         # Do not modified the sub-key dictionary of the 'custom' section.
-        configuration = self._serialized_dict_lowercase_key(configuration, "", self.configfile)
+        configuration = self._serialized_dict_lowercase_key(
+            configuration, "", self.configfile
+        )
 
         global_sections = [
-            "connection",               # options modules: aim and cyberark
-            "cpm",                      # deprecated, move to safe section
-            "label",                    # Config.label
-            "api_options",              # Global API options: for all modules
-            "pvwa",                     # options modules: cyberark
-            "retention",                # deprecated, move to safe section
-            "custom",                   # Config.custom: Customer use only (not aiobastion)
-            ] + Config.CYBERARK_OPTIONS_MODULES_LIST
-
+            "connection",  # options modules: aim and cyberark
+            "cpm",  # deprecated, move to safe section
+            "label",  # Config.label
+            "api_options",  # Global API options: for all modules
+            "pvwa",  # options modules: cyberark
+            "retention",  # deprecated, move to safe section
+            "custom",  # Config.custom: Customer use only (not aiobastion)
+        ] + Config.CYBERARK_OPTIONS_MODULES_LIST
 
         # Check the global section defined in the configuration file
         for k in configuration.keys():
             if k not in global_sections:
-                raise AiobastionConfigurationException(f"Unknown attribute in global section in {self.configfile}: {k} unknown.")
+                raise AiobastionConfigurationException(
+                    f"Unknown attribute in global section in {self.configfile}: {k} unknown."
+                )
 
         # --------------------------------------------
         # Config attribute class
         # --------------------------------------------
         # Extraction deprecated_warning global API option (for internal use only)
-        if "api_options" in configuration and "deprecated_warning" in configuration["api_options"]:
-            self.deprecated_warning = Api_options.set_deprecated_warning(configuration["api_options"]["deprecated_warning"],
-                                                                         _config_source=self.config_source,
-                                                                         _section="api_options/deprecated_warning")
+        if (
+            "api_options" in configuration
+            and "deprecated_warning" in configuration["api_options"]
+        ):
+            self.deprecated_warning = Api_options.set_deprecated_warning(
+                configuration["api_options"]["deprecated_warning"],
+                _config_source=self.config_source,
+                _section="api_options/deprecated_warning",
+            )
         else:
-            self.deprecated_warning = Api_options.set_deprecated_warning(None,
-                                                                         _config_source=self.config_source,
-                                                                         _section="api_options/deprecated_warning")
+            self.deprecated_warning = Api_options.set_deprecated_warning(
+                None,
+                _config_source=self.config_source,
+                _section="api_options/deprecated_warning",
+            )
 
         if "label" in configuration:
             self.label = configuration["label"]
@@ -229,7 +248,6 @@ class Config:
                     self._add_key_to_options_modules("aim", k, v)
                 else:
                     self._add_key_to_options_modules("cyberark", k, v)
-
 
         if "pvwa" in configuration and configuration["pvwa"]:
             self._add_dict_to_options_modules("cyberark", configuration["pvwa"])
@@ -252,18 +270,24 @@ class Config:
         # Don't allow 'safe' and ('cpm' or 'retention').
         if "cpm" in configuration or "retention" in configuration:
             if "safe" in configuration:
-                raise AiobastionConfigurationException(f"Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition in {self.configfile}.")
+                raise AiobastionConfigurationException(
+                    f"Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition in {self.configfile}."
+                )
             else:
                 if self.deprecated_warning:
                     warnings.warn(
                         f"aiobastion - Deprecated parameter 'cpm' and 'retention' in 'global' section from {self.configfile}: "
-                        "move definitions from global to 'safe' section.", DeprecationWarning, stacklevel=4)
-
+                        "move definitions from global to 'safe' section.",
+                        DeprecationWarning,
+                        stacklevel=4,
+                    )
 
         # Move 'cpm' and 'retention' to 'safe' module
         for keyname in ["cpm", "retention"]:
             if keyname in configuration:
-                self._add_key_to_options_modules("safe", keyname, configuration[keyname])
+                self._add_key_to_options_modules(
+                    "safe", keyname, configuration[keyname]
+                )
 
         # Don't allow 'account' and (custom['logon_account_index'] or custom['reconcile_account_index']).
         self._mng_account_custom_definition()
@@ -330,31 +354,47 @@ class Config:
         """
 
         if not isinstance(serialized, dict):
-            raise AiobastionConfigurationException("Type error: Parameter 'serialized' must be a dictionary.")
+            raise AiobastionConfigurationException(
+                "Type error: Parameter 'serialized' must be a dictionary."
+            )
 
         # Translate keys of dictionary and sub-directories in lowercase
         # Do not modified the sub-key dictionary of the 'custom' section.
-        serialized = self._serialized_dict_lowercase_key(serialized, "", self.config_source)
+        serialized = self._serialized_dict_lowercase_key(
+            serialized, "", self.config_source
+        )
 
         # Extraction deprecated_warning global API option (for internal use only)
-        if "api_options" in serialized and "deprecated_warning" in serialized["api_options"]:
-            self.deprecated_warning = Api_options.set_deprecated_warning(serialized["api_options"]["deprecated_warning"],
-                                                                         _config_source=self.config_source,
-                                                                         _section="api_options/deprecated_warning")
+        if (
+            "api_options" in serialized
+            and "deprecated_warning" in serialized["api_options"]
+        ):
+            self.deprecated_warning = Api_options.set_deprecated_warning(
+                serialized["api_options"]["deprecated_warning"],
+                _config_source=self.config_source,
+                _section="api_options/deprecated_warning",
+            )
         else:
-            self.deprecated_warning = Api_options.set_deprecated_warning(None,
-                                               _config_source=self.config_source,
-                                               _section="api_options/deprecated_warning")
+            self.deprecated_warning = Api_options.set_deprecated_warning(
+                None,
+                _config_source=self.config_source,
+                _section="api_options/deprecated_warning",
+            )
 
         # Don't allow 'safe' and ('cpm' or 'retention').
-        if ("cpm" in serialized or "retention" in serialized):
+        if "cpm" in serialized or "retention" in serialized:
             if "safe" in serialized:
-                raise AiobastionConfigurationException("Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition in serialization.")
+                raise AiobastionConfigurationException(
+                    "Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition in serialization."
+                )
             else:
                 if self.deprecated_warning:
                     warnings.warn(
                         f"aiobastion - Deprecated parameter 'cpm' and 'retention' in 'global' section from {self.config_source}: "
-                        "move definitions from global to 'safe'.", DeprecationWarning, stacklevel=4)
+                        "move definitions from global to 'safe'.",
+                        DeprecationWarning,
+                        stacklevel=4,
+                    )
         # Validate dictionary keys
         for k, v in serialized.items():
             # cyberark definition
@@ -374,22 +414,25 @@ class Config:
                 self.custom = v
             else:
                 raise AiobastionConfigurationException(
-                    f"Unknown attribute '{k}' in serialization: {serialized[k]!r}")
+                    f"Unknown attribute '{k}' in serialization: {serialized[k]!r}"
+                )
 
         # Don't allow 'account' and (custom['logon_account_index'] or custom['reconcile_account_index']).
         self._mng_account_custom_definition()
-
 
     def _add_dict_to_options_modules(self, module: str, configuration: dict):
         if configuration is None:
             return
 
         for k, v in configuration.items():
-            if k in self.options_modules[module] and \
-               v != self.options_modules[module][k]:
+            if (
+                k in self.options_modules[module]
+                and v != self.options_modules[module][k]
+            ):
                 # Raise an error only want values are different.
-                raise AiobastionConfigurationException(f"Duplicate key '{module}/{k}'"
-                                                       f" in {self.config_source}.")
+                raise AiobastionConfigurationException(
+                    f"Duplicate key '{module}/{k}' in {self.config_source}."
+                )
 
             self.options_modules[module][k] = v
 
@@ -397,15 +440,16 @@ class Config:
         if value is None:
             return
 
-        if keyname in self.options_modules[module] and \
-            value != self.options_modules[module][keyname]:
+        if (
+            keyname in self.options_modules[module]
+            and value != self.options_modules[module][keyname]
+        ):
             # Raise an error only when values are different.
-            raise AiobastionConfigurationException(f"Duplicate key '{module}/{keyname}'"
-                                                    f" in {self.config_source}.")
+            raise AiobastionConfigurationException(
+                f"Duplicate key '{module}/{keyname}' in {self.config_source}."
+            )
 
         self.options_modules[module][keyname] = value
-
-
 
     def _mng_account_custom_definition(self):
         # Don't allow 'account' and (custom['logon_account_index'] or custom['reconcile_account_index']).
@@ -422,15 +466,18 @@ class Config:
                     if self.deprecated_warning:
                         warnings.warn(
                             f"aiobastion - Deprecated parameter 'custom/logon_account_index' and 'custom/reconcile_account_index' from {self.config_source}: "
-                            "move definitions from 'custom' to 'account' section.", DeprecationWarning, stacklevel=5)
-
+                            "move definitions from 'custom' to 'account' section.",
+                            DeprecationWarning,
+                            stacklevel=5,
+                        )
 
             if keyname_list:
                 # Don't allow 'account' and 'custom'.
                 if self.options_modules["account"]:
                     raise AiobastionConfigurationException(
                         "Duplicate definition: move 'logon_account_index' and "
-                        "'reconcile_account_index' from 'custom' to 'account' section in {configfile}.")
+                        "'reconcile_account_index' from 'custom' to 'account' section in {configfile}."
+                    )
                 else:
                     # Move 'logon_account_index' and 'reconcile_account_index' to 'account' options modules
                     #   and remove it from custom
@@ -447,7 +494,9 @@ class Config:
                     else:
                         self.custom = None
 
-    def _serialized_dict_lowercase_key(self, src: Union[dict, str], section_name: str, first_level: bool = True):
+    def _serialized_dict_lowercase_key(
+        self, src: Union[dict, str], section_name: str, first_level: bool = True
+    ):
         """_serialized_dict_lowercase_key - Translate keys of dictionary and sub-dictionaries in lowercase
 
         Do not modified the sub-key dictionary of the 'custom' section.
@@ -467,18 +516,22 @@ class Config:
         """
         if not isinstance(src, dict):
             raise AiobastionConfigurationException(
-                f"Invalid dictionary type '{section_name}' in {self.config_source}")
+                f"Invalid dictionary type '{section_name}' in {self.config_source}"
+            )
 
         rt = {}
         for k, v in src.items():
             keyname = k.lower()
 
             if keyname in rt:
-                raise AiobastionConfigurationException(f"Duplicate key '{section_name}/{keyname}'"
-                                                        f" in {self.config_source}")
+                raise AiobastionConfigurationException(
+                    f"Duplicate key '{section_name}/{keyname}' in {self.config_source}"
+                )
 
             if isinstance(v, dict) and not (first_level and keyname == "custom"):
-                rt[keyname] = self._serialized_dict_lowercase_key(v, f"{section_name}/{keyname}", first_level=False)
+                rt[keyname] = self._serialized_dict_lowercase_key(
+                    v, f"{section_name}/{keyname}", first_level=False
+                )
             else:
                 rt[keyname] = v
 
@@ -487,31 +540,32 @@ class Config:
 
 # No rights at all
 DEFAULT_PERMISSIONS = {
-        "UseAccounts": False,
-        "RetrieveAccounts": False,
-        "ListAccounts": False,
-        "AddAccounts": False,
-        "UpdateAccountContent": False,
-        "UpdateAccountProperties": False,
-        "InitiateCPMAccountManagementOperations": False,
-        "SpecifyNextAccountContent": False,
-        "RenameAccounts": False,
-        "DeleteAccounts": False,
-        "UnlockAccounts": False,
-        "ManageSafe": False,
-        "ManageSafeMembers": False,
-        "BackupSafe": False,
-        "ViewAuditLog": False,
-        "ViewSafeMembers": False,
-        "AccessWithoutConfirmation": False,
-        "CreateFolders": False,
-        "DeleteFolders": False,
-        "MoveAccountsAndFolders": False
-    }
+    "UseAccounts": False,
+    "RetrieveAccounts": False,
+    "ListAccounts": False,
+    "AddAccounts": False,
+    "UpdateAccountContent": False,
+    "UpdateAccountProperties": False,
+    "InitiateCPMAccountManagementOperations": False,
+    "SpecifyNextAccountContent": False,
+    "RenameAccounts": False,
+    "DeleteAccounts": False,
+    "UnlockAccounts": False,
+    "ManageSafe": False,
+    "ManageSafeMembers": False,
+    "BackupSafe": False,
+    "ViewAuditLog": False,
+    "ViewSafeMembers": False,
+    "AccessWithoutConfirmation": False,
+    "CreateFolders": False,
+    "DeleteFolders": False,
+    "MoveAccountsAndFolders": False,
+}
 
 # Can create object
 PROV_PERMISSIONS = dict(DEFAULT_PERMISSIONS)
-PROV_PERMISSIONS.update({
+PROV_PERMISSIONS.update(
+    {
         "ListAccounts": True,
         "AddAccounts": True,
         "UpdateAccountContent": True,
@@ -525,15 +579,18 @@ PROV_PERMISSIONS.update({
         "AccessWithoutConfirmation": True,
         "CreateFolders": True,
         "DeleteFolders": True,
-        "MoveAccountsAndFolders": True
-    })
+        "MoveAccountsAndFolders": True,
+    }
+)
 
 MANAGER_PERMISSIONS = dict(PROV_PERMISSIONS)
-MANAGER_PERMISSIONS.update({
-    "ManageSafe": True,
-    "ManageSafeMembers": True,
-    "ViewSafeMembers": True,
-})
+MANAGER_PERMISSIONS.update(
+    {
+        "ManageSafe": True,
+        "ManageSafeMembers": True,
+        "ViewSafeMembers": True,
+    }
+)
 
 # all to true
 ADMIN_PERMISSIONS = {perm: True for perm in DEFAULT_PERMISSIONS}
@@ -561,28 +618,28 @@ POWER_PERMISSIONS.update({k: v for k, v in SHOW_PERMISSIONS.items() if v})
 POWER_PERMISSIONS.update({k: v for k, v in AUDIT_PERMISSIONS.items() if v})
 
 CPM_PERMISSIONS = {
-        "UseAccounts": True,
-        "RetrieveAccounts": True,
-        "ListAccounts": True,
-        "AddAccounts": True,
-        "UpdateAccountContent": True,
-        "UpdateAccountProperties": True,
-        "InitiateCPMAccountManagementOperations": True,
-        "SpecifyNextAccountContent": True,
-        "RenameAccounts": True,
-        "DeleteAccounts": True,
-        "UnlockAccounts": True,
-        "ManageSafe": False,
-        "ManageSafeMembers": False,
-        "BackupSafe": False,
-        "ViewAuditLog": True,
-        "ViewSafeMembers": False,
-        "RequestsAuthorizationLevel1": False,
-        "RequestsAuthorizationLevel2": False,
-        "AccessWithoutConfirmation": False,
-        "CreateFolders": True,
-        "DeleteFolders": True,
-        "MoveAccountsAndFolders": True
+    "UseAccounts": True,
+    "RetrieveAccounts": True,
+    "ListAccounts": True,
+    "AddAccounts": True,
+    "UpdateAccountContent": True,
+    "UpdateAccountProperties": True,
+    "InitiateCPMAccountManagementOperations": True,
+    "SpecifyNextAccountContent": True,
+    "RenameAccounts": True,
+    "DeleteAccounts": True,
+    "UnlockAccounts": True,
+    "ManageSafe": False,
+    "ManageSafeMembers": False,
+    "BackupSafe": False,
+    "ViewAuditLog": True,
+    "ViewSafeMembers": False,
+    "RequestsAuthorizationLevel1": False,
+    "RequestsAuthorizationLevel2": False,
+    "AccessWithoutConfirmation": False,
+    "CreateFolders": True,
+    "DeleteFolders": True,
+    "MoveAccountsAndFolders": True,
 }
 
 # v2 perm
@@ -608,7 +665,7 @@ V2_BASE = {
     "deleteFolders": False,
     "moveAccountsAndFolders": False,
     "requestsAuthorizationLevel1": False,
-    "requestsAuthorizationLevel2": False
+    "requestsAuthorizationLevel2": False,
 }
 
 V2_USE = {
@@ -626,35 +683,45 @@ V2_AUDIT = {"viewAuditLog": True}
 # V2_POWER.update({k: v for k, v in V2_AUDIT.items() if v})
 
 
-
-
-def validate_integer(config_source: str, section_name: str, val, default_value = None) -> int:
-    if default_value and (val is None or (isinstance(val, str) and len(val.strip()) == 0)):
+def validate_integer(
+    config_source: str, section_name: str, val, default_value=None
+) -> int:
+    if default_value and (
+        val is None or (isinstance(val, str) and len(val.strip()) == 0)
+    ):
         return default_value
 
     try:
         v = int(val)
     except (ValueError, TypeError):
-        raise AiobastionConfigurationException(f"Invalid value '{section_name}' "
-                                               f"in {config_source} (expected int): {val!r}")
+        raise AiobastionConfigurationException(
+            f"Invalid value '{section_name}' in {config_source} (expected int): {val!r}"
+        )
 
     return v
 
-def validate_bool(config_source: str, section_name: str, val, default_value = None) -> bool:
-    if default_value and (val is None or (isinstance(val, str) and len(val.strip()) == 0)):
+
+def validate_bool(
+    config_source: str, section_name: str, val, default_value=None
+) -> bool:
+    if default_value and (
+        val is None or (isinstance(val, str) and len(val.strip()) == 0)
+    ):
         return default_value
 
     if isinstance(val, bool):
         rt = val
     else:
-        raise AiobastionConfigurationException(f"Invalid value '{section_name}' "
-                                               f"in {config_source}  (expected bool): {val!r}")
+        raise AiobastionConfigurationException(
+            f"Invalid value '{section_name}' "
+            f"in {config_source}  (expected bool): {val!r}"
+        )
 
     return rt
 
 
 def validate_ip(s):
-    a = s.split('.')
+    a = s.split(".")
     if len(a) != 4:
         return False
     for x in a:
@@ -665,14 +732,16 @@ def validate_ip(s):
             return False
     return True
 
+
 def flatten(A):
     rt = []
     for i in A:
-        if isinstance(i,list):
+        if isinstance(i, list):
             rt.extend(flatten(i))
         else:
             rt.append(i)
     return rt
+
 
 def permissions(profile: str) -> dict:
     if "admin" in profile.lower():

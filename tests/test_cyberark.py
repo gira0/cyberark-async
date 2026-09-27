@@ -29,7 +29,11 @@ class TestEPV(IsolatedAsyncioTestCase):
         self.assertTrue(await self.vault.check_token())
 
     async def test_login_aim(self):
-        if tests.AIM_CONFIG is None or tests.AIM_CONFIG == '' or not os.path.exists(tests.AIM_CONFIG):
+        if (
+            tests.AIM_CONFIG is None
+            or tests.AIM_CONFIG == ""
+            or not os.path.exists(tests.AIM_CONFIG)
+        ):
             self.skipTest("AIM_CONFIG is not set in init file")
         await self.vault.logoff()
         self.assertFalse(await self.vault.check_token())
@@ -43,7 +47,7 @@ class TestEPV(IsolatedAsyncioTestCase):
 
     async def test_inline_conf(self):
         self.skipTest("Need harcoded credentials")
-        config = {'api_host': 'pvwa.acme.fr'}
+        config = {"api_host": "pvwa.acme.fr"}
 
         production_vault = aiobastion.EPV(serialized=config)
         await production_vault.login("admin", "Cyberark1")
@@ -52,9 +56,11 @@ class TestEPV(IsolatedAsyncioTestCase):
 
     async def test_login_pvwa_only(self):
         self.skipTest("Need harcoded credentials")
-        PVWA_CONFIG = '../../confs/config_test_pvwa_only.yml'
+        PVWA_CONFIG = "../../confs/config_test_pvwa_only.yml"
         self.vault = aiobastion.EPV(PVWA_CONFIG)
-        await self.vault.login(username="admin", password=os.getenv("AIOBASTION_TEST_PASSWORD", ""))
+        await self.vault.login(
+            username="admin", password=os.getenv("AIOBASTION_TEST_PASSWORD", "")
+        )
         print(await self.vault.safe.list())
         self.assertTrue(await self.vault.check_token())
 
@@ -66,16 +72,18 @@ class TestEPV(IsolatedAsyncioTestCase):
 
     def test_to_json(self):
         serialized = self.vault.to_json()
-        self.assertIsInstance(serialized,dict)
+        self.assertIsInstance(serialized, dict)
         # self.fail()
 
     async def test_handle_request(self):
         ret = await self.vault.handle_request(
             "get",
             "WebServices/PIMServices.svc/User",
-            filter_func=lambda x: x['AgentUser'])
+            filter_func=lambda x: x["AgentUser"],
+        )
 
         self.assertFalse(ret)
+
 
 class _FakeResponse:
     status = 200
@@ -94,7 +102,9 @@ class TestSerializedTokenOffline(IsolatedAsyncioTestCase):
     """Offline regression tests for EPV instances built from a serialized token (issue #2)."""
 
     async def test_check_token_sets_up_request_params(self):
-        vault = aiobastion.EPV(serialized={"api_host": "pvwa.example.invalid", "token": "abc"})
+        vault = aiobastion.EPV(
+            serialized={"api_host": "pvwa.example.invalid", "token": "abc"}
+        )
         self.assertIsNone(vault.request_params)
 
         calls = []
@@ -117,12 +127,17 @@ class TestSerializedTokenOffline(IsolatedAsyncioTestCase):
         self.assertIn("timeout", kwargs)
 
     async def test_context_manager_with_valid_serialized_token(self):
-        with mock.patch("aiohttp.ClientSession.request", new=lambda *a, **kw: _FakeResponse()):
-            async with aiobastion.EPV(serialized={"api_host": "pvwa.example.invalid", "token": "abc"}) as vault:
+        with mock.patch(
+            "aiohttp.ClientSession.request", new=lambda *a, **kw: _FakeResponse()
+        ):
+            async with aiobastion.EPV(
+                serialized={"api_host": "pvwa.example.invalid", "token": "abc"}
+            ) as vault:
                 self.assertIsNotNone(vault.request_params)
 
-if __name__ == '__main__':
-    if sys.platform == 'win32':
+
+if __name__ == "__main__":
+    if sys.platform == "win32":
         # Turned out, using WindowsSelectorEventLoop has functionality issues such as:
         #     Can't support more than 512 sockets
         #     Can't use pipe

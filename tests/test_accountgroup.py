@@ -7,8 +7,13 @@ import asyncio
 from unittest import IsolatedAsyncioTestCase
 import aiobastion
 import tests
+
 # from . import CONFIG
-from aiobastion.exceptions import CyberarkAPIException, CyberarkException, AiobastionException
+from aiobastion.exceptions import (
+    CyberarkAPIException,
+    CyberarkException,
+    AiobastionException,
+)
 from aiobastion.accountgroup import PrivilegedAccountGroup
 
 
@@ -35,9 +40,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
         search = {"safe": self.test_safe}
         if platform_id != "":
             search["platform"] = platform_id
-        accounts = await self.vault.account.search_account_by(
-            **search
-        )
+        accounts = await self.vault.account.search_account_by(**search)
         self.assertGreaterEqual(len(accounts), 1)
         if n == 1:
             return random.choice(accounts)
@@ -59,7 +62,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
     async def test_get_group_id(self):
         group = await self.get_random_account_group()
         group_id = await self.vault.accountgroup.get_group_id(group)
-        self.assertRegex(group_id, r'\d+_\d+')
+        self.assertRegex(group_id, r"\d+_\d+")
 
         with self.assertRaises(AiobastionException):
             await self.vault.accountgroup.get_group_id("toto")
@@ -104,7 +107,9 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
             await self.vault.accountgroup.add("toto", "titi", "tata")
 
         try:
-            await self.vault.accountgroup.add("AccountGroupTest", "sample_group", self.test_safe)
+            await self.vault.accountgroup.add(
+                "AccountGroupTest", "sample_group", self.test_safe
+            )
         except CyberarkAPIException as err:
             if err.http_status == 409:
                 self.skipTest("Group was already added before")
@@ -116,11 +121,17 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
         self.assertIn("AccountGroupTest", g)
 
     async def test_add_privileged_account_group(self):
-        account_group = PrivilegedAccountGroup("AccountGroupTest", "sample_group", self.test_safe)
-        bad_account_group = PrivilegedAccountGroup("bad", "non-existent-group", "non-existent-safe")
+        account_group = PrivilegedAccountGroup(
+            "AccountGroupTest", "sample_group", self.test_safe
+        )
+        bad_account_group = PrivilegedAccountGroup(
+            "bad", "non-existent-group", "non-existent-safe"
+        )
 
         with self.assertRaises(AiobastionException):
-            await self.vault.accountgroup.add_privileged_account_group(bad_account_group)
+            await self.vault.accountgroup.add_privileged_account_group(
+                bad_account_group
+            )
 
         try:
             await self.vault.accountgroup.add_privileged_account_group(account_group)
@@ -152,9 +163,10 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
         members = await self.vault.accountgroup.members(group)
         self.assertNotIn(account.id, [x.id for x in members])
 
-
     async def test_move_account_group(self):
-        self.skipTest("Not for daily usage but run it twice if you work on account group functions")
+        self.skipTest(
+            "Not for daily usage but run it twice if you work on account group functions"
+        )
         ag_name = "MoveAccountGroupTest"
 
         source_safe = ""
@@ -162,11 +174,14 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
 
         # Where is "MoveAccountGroupTest"
         ag_test_safe = await self.vault.accountgroup.list_by_safe(self.test_safe)
-        ag_target_safe = await self.vault.accountgroup.list_by_safe(self.test_target_safe)
+        ag_target_safe = await self.vault.accountgroup.list_by_safe(
+            self.test_target_safe
+        )
 
         # Worst case
-        if ag_name in [_a.name for _a in ag_target_safe] and \
-                ag_name in [_a.name for _a in ag_test_safe]:
+        if ag_name in [_a.name for _a in ag_target_safe] and ag_name in [
+            _a.name for _a in ag_test_safe
+        ]:
             # We have MoveAccountGroupTest in both safes
             _group_test_safe = next(_a for _a in ag_test_safe if _a.name == ag_name)
             _group_target_safe = next(_a for _a in ag_target_safe if _a.name == ag_name)
@@ -198,7 +213,9 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
             group_id = _group_test_safe.id
         else:
             # Test was never run before
-            group_id = await self.vault.accountgroup.add(ag_name, "sample_group", self.test_safe)
+            group_id = await self.vault.accountgroup.add(
+                ag_name, "sample_group", self.test_safe
+            )
             source_safe = self.test_safe
             target_safe = self.test_target_safe
 
@@ -219,23 +236,30 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
             print("Not adding more members on this group now")
 
         try:
-            new_gid = await self.vault.accountgroup.move_account_group(ag_name, source_safe, target_safe)
+            new_gid = await self.vault.accountgroup.move_account_group(
+                ag_name, source_safe, target_safe
+            )
         except Exception as err:
             raise
 
         # New group should have members now
         self.assertGreater(len(await self.vault.accountgroup.members(new_gid)), 0)
 
-
     async def test_move_all_account_groups(self):
-        self.skipTest('Avoiding this test because we need to sleep long time for reverting, what we dont like')
+        self.skipTest(
+            "Avoiding this test because we need to sleep long time for reverting, what we dont like"
+        )
         ag_name = "MoveAccountGroupTest"
         # Create a new account group in test safe
         try:
-            group_id = await self.vault.accountgroup.add(ag_name, "sample_group", self.test_safe)
+            group_id = await self.vault.accountgroup.add(
+                ag_name, "sample_group", self.test_safe
+            )
         except CyberarkAPIException as err:
             if err.http_status == 409:
-                group_id = await self.vault.accountgroup.get_account_group_id(ag_name, self.test_safe)
+                group_id = await self.vault.accountgroup.get_account_group_id(
+                    ag_name, self.test_safe
+                )
             else:
                 raise
 
@@ -259,24 +283,31 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
         # So the account should not be moved !
         filtered = {"platformID": "UnixSSH"}
         try:
-            await self.vault.accountgroup.move_all_account_groups(self.test_safe, self.test_target_safe,
-                                                                  account_filter=filtered)
+            await self.vault.accountgroup.move_all_account_groups(
+                self.test_safe, self.test_target_safe, account_filter=filtered
+            )
         except Exception as err:
             raise
 
         # The account should remain in src safe
-        list_of_account_groups = await self.vault.accountgroup.list_by_safe(self.test_safe)
+        list_of_account_groups = await self.vault.accountgroup.list_by_safe(
+            self.test_safe
+        )
         self.assertIn(ag_name, [_l.name for _l in list_of_account_groups])
 
         # Not in dst safe
-        list_of_account_groups = await self.vault.accountgroup.list_by_safe(self.test_target_safe)
+        list_of_account_groups = await self.vault.accountgroup.list_by_safe(
+            self.test_target_safe
+        )
         try:
             self.assertNotIn(ag_name, [_l.name for _l in list_of_account_groups])
         except AssertionError:
             print("Group was found in dst safe probably because another test failed")
 
         try:
-            await self.vault.accountgroup.move_all_account_groups(self.test_safe, self.test_target_safe)
+            await self.vault.accountgroup.move_all_account_groups(
+                self.test_safe, self.test_target_safe
+            )
         except Exception as err:
             raise
 
@@ -289,7 +320,9 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
         # self.assertEqual(0,len(await self.vault.accountgroup.members(group_id)))
 
         # In dst safe we should have the new group
-        list_of_account_groups = await self.vault.accountgroup.list_by_safe(self.test_target_safe)
+        list_of_account_groups = await self.vault.accountgroup.list_by_safe(
+            self.test_target_safe
+        )
         self.assertIn(ag_name, [_l.name for _l in list_of_account_groups])
 
         # Cyberark has an incorrect behaviour if you move quickly account from a safe to another and vice versa
@@ -298,7 +331,9 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
         time.sleep(8)
         # Revert
         try:
-            await self.vault.accountgroup.move_all_account_groups(self.test_target_safe, self.test_safe)
+            await self.vault.accountgroup.move_all_account_groups(
+                self.test_target_safe, self.test_safe
+            )
         except Exception as err:
             raise
 
@@ -308,8 +343,9 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
             except:
                 pass
 
-if __name__ == '__main__':
-    if sys.platform == 'win32':
+
+if __name__ == "__main__":
+    if sys.platform == "win32":
         # Turned out, using WindowsSelectorEventLoop has functionality issues such as:
         #     Can't support more than 512 sockets
         #     Can't use pipe

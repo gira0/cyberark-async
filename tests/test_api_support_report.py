@@ -34,11 +34,10 @@ def test_api_support_report():
     invalid_operations = supported_operations - swagger_operations
     removed_operations = baseline_operations - supported_operations
     assert not invalid_operations, (
-        "Manifest entries absent from Swagger: "
-        f"{sorted(invalid_operations)}"
+        f"Manifest entries absent from Swagger: {sorted(invalid_operations)}"
     )
     assert not removed_operations, (
-        "Supported operations were removed: " f"{sorted(removed_operations)}"
+        f"Supported operations were removed: {sorted(removed_operations)}"
     )
 
     percentage = len(supported_operations) / len(swagger_operations) * 100

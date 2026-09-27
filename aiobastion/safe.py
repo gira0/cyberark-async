@@ -4,8 +4,11 @@ from typing import AsyncIterator, Union
 
 from .config import permissions, DEFAULT_PERMISSIONS, get_v2_profile, validate_integer
 from .exceptions import (
-    CyberarkAPIException, CyberarkException, AiobastionException, AiobastionConfigurationException,
-    CyberarkNotFoundException
+    CyberarkAPIException,
+    CyberarkException,
+    AiobastionException,
+    AiobastionConfigurationException,
+    CyberarkNotFoundException,
 )
 
 
@@ -23,21 +26,28 @@ class Safe:
         _config_source = self.epv.config.config_source
 
         # string to int or assign default value
-        self.retention = validate_integer(_config_source, f"{_section}/retention",
-                                          retention, Safe._SAFE_DEFAULT_RETENTION)
+        self.retention = validate_integer(
+            _config_source,
+            f"{_section}/retention",
+            retention,
+            Safe._SAFE_DEFAULT_RETENTION,
+        )
 
         if cpm is None:
             self.cpm = Safe._SAFE_DEFAULT_CPM
         elif not isinstance(cpm, str):
-            raise AiobastionConfigurationException(f"Invalid attribute '{_section}/cpm' in {_config_source}: "
-                                                   f" must be a string: {cpm!r}")
+            raise AiobastionConfigurationException(
+                f"Invalid attribute '{_section}/cpm' in {_config_source}: "
+                f" must be a string: {cpm!r}"
+            )
         else:
             self.cpm = cpm
 
         # Check for unknown attributes
         if kwargs:
             raise AiobastionConfigurationException(
-                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}")
+                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
+            )
 
     def to_json(self):
         serialized = {}
@@ -51,30 +61,34 @@ class Safe:
         return serialized
 
     # TODO : add membershipExpirationDate permissions isReadOnly
-    async def add_member(self, safe: str, username: str, search_in: str = "Vault",
-                         useAccounts: bool = False,
-                         retrieveAccounts: bool = False,
-                         listAccounts: bool = False,
-                         addAccounts: bool = False,
-                         updateAccountContent: bool = False,
-                         updateAccountProperties: bool = False,
-                         initiateCPMAccountManagementOperations: bool = False,
-                         specifyNextAccountContent: bool = False,
-                         renameAccounts: bool = False,
-                         deleteAccounts: bool = False,
-                         unlockAccounts: bool = False,
-                         manageSafe: bool = False,
-                         manageSafeMembers: bool = False,
-                         backupSafe: bool = False,
-                         viewAuditLog: bool = False,
-                         viewSafeMembers: bool = False,
-                         accessWithoutConfirmation: bool = False,
-                         createFolders: bool = False,
-                         deleteFolders: bool = False,
-                         moveAccountsAndFolders: bool = False,
-                         requestsAuthorizationLevel1: bool = False,
-                         requestsAuthorizationLevel2: bool = False
-                         ):
+    async def add_member(
+        self,
+        safe: str,
+        username: str,
+        search_in: str = "Vault",
+        useAccounts: bool = False,
+        retrieveAccounts: bool = False,
+        listAccounts: bool = False,
+        addAccounts: bool = False,
+        updateAccountContent: bool = False,
+        updateAccountProperties: bool = False,
+        initiateCPMAccountManagementOperations: bool = False,
+        specifyNextAccountContent: bool = False,
+        renameAccounts: bool = False,
+        deleteAccounts: bool = False,
+        unlockAccounts: bool = False,
+        manageSafe: bool = False,
+        manageSafeMembers: bool = False,
+        backupSafe: bool = False,
+        viewAuditLog: bool = False,
+        viewSafeMembers: bool = False,
+        accessWithoutConfirmation: bool = False,
+        createFolders: bool = False,
+        deleteFolders: bool = False,
+        moveAccountsAndFolders: bool = False,
+        requestsAuthorizationLevel1: bool = False,
+        requestsAuthorizationLevel2: bool = False,
+    ):
         """
         Add a safe member
 
@@ -127,27 +141,27 @@ class Safe:
             "deleteFolders": deleteFolders,
             "moveAccountsAndFolders": moveAccountsAndFolders,
             "requestsAuthorizationLevel1": requestsAuthorizationLevel1,
-            "requestsAuthorizationLevel2": requestsAuthorizationLevel2
+            "requestsAuthorizationLevel2": requestsAuthorizationLevel2,
         }
 
         url = f"api/Safes/{safe}/Members"
 
-        data = {
-            'MemberName': username,
-            'Permissions': perm,
-            'searchIn': search_in
-        }
+        data = {"MemberName": username, "Permissions": perm, "searchIn": search_in}
 
         if not await self.exists(safe):
-            raise AiobastionException(f"Safe : \"{safe}\" was not found")
+            raise AiobastionException(f'Safe : "{safe}" was not found')
 
         try:
             return await self.epv.handle_request("post", url, data=data)
         except CyberarkNotFoundException:
-            raise CyberarkException(f"Unable to add member : Safe '{safe}' or user '{username}' was not found")
+            raise CyberarkException(
+                f"Unable to add member : Safe '{safe}' or user '{username}' was not found"
+            )
 
     # TODO : Document profiles
-    async def add_member_profile(self, safe: str, username: str, profile: Union[str, dict]):
+    async def add_member_profile(
+        self, safe: str, username: str, profile: Union[str, dict]
+    ):
         """
         This functions adds the "username" user (or group) to the given safe with a relevant profile
 
@@ -157,21 +171,29 @@ class Safe:
         :return: boolean
         """
         if isinstance(profile, str):
-            if profile.lower() not in ["admin", "use", "show", "audit", "prov", "power", "cpm", "manager"]:
+            if profile.lower() not in [
+                "admin",
+                "use",
+                "show",
+                "audit",
+                "prov",
+                "power",
+                "cpm",
+                "manager",
+            ]:
                 raise AiobastionException(f"Unsupported safe profile {profile!r}")
             perm = permissions(profile)
         else:
             # ensure there is at least one right for the safe username
             if not any(k in profile.keys() for k in DEFAULT_PERMISSIONS.keys()):
-                raise AiobastionException("Profile dictionary must contain at least one known permission key")
+                raise AiobastionException(
+                    "Profile dictionary must contain at least one known permission key"
+                )
             perm = profile
 
         url = f"api/Safes/{safe}/Members"
 
-        data = {
-            'MemberName': username,
-            'Permissions': perm
-        }
+        data = {"MemberName": username, "Permissions": perm}
 
         return await self.epv.handle_request("post", url, data=data)
 
@@ -203,8 +225,18 @@ class Safe:
             return False
         return safename == req["safeName"]
 
-    async def add(self, safe_name: str, description="", location="", olac=False, days=-1, versions=None,
-                  auto_purge=False, cpm=None, add_admins=True):
+    async def add(
+        self,
+        safe_name: str,
+        description="",
+        location="",
+        olac=False,
+        days=-1,
+        versions=None,
+        auto_purge=False,
+        cpm=None,
+        add_admins=True,
+    ):
         """
         Creates a new safe
 
@@ -226,10 +258,12 @@ class Safe:
             "Description": description,
             "OLACEnabled": olac,
             "ManagingCPM": self.cpm if cpm is None else cpm,
-            "NumberOfVersionsRetention": self.retention if versions is None else versions,
+            "NumberOfVersionsRetention": self.retention
+            if versions is None
+            else versions,
             "numberOfDaysRetention": days,
             "AutoPurgeEnabled": auto_purge,
-            "location": location
+            "location": location,
         }
 
         # options are mutually exclusive
@@ -253,7 +287,10 @@ class Safe:
         :return: boolean
         """
         # Define Safe defaults owners
-        for user, profile in {"Vault Admins": "admin", "Administrator": 'admin'}.items():
+        for user, profile in {
+            "Vault Admins": "admin",
+            "Administrator": "admin",
+        }.items():
             try:
                 await self.add_member_profile(safe_name, user, profile)
             except CyberarkAPIException as err:
@@ -275,8 +312,14 @@ class Safe:
         url = f"api/Safes/{safe_name}"
         return await self.epv.handle_request("delete", url)
 
-    async def safe_members_iterator(self, safe_name, member_type: str = None, membership_expired: bool = None,
-                                    include_predefined_users=None, search: str = None) -> AsyncIterator:
+    async def safe_members_iterator(
+        self,
+        safe_name,
+        member_type: str = None,
+        membership_expired: bool = None,
+        include_predefined_users=None,
+        search: str = None,
+    ) -> AsyncIterator:
         """
         This function allow to search using one or more parameters and return list of address id
 
@@ -291,18 +334,29 @@ class Safe:
         has_next_page = True
 
         while has_next_page:
-            safe_members = await self.safe_members_paginate(page=page, safe_name=safe_name, member_type=member_type,
-                                                            membership_expired=membership_expired,
-                                                            include_predefined_users=include_predefined_users, search=
-                                                            search)
+            safe_members = await self.safe_members_paginate(
+                page=page,
+                safe_name=safe_name,
+                member_type=member_type,
+                membership_expired=membership_expired,
+                include_predefined_users=include_predefined_users,
+                search=search,
+            )
             has_next_page = safe_members["has_next_page"]
             page += 1
             for a in safe_members["members"]:
                 yield a
 
-    async def safe_members_paginate(self, page: int = 1, size_of_page: int = 100, safe_name: str = None,
-                                    member_type: str = None,
-                                    membership_expired: bool = None, include_predefined_users=None, search: str = None):
+    async def safe_members_paginate(
+        self,
+        page: int = 1,
+        size_of_page: int = 100,
+        safe_name: str = None,
+        member_type: str = None,
+        membership_expired: bool = None,
+        include_predefined_users=None,
+        search: str = None,
+    ):
         """
         Search safes in a paginated way
 
@@ -327,7 +381,9 @@ class Safe:
         if membership_expired is not None:
             safe_members_filter.append(f"MembershipExpired eq {membership_expired}")
         if include_predefined_users is not None:
-            safe_members_filter.append(f"IncludePredefinedUsers eq {include_predefined_users}")
+            safe_members_filter.append(
+                f"IncludePredefinedUsers eq {include_predefined_users}"
+            )
 
         if len(safe_members_filter) > 0:
             params["filter"] = " AND ".join(safe_members_filter)
@@ -344,20 +400,22 @@ class Safe:
 
         self.epv.logger.debug(f"safe_members_paginate computed params : {params}")
         try:
-            search_results = await self.epv.handle_request("get", url, params=params,
-                                                           filter_func=lambda x: x)
+            search_results = await self.epv.handle_request(
+                "get", url, params=params, filter_func=lambda x: x
+            )
         except CyberarkAPIException:
-            raise CyberarkAPIException(404, "ERR_404", f"Safe {safe_name} doesn't exist")
+            raise CyberarkAPIException(
+                404, "ERR_404", f"Safe {safe_name} doesn't exist"
+            )
 
-        safe_members = search_results['value']
+        safe_members = search_results["value"]
 
         has_next_page = "nextLink" in search_results
-        return {
-            "members": safe_members,
-            "has_next_page": has_next_page
-        }
+        return {"members": safe_members, "has_next_page": has_next_page}
 
-    async def list_members(self, safe_name: str, filter_perm=None, details=False, raw=False):
+    async def list_members(
+        self, safe_name: str, filter_perm=None, details=False, raw=False
+    ):
         """
         List members of a safe, optionally those with specific perm
 
@@ -368,14 +426,34 @@ class Safe:
         :return: list of all users, or list of users with specific perm
         """
         if filter_perm is not None:
-            valid_filter = ['useAccounts', 'retrieveAccounts', 'listAccounts', 'addAccounts', 'updateAccountContent',
-                            'updateAccountProperties', 'initiateCPMAccountManagementOperations',
-                            'specifyNextAccountContent', 'renameAccounts', 'deleteAccounts', 'unlockAccounts',
-                            'manageSafe', 'manageSafeMembers', 'backupSafe', 'viewAuditLog', 'viewSafeMembers',
-                            'accessWithoutConfirmation', 'createFolders', 'deleteFolders', 'moveAccountsAndFolders',
-                            'requestsAuthorizationLevel1', 'requestsAuthorizationLevel2']
+            valid_filter = [
+                "useAccounts",
+                "retrieveAccounts",
+                "listAccounts",
+                "addAccounts",
+                "updateAccountContent",
+                "updateAccountProperties",
+                "initiateCPMAccountManagementOperations",
+                "specifyNextAccountContent",
+                "renameAccounts",
+                "deleteAccounts",
+                "unlockAccounts",
+                "manageSafe",
+                "manageSafeMembers",
+                "backupSafe",
+                "viewAuditLog",
+                "viewSafeMembers",
+                "accessWithoutConfirmation",
+                "createFolders",
+                "deleteFolders",
+                "moveAccountsAndFolders",
+                "requestsAuthorizationLevel1",
+                "requestsAuthorizationLevel2",
+            ]
             if filter_perm not in valid_filter:
-                raise AiobastionException(f"filter_perm {filter_perm} is not one of : {valid_filter} ")
+                raise AiobastionException(
+                    f"filter_perm {filter_perm} is not one of : {valid_filter} "
+                )
 
         members = [_m async for _m in self.safe_members_iterator(safe_name=safe_name)]
 
@@ -384,22 +462,33 @@ class Safe:
 
         if details:
             if filter_perm is not None:
-                return [{"username": m["memberName"],
-                         "type": m["memberType"],
-                         "isPredefinedUser": m["isPredefinedUser"],
-                         "membershipExpirationDate": m["membershipExpirationDate"],
-                         "profil": get_v2_profile(m["permissions"])
-                         } for m in members if m["permissions"][filter_perm]]
+                return [
+                    {
+                        "username": m["memberName"],
+                        "type": m["memberType"],
+                        "isPredefinedUser": m["isPredefinedUser"],
+                        "membershipExpirationDate": m["membershipExpirationDate"],
+                        "profil": get_v2_profile(m["permissions"]),
+                    }
+                    for m in members
+                    if m["permissions"][filter_perm]
+                ]
             else:
-                return [{"username": m["memberName"],
-                         "type": m["memberType"],
-                         "isPredefinedUser": m["isPredefinedUser"],
-                         "membershipExpirationDate": m["membershipExpirationDate"],
-                         "profil": get_v2_profile(m["permissions"])
-                         } for m in members]
+                return [
+                    {
+                        "username": m["memberName"],
+                        "type": m["memberType"],
+                        "isPredefinedUser": m["isPredefinedUser"],
+                        "membershipExpirationDate": m["membershipExpirationDate"],
+                        "profil": get_v2_profile(m["permissions"]),
+                    }
+                    for m in members
+                ]
         else:
             if filter_perm is not None:
-                return [m["memberName"] for m in members if m["permissions"][filter_perm]]
+                return [
+                    m["memberName"] for m in members if m["permissions"][filter_perm]
+                ]
             else:
                 return [m["memberName"] for m in members]
 
@@ -413,7 +502,9 @@ class Safe:
         """
         return username in await self.list_members(safe_name)
 
-    async def search_safe_iterator(self, query=None, include_accounts=False, extended_details=False) -> AsyncIterator:
+    async def search_safe_iterator(
+        self, query=None, include_accounts=False, extended_details=False
+    ) -> AsyncIterator:
         """
         This function allow to search using one or more parameters and return list of address id
 
@@ -426,15 +517,25 @@ class Safe:
         has_next_page = True
 
         while has_next_page:
-            accounts = await self.search_safe_paginate(page=page, search=query, include_accounts=include_accounts,
-                                                       extended_details=extended_details)
+            accounts = await self.search_safe_paginate(
+                page=page,
+                search=query,
+                include_accounts=include_accounts,
+                extended_details=extended_details,
+            )
             has_next_page = accounts["has_next_page"]
             page += 1
             for a in accounts["accounts"]:
                 yield a
 
-    async def search_safe_paginate(self, page: int = 1, size_of_page: int = 100, search: str = None,
-                                   include_accounts=False, extended_details=False):
+    async def search_safe_paginate(
+        self,
+        page: int = 1,
+        size_of_page: int = 100,
+        search: str = None,
+        include_accounts=False,
+        extended_details=False,
+    ):
         """
         Search safes in a paginated way
 
@@ -458,20 +559,20 @@ class Safe:
         params["limit"] = size_of_page
         params["offset"] = (page - 1) * size_of_page
         try:
-            search_results = await self.epv.handle_request("get", "API/Safes", params=params,
-                                                           filter_func=lambda x: x)
+            search_results = await self.epv.handle_request(
+                "get", "API/Safes", params=params, filter_func=lambda x: x
+            )
         except CyberarkAPIException as err:
             if err.err_code == "CAWS00001E":
-                raise AiobastionException("Please don't list safes with a user member of PSMMaster (Cyberark bug)")
+                raise AiobastionException(
+                    "Please don't list safes with a user member of PSMMaster (Cyberark bug)"
+                )
             else:
                 raise
-        safe_list = search_results['value']
+        safe_list = search_results["value"]
 
         has_next_page = "nextLink" in search_results
-        return {
-            "accounts": safe_list,
-            "has_next_page": has_next_page
-        }
+        return {"accounts": safe_list, "has_next_page": has_next_page}
 
     async def search(self, query=None, include_accounts=False, details=False):
         """
@@ -482,7 +583,12 @@ class Safe:
         :param details: Include additional safe details - Default: False - Optional
         :return: A list of dict with the result
         """
-        return [safe async for safe in self.search_safe_iterator(query, include_accounts, details)]
+        return [
+            safe
+            async for safe in self.search_safe_iterator(
+                query, include_accounts, details
+            )
+        ]
 
     async def list(self, details=False):
         """
@@ -503,8 +609,11 @@ class Safe:
         """
         if not safename:
             raise AiobastionException("A safe name must be provided")
-        return await self.epv.handle_request("get", f"API/Safes/{safename}",
-                                             params={"includeAccounts": str(include_accounts)})
+        return await self.epv.handle_request(
+            "get",
+            f"API/Safes/{safename}",
+            params={"includeAccounts": str(include_accounts)},
+        )
 
     async def v1_get_safes(self):
         """
@@ -512,7 +621,9 @@ class Safe:
 
         :return: A list of safes
         """
-        return await self.epv.handle_request("get", 'WebServices/PIMServices.svc/Safes/', filter_func=lambda r: r)
+        return await self.epv.handle_request(
+            "get", "WebServices/PIMServices.svc/Safes/", filter_func=lambda r: r
+        )
 
     async def get_permissions(self, safename: str, username: str):
         """
@@ -523,7 +634,9 @@ class Safe:
         :return: list of permissions
         """
         url = f"api/Safes/{safename}/members/{username}"
-        return await self.epv.handle_request("get", url, filter_func=lambda r: r["permissions"])
+        return await self.epv.handle_request(
+            "get", url, filter_func=lambda r: r["permissions"]
+        )
 
     async def rename(self, safename: str, new_name: str):
         """
@@ -531,7 +644,9 @@ class Safe:
         """
         found_safes = await self.search(safename, True, True)
         try:
-            good_safe = next(_s for _s in found_safes if _s["safeName"].upper() == safename.upper())
+            good_safe = next(
+                _s for _s in found_safes if _s["safeName"].upper() == safename.upper()
+            )
         except StopIteration:
             raise AiobastionException(f"Safe {safename} was not found")
 
@@ -543,8 +658,16 @@ class Safe:
 
         return await self.epv.handle_request("put", url, data=good_safe)
 
-    async def update(self, safe_name: str, description=None, location=None, olac=None, days=None, versions=None,
-                     cpm=None):
+    async def update(
+        self,
+        safe_name: str,
+        description=None,
+        location=None,
+        olac=None,
+        days=None,
+        versions=None,
+        cpm=None,
+    ):
         """
         Update existing safe
 
