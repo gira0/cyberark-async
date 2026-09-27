@@ -41,7 +41,7 @@ If you wish to contribute with code the workflow is :
 ## Test
 
 - Most tests are offline and run without a Vault or PVWA.
-- The `Tests` GitHub Actions workflow runs the offline suite on Python 3.12, 3.13, and 3.14 for every pull request and push to `main`. It also reports `ruff` findings without failing the build until the lint backlog is cleared.
+- The `Tests` GitHub Actions workflow runs the offline suite on Python 3.12, 3.13, and 3.14 for every pull request and push to `main`. It also runs `ruff check` and `ruff format --check`, and fails the build on any finding, so run `uv run --group dev ruff format .` and `uv run --group dev ruff check .` before pushing.
 - To run the live CyberArk integration tests, set `AIOBASTION_RUN_INTEGRATION_TESTS=1` before invoking pytest.
 - Optional overrides:
   - `AIOBASTION_TEST_CONFIG=/path/to/config_tests.yml`
