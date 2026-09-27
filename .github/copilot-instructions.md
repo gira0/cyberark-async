@@ -14,7 +14,7 @@ Report problems in this order, and say which category each finding belongs to:
 
 ## Project rules
 
-- Feature modules must send HTTP requests through `self.epv.handle_request()`. Flag any direct `get_session()`, `session.request(...)`, `session.post(...)` or `aiohttp.ClientSession(...)` use outside the EPV transport and authentication code (`cyberark.py`, `http_session.py`, `aim.py`): it bypasses the shared concurrency semaphore, TLS and timeout settings, and the normalised non-2xx error handling. Existing bypasses are tracked in #12; new ones should not be added.
+- Feature modules must send HTTP requests through `self.epv.handle_request()`. Flag any direct `get_session()`, `aiohttp.ClientSession(...)` or session HTTP call (`session.request(...)` or any verb method such as `.get`, `.post`, `.put`, `.patch`, `.delete`, `.head`, `.options`) use outside the EPV transport and authentication code (`cyberark.py`, `http_session.py`, `aim.py`): it bypasses the shared concurrency semaphore, TLS and timeout settings, and the normalised non-2xx error handling. Existing bypasses are tracked in #12; new ones should not be added.
 - Keep public APIs `async`. Do not add synchronous wrappers.
 - Raise the exceptions from `aiobastion/exceptions.py` (`AiobastionException`, `CyberarkException`, `CyberarkAPIException`, ...) instead of bare `Exception` or `ValueError`, following the neighbouring functions.
 - Use the canonical configuration names `api_host`, `max_concurrent_tasks` and `verify`. Legacy aliases stay only for compatibility and must not appear in new examples or docs.
