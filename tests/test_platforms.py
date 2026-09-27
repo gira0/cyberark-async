@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 from unittest import IsolatedAsyncioTestCase
 import aiobastion
-from aiobastion.exceptions import AiobastionException
 import tests
+
 
 class TestApplication(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
@@ -18,7 +18,6 @@ class TestApplication(IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self):
         await self.vault.logoff()
-
 
     async def get_random_platform(self, n=1):
         platforms = await self.vault.platform.get_target_platforms()
@@ -43,27 +42,41 @@ class TestApplication(IsolatedAsyncioTestCase):
 
         platforms = await self.vault.platform.get_target_platforms(periodicVerify=True)
         for pf in platforms:
-            self.assertTrue(pf["CredentialsManagementPolicy"]["Verification"]["PerformAutomatic"])
+            self.assertTrue(
+                pf["CredentialsManagementPolicy"]["Verification"]["PerformAutomatic"]
+            )
 
         platforms = await self.vault.platform.get_target_platforms(manualVerify=True)
         for pf in platforms:
-            self.assertTrue(pf["CredentialsManagementPolicy"]["Verification"]["AllowManual"])
+            self.assertTrue(
+                pf["CredentialsManagementPolicy"]["Verification"]["AllowManual"]
+            )
 
         platforms = await self.vault.platform.get_target_platforms(periodicChange=True)
         for pf in platforms:
-            self.assertTrue(pf["CredentialsManagementPolicy"]["Change"]["PerformAutomatic"])
+            self.assertTrue(
+                pf["CredentialsManagementPolicy"]["Change"]["PerformAutomatic"]
+            )
 
         platforms = await self.vault.platform.get_target_platforms(manualChange=True)
         for pf in platforms:
             self.assertTrue(pf["CredentialsManagementPolicy"]["Change"]["AllowManual"])
 
-        platforms = await self.vault.platform.get_target_platforms(automaticReconcile=True)
+        platforms = await self.vault.platform.get_target_platforms(
+            automaticReconcile=True
+        )
         for pf in platforms:
-            self.assertTrue(pf["CredentialsManagementPolicy"]["Reconcile"]["AutomaticReconcileWhenUnsynced"])
+            self.assertTrue(
+                pf["CredentialsManagementPolicy"]["Reconcile"][
+                    "AutomaticReconcileWhenUnsynced"
+                ]
+            )
 
         platforms = await self.vault.platform.get_target_platforms(manualReconcile=True)
         for pf in platforms:
-            self.assertTrue(pf["CredentialsManagementPolicy"]["Reconcile"]["AllowManual"])
+            self.assertTrue(
+                pf["CredentialsManagementPolicy"]["Reconcile"]["AllowManual"]
+            )
 
     async def test_get_platforms_details(self):
         pf = await self.get_random_platform()
@@ -84,7 +97,9 @@ class TestApplication(IsolatedAsyncioTestCase):
 
     async def test_get_target_platform_unique_id(self):
         pf = await self.get_random_platform()
-        unique_id = await self.vault.platform.get_target_platform_unique_id(pf["PlatformID"])
+        unique_id = await self.vault.platform.get_target_platform_unique_id(
+            pf["PlatformID"]
+        )
         self.assertIsInstance(unique_id, int)
 
     async def test_del_target_plaform(self):
@@ -104,14 +119,22 @@ class TestApplication(IsolatedAsyncioTestCase):
 
     async def test_get_target_platform_connection_components(self):
         pf = await self.get_random_platform()
-        unique_id = await self.vault.platform.get_target_platform_unique_id(pf["PlatformID"])
+        unique_id = await self.vault.platform.get_target_platform_unique_id(
+            pf["PlatformID"]
+        )
 
-        connection_components = await self.vault.platform.get_target_platform_connection_components(unique_id)
+        connection_components = (
+            await self.vault.platform.get_target_platform_connection_components(
+                unique_id
+            )
+        )
         self.assertGreaterEqual(len(connection_components), 0)
 
     async def test_get_session_management_policy(self):
         pf = await self.get_random_platform()
-        unique_id = await self.vault.platform.get_target_platform_unique_id(pf["PlatformID"])
+        unique_id = await self.vault.platform.get_target_platform_unique_id(
+            pf["PlatformID"]
+        )
 
         mgmt_policy = await self.vault.platform.get_session_management_policy(unique_id)
         # we suppose all our platform have Session Management Policy which could be wrong
@@ -122,7 +145,8 @@ class TestApplication(IsolatedAsyncioTestCase):
         pf_id = [pf["PlatformID"] for pf in multiple_pf]
 
         # this platform is non exportable :
-        if "PSMSecureConnect" in pf_id: pf_id.remove("PSMSecureConnect")
+        if "PSMSecureConnect" in pf_id:
+            pf_id.remove("PSMSecureConnect")
 
         # Create ./temp folder if not exists
         Path("./temp").mkdir(parents=True, exist_ok=True)
@@ -134,8 +158,9 @@ class TestApplication(IsolatedAsyncioTestCase):
         # Cleanup
         shutil.rmtree("./temp")
 
-if __name__ == '__main__':
-    if sys.platform == 'win32':
+
+if __name__ == "__main__":
+    if sys.platform == "win32":
         # Turned out, using WindowsSelectorEventLoop has functionality issues such as:
         #     Can't support more than 512 sockets
         #     Can't use pipe

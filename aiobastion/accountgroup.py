@@ -2,11 +2,18 @@ import re
 from typing import Union, List
 
 from .accounts import PrivilegedAccount
-from aiobastion.exceptions import AiobastionException, CyberarkAPIException, AiobastionConfigurationException, CyberarkNotFoundException
+from aiobastion.exceptions import (
+    AiobastionException,
+    CyberarkAPIException,
+    AiobastionConfigurationException,
+    CyberarkNotFoundException,
+)
 
 
 class PrivilegedAccountGroup:
-    def __init__(self, GroupName: str, GroupPlatformID: str, Safe: str, GroupID: str= ""):
+    def __init__(
+        self, GroupName: str, GroupPlatformID: str, Safe: str, GroupID: str = ""
+    ):
         self.id = GroupID
         self.name = GroupName
         self.group_platform = GroupPlatformID
@@ -17,13 +24,12 @@ class PrivilegedAccountGroup:
         json_object = {
             "GroupName": self.name,
             "GroupPlatformID": self.group_platform,
-            "Safe": self.safe
+            "Safe": self.safe,
         }
         return json_object
 
     def __str__(self) -> str:
         return f"id : {self.id}, name: {self.name}, group_platform: {self.group_platform}, safe: {self.safe}"
-
 
 
 class AccountGroup:
@@ -44,8 +50,11 @@ class AccountGroup:
             )
 
     def to_json(self) -> dict:
-        return {attr_name: getattr(self, attr_name) for attr_name in AccountGroup._SERIALIZED_FIELDS if getattr(self, attr_name, None) is not None}
-
+        return {
+            attr_name: getattr(self, attr_name)
+            for attr_name in AccountGroup._SERIALIZED_FIELDS
+            if getattr(self, attr_name, None) is not None
+        }
 
     # Account groups
     async def list_by_safe(self, safe_name: str) -> List[PrivilegedAccountGroup]:
@@ -56,10 +65,14 @@ class AccountGroup:
         :return: a list of PrivilegedAccountGroups
         """
         params = {"Safe": safe_name}
-        groups = await self.epv.handle_request("get", "api/AccountGroups", params=params)
+        groups = await self.epv.handle_request(
+            "get", "api/AccountGroups", params=params
+        )
         return [PrivilegedAccountGroup(**g) for g in groups]
 
-    async def get_privileged_account_group_id(self, account_group: PrivilegedAccountGroup) -> str:
+    async def get_privileged_account_group_id(
+        self, account_group: PrivilegedAccountGroup
+    ) -> str:
         """
         Internal function to get the group ID in functions
 
@@ -96,12 +109,14 @@ class AccountGroup:
         :return: group_id
         """
         if isinstance(account_group, str):
-            if re.match(r'\d+_\d+', account_group):
+            if re.match(r"\d+_\d+", account_group):
                 return account_group
             raise AiobastionException("The account_group_id provided is not correct")
         if isinstance(account_group, PrivilegedAccountGroup):
             return await self.get_privileged_account_group_id(account_group)
-        raise AiobastionException("You must provide a valid PrivilegedAccount to function get_account_id")
+        raise AiobastionException(
+            "You must provide a valid PrivilegedAccount to function get_account_id"
+        )
 
     async def members(self, group):
         """
@@ -111,7 +126,9 @@ class AccountGroup:
         :return: List of members of a group
         """
         group_id = await self.get_group_id(group)
-        members = await self.epv.handle_request("get", f"api/AccountGroups/{group_id}/Members")
+        members = await self.epv.handle_request(
+            "get", f"api/AccountGroups/{group_id}/Members"
+        )
         return await self.epv.account.get_account([m["AccountID"] for m in members])
 
     async def add(self, group_name: str, group_platform: str, safe_name: str):
@@ -128,10 +145,12 @@ class AccountGroup:
         data = {
             "GroupName": group_name,
             "GroupPlatformID": group_platform,
-            "Safe": safe_name
+            "Safe": safe_name,
         }
         self.epv.logger.debug(data)
-        return await self.epv.handle_request("post", "api/AccountGroups/", data=data, filter_func=lambda x: x['GroupID'])
+        return await self.epv.handle_request(
+            "post", "api/AccountGroups/", data=data, filter_func=lambda x: x["GroupID"]
+        )
 
     async def add_privileged_account_group(self, account_group: PrivilegedAccountGroup):
         """
@@ -143,12 +162,22 @@ class AccountGroup:
         if not await self.epv.safe.exists(account_group.safe):
             raise AiobastionException(f"Safe {account_group.safe} does not exists")
         try:
-            await self.epv.handle_request("post", "api/AccountGroups", data=account_group.to_json(),
-                                             filter_func=lambda x: x['GroupID'])
+            await self.epv.handle_request(
+                "post",
+                "api/AccountGroups",
+                data=account_group.to_json(),
+                filter_func=lambda x: x["GroupID"],
+            )
         except CyberarkNotFoundException:
-            raise CyberarkNotFoundException(f"Privileged Account group's platform \"{account_group.group_platform}\" not found")
+            raise CyberarkNotFoundException(
+                f'Privileged Account group\'s platform "{account_group.group_platform}" not found'
+            )
 
-    async def add_member(self, account: Union[PrivilegedAccount, str], group: Union[PrivilegedAccountGroup, str]):
+    async def add_member(
+        self,
+        account: Union[PrivilegedAccount, str],
+        group: Union[PrivilegedAccountGroup, str],
+    ):
         """
         Add accounts to a group (specified by PrivilegedAccountGroup object or group_id)
 
@@ -159,12 +188,16 @@ class AccountGroup:
         """
         account_id = await self.epv.account.get_account_id(account)
         group_id = await self.get_group_id(group)
-        data = {
-            "AccountID": account_id
-        }
-        return await self.epv.handle_request("post", f"api/AccountGroups/{group_id}/Members", data=data)
+        data = {"AccountID": account_id}
+        return await self.epv.handle_request(
+            "post", f"api/AccountGroups/{group_id}/Members", data=data
+        )
 
-    async def delete_member(self, account: Union[PrivilegedAccount, str], group: Union[PrivilegedAccountGroup, str]):
+    async def delete_member(
+        self,
+        account: Union[PrivilegedAccount, str],
+        group: Union[PrivilegedAccountGroup, str],
+    ):
         """
         Delete the member of an account group
 
@@ -188,7 +221,9 @@ class AccountGroup:
     #         raise BastionException("The provided Group ID is not valid !")
     #     return await self.epv.handle_request("delete", f"api/AccountGroups/{group_id}")
 
-    async def move_account_group(self, account_group_name: str, src_safe: str, dst_safe: str):
+    async def move_account_group(
+        self, account_group_name: str, src_safe: str, dst_safe: str
+    ):
         """
         Move an account_group and its members from a safe to another safe
 
@@ -200,17 +235,24 @@ class AccountGroup:
         account_groups = await self.list_by_safe(src_safe)
         for account_group in account_groups:
             if account_group.name.lower() == account_group_name.lower():
-
                 try:
                     self.epv.logger.debug(f"Creating {account_group} to {dst_safe}")
-                    new_group_id = await self.add(account_group.name, account_group.group_platform, dst_safe)
+                    new_group_id = await self.add(
+                        account_group.name, account_group.group_platform, dst_safe
+                    )
                     self.epv.logger.debug(f"Newly created group ID : {new_group_id}")
 
                 except CyberarkAPIException as err:
                     if "EPVPA012E" in err.err_message:
                         ng_list = await self.list_by_safe(dst_safe)
-                        new_group_id = next(ng for ng in ng_list if account_group.name.lower() == ng.name.lower())
-                        self.epv.logger.debug(f"Warning : AG already exists and detected with ID : {new_group_id}")
+                        new_group_id = next(
+                            ng
+                            for ng in ng_list
+                            if account_group.name.lower() == ng.name.lower()
+                        )
+                        self.epv.logger.debug(
+                            f"Warning : AG already exists and detected with ID : {new_group_id}"
+                        )
                     else:
                         raise
 
@@ -231,7 +273,9 @@ class AccountGroup:
                 return new_group_id
         return False
 
-    async def move_all_account_groups(self, src_safe, dst_safe, account_filter: dict = None):
+    async def move_all_account_groups(
+        self, src_safe, dst_safe, account_filter: dict = None
+    ):
         """
         Move all accounts groups from a safe to another safe
         * Members of the account groups are also moved ! *
@@ -249,13 +293,16 @@ class AccountGroup:
         account_groups = await self.list_by_safe(src_safe)
         for ag in account_groups:
             self.epv.logger.debug(f"Current AG is {ag}")
-            ag_members = (await self.members(ag))
+            ag_members = await self.members(ag)
             self.epv.logger.debug(ag_members)
             if account_filter is not None:
                 filtered = False
                 for a in ag_members:
                     for filter_file_category, filter_value in account_filter.items():
-                        if _case_insensitive_getattr(a, filter_file_category) == filter_value:
+                        if (
+                            _case_insensitive_getattr(a, filter_file_category)
+                            == filter_value
+                        ):
                             filtered = True
                 if filtered:
                     self.epv.logger.debug("Account group skipped ....")

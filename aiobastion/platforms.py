@@ -4,7 +4,11 @@ import json
 import base64
 
 import aiohttp
-from .exceptions import CyberarkException, CyberarkAPIException, AiobastionConfigurationException
+from .exceptions import (
+    CyberarkException,
+    CyberarkAPIException,
+    AiobastionConfigurationException,
+)
 
 
 class Platform:
@@ -21,8 +25,9 @@ class Platform:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}")
-
+            raise AiobastionConfigurationException(
+                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
+            )
 
     def to_json(self):
         serialized = {}
@@ -35,9 +40,17 @@ class Platform:
 
         return serialized
 
-    async def get_target_platforms(self, active: bool = None, systemType: str = None, periodicVerify: bool = None,
-                                   manualVerify: bool = None, periodicChange: bool = None, manualChange: bool = None,
-                                   automaticReconcile: bool = None, manualReconcile: bool = None):
+    async def get_target_platforms(
+        self,
+        active: bool = None,
+        systemType: str = None,
+        periodicVerify: bool = None,
+        manualVerify: bool = None,
+        periodicChange: bool = None,
+        manualChange: bool = None,
+        automaticReconcile: bool = None,
+        manualReconcile: bool = None,
+    ):
         """
         Get target platforms that meet given criteria (or all platforms)
 
@@ -64,8 +77,12 @@ class Platform:
             # Cyberark doc says "Filters" but it's not working on 12.2, "filter" works
             filters = " AND ".join(search)
             params = {"filter": filters}
-        return await self.epv.handle_request("get", 'API/Platforms/Targets', params=params,
-                                             filter_func=lambda result: result["Platforms"])
+        return await self.epv.handle_request(
+            "get",
+            "API/Platforms/Targets",
+            params=params,
+            filter_func=lambda result: result["Platforms"],
+        )
 
     async def get_platforms_details(self, platform_name: str):
         """
@@ -89,8 +106,12 @@ class Platform:
             params = {"search": search}
         else:
             params = {}
-        return await self.epv.handle_request("get", 'API/Platforms/Targets', params=params,
-                                             filter_func=lambda result: result["Platforms"])
+        return await self.epv.handle_request(
+            "get",
+            "API/Platforms/Targets",
+            params=params,
+            filter_func=lambda result: result["Platforms"],
+        )
 
     async def get_target_platform_details(self, platform_name: str):
         """
@@ -117,8 +138,11 @@ class Platform:
         # if the user is gentle enough to provide us the name, we still accept it
 
         # get all platforms
-        all_platforms = await self.epv.handle_request("get", 'API/Platforms/Targets',
-                                                      filter_func=lambda result: result["Platforms"])
+        all_platforms = await self.epv.handle_request(
+            "get",
+            "API/Platforms/Targets",
+            filter_func=lambda result: result["Platforms"],
+        )
         # find the good platform and return the ID
         for platform in all_platforms:
             if platform["PlatformID"] == platformID or platform["Name"] == platformID:
@@ -134,7 +158,9 @@ class Platform:
         :param pf_unique_id: Platform ID of the platform (Int 64), for ex: 644_56
         :return: Boolean
         """
-        return await self.epv.handle_request("delete", f"API/Platforms/Targets/{str(pf_unique_id)}")
+        return await self.epv.handle_request(
+            "delete", f"API/Platforms/Targets/{str(pf_unique_id)}"
+        )
 
     async def deactivate_target_platform(self, pfid: int):
         """
@@ -144,7 +170,9 @@ class Platform:
         :param pfid: Unique Platform ID of the platform
         :return: Boolean
         """
-        return await self.epv.handle_request("post", f"API/Platforms/Targets/{str(pfid)}/deactivate")
+        return await self.epv.handle_request(
+            "post", f"API/Platforms/Targets/{str(pfid)}/deactivate"
+        )
 
     async def export_platform(self, pfid: str, outdir: str):
         """
@@ -157,12 +185,20 @@ class Platform:
         url, head = self.epv.get_url(f"API/Platforms/{str(pfid)}/Export")
 
         try:
-            async with aiohttp.ClientSession(headers=head, cookies = self.epv.cookies ) as session:
-                async with session.request("post", url, **self.epv.request_params) as req:
+            async with aiohttp.ClientSession(
+                headers=head, cookies=self.epv.cookies
+            ) as session:
+                async with session.request(
+                    "post", url, **self.epv.request_params
+                ) as req:
                     if req.status != 200:
                         content = await req.json()
                         try:
-                            raise CyberarkAPIException(req.status, content["ErrorCode"], content["ErrorMessage"])
+                            raise CyberarkAPIException(
+                                req.status,
+                                content["ErrorCode"],
+                                content["ErrorMessage"],
+                            )
                         except (KeyError, TypeError):
                             raise CyberarkException(content)
 
@@ -170,7 +206,13 @@ class Platform:
                     with open(outdir + "/" + pfid + ".zip", "wb") as pf_file:
                         pf_file.write(file_content)
 
-        except (CyberarkAPIException, CyberarkException, aiohttp.ClientError, OSError, json.JSONDecodeError) as err:
+        except (
+            CyberarkAPIException,
+            CyberarkException,
+            aiohttp.ClientError,
+            OSError,
+            json.JSONDecodeError,
+        ) as err:
             return f"{pfid} is not exportable : {str(err)}"
         return True
 
@@ -184,7 +226,8 @@ class Platform:
         return await self.epv.handle_request(
             "get",
             f"API/Platforms/Targets/{platformId}/PrivilegedSessionManagement",
-            filter_func=lambda x: x["PSMConnectors"])
+            filter_func=lambda x: x["PSMConnectors"],
+        )
 
     async def get_session_management_policy(self, platformId):
         """
@@ -194,8 +237,7 @@ class Platform:
         :return: a dict with management policy infos
         """
         return await self.epv.handle_request(
-            "get",
-            f"API/Platforms/Targets/{platformId}/PrivilegedSessionManagement"
+            "get", f"API/Platforms/Targets/{platformId}/PrivilegedSessionManagement"
         )
 
     async def export_all_platforms(self, outdir: str):
@@ -214,11 +256,10 @@ class Platform:
         :param zipfile: Contains the connection component info (or generated with cyberark tool)
         :return: True
         """
-        with open(zipfile, 'rb') as f:
+        with open(zipfile, "rb") as f:
             fc = f.read()
             fb64 = base64.b64encode(fc).decode("utf-8")
         data = {"ImportFile": fb64}
         return await self.epv.handle_request(
-            "post",
-            "API/ConnectionComponents/Import", data=data
+            "post", "API/ConnectionComponents/Import", data=data
         )

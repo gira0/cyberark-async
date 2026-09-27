@@ -6,11 +6,12 @@ from typing import Optional
 
 
 class Api_options:
-    """ Api_options - global API options """
+    """Api_options - global API options"""
+
     _SERIALIZED_FIELDS = ["deprecated_warning"]
     API_OPTIONS_DEFAULT_DEPRECATED_WARNING = True
 
-    deprecated_warning_enabled_ind = None       # is deprecated_warning already setup?
+    deprecated_warning_enabled_ind = None  # is deprecated_warning already setup?
 
     def __init__(self, epv, *, deprecated_warning: Optional[bool] = None, **kwargs):
         # TODO: add option to disable err.http_status  403 and 409 (for safe.py)
@@ -24,12 +25,15 @@ class Api_options:
         _section = "api_options"
         _config_source = self.epv.config.config_source
 
-        self.deprecated_warning = Api_options.set_deprecated_warning(deprecated_warning, _config_source, f"{_section}/deprecated_warning")
+        self.deprecated_warning = Api_options.set_deprecated_warning(
+            deprecated_warning, _config_source, f"{_section}/deprecated_warning"
+        )
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}")
-
+            raise AiobastionConfigurationException(
+                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
+            )
 
     def to_json(self):
         serialized = {}
@@ -43,8 +47,13 @@ class Api_options:
         return serialized
 
     @classmethod
-    def set_deprecated_warning(cls, value: Optional[bool] = None,  _config_source: Optional[str] = None, _section: Optional[str]=None) -> bool:
-        """ Set/reset deprecated_warning option
+    def set_deprecated_warning(
+        cls,
+        value: Optional[bool] = None,
+        _config_source: Optional[str] = None,
+        _section: Optional[str] = None,
+    ) -> bool:
+        """Set/reset deprecated_warning option
 
         :param bool value: Activate (True) or deactivate (False) aiobastion deprecated warning option
         :raise AiobastionConfigurationException(f"Invalid value 'value' in 'set_deprecated_warning' funtion (expected bool): ...")
@@ -57,32 +66,49 @@ class Api_options:
         elif _section is None:
             _section = "api_options/deprecated_warning"
 
-        value = Api_options.validate_bool(_config_source, _section, value, Api_options.API_OPTIONS_DEFAULT_DEPRECATED_WARNING)
+        value = Api_options.validate_bool(
+            _config_source,
+            _section,
+            value,
+            Api_options.API_OPTIONS_DEFAULT_DEPRECATED_WARNING,
+        )
 
-        if cls.deprecated_warning_enabled_ind is not None and value == cls.deprecated_warning_enabled_ind:
-            return  cls.deprecated_warning_enabled_ind   # It is already setup
+        if (
+            cls.deprecated_warning_enabled_ind is not None
+            and value == cls.deprecated_warning_enabled_ind
+        ):
+            return cls.deprecated_warning_enabled_ind  # It is already setup
 
         if value:
             cls.deprecated_warning_enabled_ind = True
-            warnings.filterwarnings("module", category=DeprecationWarning, module=r'^aiobastion\.')
+            warnings.filterwarnings(
+                "module", category=DeprecationWarning, module=r"^aiobastion\."
+            )
         else:
             cls.deprecated_warning_enabled_ind = False
-            warnings.filterwarnings("ignore", category=DeprecationWarning, module=r'^aiobastion\.')
+            warnings.filterwarnings(
+                "ignore", category=DeprecationWarning, module=r"^aiobastion\."
+            )
 
         return cls.deprecated_warning_enabled_ind
-
 
     # This is a copy of config.validate_bool.
     # It is here to avoid circular imports.
     @staticmethod
-    def validate_bool(config_source: str, section_name: str, val,  default_value = None) -> bool:
-        if default_value and (val is None or (isinstance(val, str) and len(val.strip()) == 0)):
+    def validate_bool(
+        config_source: str, section_name: str, val, default_value=None
+    ) -> bool:
+        if default_value and (
+            val is None or (isinstance(val, str) and len(val.strip()) == 0)
+        ):
             return default_value
 
         if isinstance(val, bool):
             rt = val
         else:
-            raise AiobastionConfigurationException(f"Invalid value '{section_name}' "
-                                                f"in {config_source} (expected bool): {val!r}")
+            raise AiobastionConfigurationException(
+                f"Invalid value '{section_name}' "
+                f"in {config_source} (expected bool): {val!r}"
+            )
 
         return rt

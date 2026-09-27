@@ -26,12 +26,24 @@ class Applications:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}")
+            raise AiobastionConfigurationException(
+                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
+            )
 
-    async def add(self, app_name: str, description: str = "", location: str = "\\", access_from: int = None,
-                  access_to: int = None, expiration:str = None, disabled:bool = None,
-                  owner_first_name: str = "", owner_last_name: str = "", owner_email: str = None, owner_phone: str = ""
-                  ):
+    async def add(
+        self,
+        app_name: str,
+        description: str = "",
+        location: str = "\\",
+        access_from: int = None,
+        access_to: int = None,
+        expiration: str = None,
+        disabled: bool = None,
+        owner_first_name: str = "",
+        owner_last_name: str = "",
+        owner_email: str = None,
+        owner_phone: str = "",
+    ):
         """
         Create a new application
 
@@ -57,18 +69,22 @@ class Applications:
                 "Location": location,
                 "BusinessOwnerFName": owner_first_name,
                 "BusinessOwnerLName": owner_last_name,
-                "BusinessOwnerPhone": owner_phone
-              }
+                "BusinessOwnerPhone": owner_phone,
             }
+        }
 
         if access_from is not None:
             if access_from not in list(range(23)):
-                raise AiobastionException(f"access_from argument must be int between 0 and 23, given : {access_from}")
+                raise AiobastionException(
+                    f"access_from argument must be int between 0 and 23, given : {access_from}"
+                )
             data["application"]["AccessPermittedFrom"] = access_from
 
         if access_to is not None:
             if access_to not in list(range(23)):
-                raise AiobastionException(f"access_from argument must be int between 0 and 23, given : {access_to}")
+                raise AiobastionException(
+                    f"access_from argument must be int between 0 and 23, given : {access_to}"
+                )
             data["application"]["AccessPermittedTo"] = access_to
 
         if expiration is not None:
@@ -80,12 +96,14 @@ class Applications:
 
         if owner_email is not None:
             import re
+
             if not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", owner_email):
-                raise AiobastionException(f"owner_email argument must be valid mail, given : {owner_email}")
+                raise AiobastionException(
+                    f"owner_email argument must be valid mail, given : {owner_email}"
+                )
             data["application"]["BusinessOwnerEmail"] = owner_email
 
         return await self.epv.handle_request("post", url, data=data)
-
 
     def to_json(self):
         serialized = {}
@@ -98,8 +116,7 @@ class Applications:
 
         return serialized
 
-
-    async def delete(self, app_name:str):
+    async def delete(self, app_name: str):
         """
         Delete an application
 
@@ -109,7 +126,6 @@ class Applications:
         url = f"WebServices/PIMServices.svc/Applications/{app_name}"
 
         return await self.epv.handle_request("delete", url)
-
 
     async def details(self, app_name: str):
         """
@@ -122,14 +138,18 @@ class Applications:
         params = {
             "AppID": app_name,
         }
-        apps = await self.epv.handle_request("get", url, params=params, filter_func=lambda x: x["application"])
+        apps = await self.epv.handle_request(
+            "get", url, params=params, filter_func=lambda x: x["application"]
+        )
         for app in apps:
             if app["AppID"] == app_name:
                 return app
 
         if len(apps) > 1:
             app_names = [x["AppID"] for x in apps]
-            raise AiobastionException(f"Provided name {app_name} returns more than one application : {app_names}")
+            raise AiobastionException(
+                f"Provided name {app_name} returns more than one application : {app_names}"
+            )
         elif len(apps) == 0:
             raise AiobastionException(f"No results found for {app_name}")
 
@@ -144,14 +164,26 @@ class Applications:
         params = {
             "AppID": search,
         }
-        apps = await self.epv.handle_request("get", url, params=params, filter_func=lambda x: x["application"])
+        apps = await self.epv.handle_request(
+            "get", url, params=params, filter_func=lambda x: x["application"]
+        )
         return [x["AppID"] for x in apps]
 
-    async def add_authentication(self, app_name: str, path: str = None, hash_string: str = None, os_user: str = None,
-                                 address: str = None, serial_number: str = None, issuer: list = None,
-                                 subject: list = None,
-                                 subject_alternative_name: list = None, is_folder: bool = False,
-                                 allow_internal_scripts: bool = False, comment: str = "") -> bool:
+    async def add_authentication(
+        self,
+        app_name: str,
+        path: str = None,
+        hash_string: str = None,
+        os_user: str = None,
+        address: str = None,
+        serial_number: str = None,
+        issuer: list = None,
+        subject: list = None,
+        subject_alternative_name: list = None,
+        is_folder: bool = False,
+        allow_internal_scripts: bool = False,
+        comment: str = "",
+    ) -> bool:
         """
         Add one or more authentication methods to a given app_id with a named param
 
@@ -172,7 +204,7 @@ class Applications:
 
         updated = False
 
-        url = f'WebServices/PIMServices.svc/Applications/{app_name}/Authentications/'
+        url = f"WebServices/PIMServices.svc/Applications/{app_name}/Authentications/"
 
         if path is not None:
             body = {
@@ -180,7 +212,7 @@ class Applications:
                     "AuthType": "path",
                     "AuthValue": path,
                     "IsFolder": is_folder,
-                    "AllowInternalScripts": allow_internal_scripts
+                    "AllowInternalScripts": allow_internal_scripts,
                 }
             }
             updated = await self.epv.handle_request("post", url, data=body)
@@ -190,26 +222,18 @@ class Applications:
                 "authentication": {
                     "AuthType": "hash",
                     "AuthValue": hash_string,
-                    "Comment": comment
+                    "Comment": comment,
                 }
             }
             updated = await self.epv.handle_request("post", url, data=body)
 
         if os_user is not None:
-            body = {
-                "authentication": {
-                    "AuthType": "osUser",
-                    "AuthValue": os_user
-                }
-            }
+            body = {"authentication": {"AuthType": "osUser", "AuthValue": os_user}}
             updated = await self.epv.handle_request("post", url, data=body)
 
         if address is not None:
             body = {
-                "authentication": {
-                    "AuthType": "machineAddress",
-                    "AuthValue": address
-                }
+                "authentication": {"AuthType": "machineAddress", "AuthValue": address}
             }
             updated = await self.epv.handle_request("post", url, data=body)
 
@@ -218,12 +242,16 @@ class Applications:
                 "authentication": {
                     "AuthType": "certificateserialnumber",
                     "AuthValue": serial_number,
-                    "Comment": comment
+                    "Comment": comment,
                 }
             }
             updated = await self.epv.handle_request("post", url, data=body)
 
-        if issuer is not None or subject is not None or subject_alternative_name is not None:
+        if (
+            issuer is not None
+            or subject is not None
+            or subject_alternative_name is not None
+        ):
             if isinstance(issuer, str):
                 issuer = [issuer]
             if isinstance(subject, str):
@@ -242,7 +270,9 @@ class Applications:
             if subject:
                 body["authentication"]["Subject"] = subject
             if subject_alternative_name:
-                body["authentication"]["SubjectAlternativeName"] = subject_alternative_name
+                body["authentication"]["SubjectAlternativeName"] = (
+                    subject_alternative_name
+                )
 
             updated = await self.epv.handle_request("post", url, data=body)
 
@@ -260,10 +290,13 @@ class Applications:
         """
         return await self.epv.handle_request(
             "get",
-            f'WebServices/PIMServices.svc/Applications/{app_name}/Authentications',
-            filter_func=lambda x: x['authentication'])
+            f"WebServices/PIMServices.svc/Applications/{app_name}/Authentications",
+            filter_func=lambda x: x["authentication"],
+        )
 
-    async def del_authentication(self, app_name: str, auth_id: str) -> Union[list, bool]:
+    async def del_authentication(
+        self, app_name: str, auth_id: str
+    ) -> Union[list, bool]:
         """
         Delete authentication method identified by auth_id for the application
 
@@ -273,5 +306,6 @@ class Applications:
         """
         return await self.epv.handle_request(
             "delete",
-            f'WebServices/PIMServices.svc/Applications/{app_name}/Authentications/{auth_id}',
-            filter_func=lambda x: x['authentication'])
+            f"WebServices/PIMServices.svc/Applications/{app_name}/Authentications/{auth_id}",
+            filter_func=lambda x: x["authentication"],
+        )

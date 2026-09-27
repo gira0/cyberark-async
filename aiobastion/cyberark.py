@@ -15,8 +15,16 @@ from .aim import EPV_AIM
 from .applications import Applications
 from .api_options import Api_options
 from .config import Config, validate_integer, validate_bool
-from .exceptions import CyberarkException, GetTokenException, AiobastionException, CyberarkAPIException, \
-    ChallengeResponseException, CyberarkAIMnotFound, AiobastionConfigurationException, CyberarkNotFoundException
+from .exceptions import (
+    CyberarkException,
+    GetTokenException,
+    AiobastionException,
+    CyberarkAPIException,
+    ChallengeResponseException,
+    CyberarkAIMnotFound,
+    AiobastionConfigurationException,
+    CyberarkNotFoundException,
+)
 from .platforms import Platform
 from .safe import Safe
 from .system_health import SystemHealth
@@ -25,9 +33,10 @@ from .utilities import Utilities
 from .session_management import SessionManagement
 from .http_session import HttpSession
 
+
 class EPV:
-    """ Class that represent the connection, or future connection, to the Vault.
-    """
+    """Class that represent the connection, or future connection, to the Vault."""
+
     # List of EPV attributes for serialization (to_json)
     _SERIALIZED_FIELDS_OUT = [
         "api_host",
@@ -44,7 +53,12 @@ class EPV:
         "verify",
     ]
 
-    def __init__(self, configfile: Optional[str] = None, token: Optional[str] = None, serialized: Optional[dict] = None):
+    def __init__(
+        self,
+        configfile: Optional[str] = None,
+        token: Optional[str] = None,
+        serialized: Optional[dict] = None,
+    ):
         # Logging stuff
         logger: logging.Logger = logging.getLogger("aiobastion")
         self.logger = logger
@@ -65,7 +79,9 @@ class EPV:
         self.config = Config(configfile=configfile, serialized=serialized, token=token)
 
         #  global API options initialization
-        self.api_options = Api_options(self, **self.config.options_modules["api_options"])
+        self.api_options = Api_options(
+            self, **self.config.options_modules["api_options"]
+        )
 
         # Validate and define EPV Class attributes
         self.validate_class_attributes(self.config.options_modules["cyberark"])
@@ -83,20 +99,32 @@ class EPV:
         self.AIM = None  # AIM interface
 
         if self.config.options_modules["aim"]:
-            AIM_definition = EPV_AIM.validate_class_attributes(self.config.options_modules["aim"], "aim", self,
-                                                               configfile=self.config.configfile)
+            AIM_definition = EPV_AIM.validate_class_attributes(
+                self.config.options_modules["aim"],
+                "aim",
+                self,
+                configfile=self.config.configfile,
+            )
             # Do not define AIM if not necessary.
             if AIM_definition:
                 self.AIM = EPV_AIM(**AIM_definition)
 
         self.account = Account(self, **self.config.options_modules["account"])
-        self.accountgroup = AccountGroup(self, **self.config.options_modules["accountgroup"])
-        self.application = Applications(self, **self.config.options_modules["applications"])
+        self.accountgroup = AccountGroup(
+            self, **self.config.options_modules["accountgroup"]
+        )
+        self.application = Applications(
+            self, **self.config.options_modules["applications"]
+        )
         self.group = Group(self, **self.config.options_modules["group"])
         self.platform = Platform(self, **self.config.options_modules["platform"])
         self.safe = Safe(self, **self.config.options_modules["safe"])
-        self.session_management = SessionManagement(self, **self.config.options_modules["sessionmanagement"])
-        self.system_health = SystemHealth(self, **self.config.options_modules["systemhealth"])
+        self.session_management = SessionManagement(
+            self, **self.config.options_modules["sessionmanagement"]
+        )
+        self.system_health = SystemHealth(
+            self, **self.config.options_modules["systemhealth"]
+        )
         self.user = User(self, **self.config.options_modules["user"])
         self.utils = Utilities(self, **self.config.options_modules["utilities"])
 
@@ -104,23 +132,21 @@ class EPV:
 
         del self.config.options_modules
 
-
-
     def validate_class_attributes(self, serialized: dict):
         """validate_class_attributes  Initialize, validate and define the EPV attributes
-            from configuration file or serialization
+        from configuration file or serialization
 
-            :param serialized:      Dictionary of the serialized attributes
-            :raise AiobastionConfigurationException:  Invalid string or boolean value
-            :return:                Dictionary of the EPV attributes class to define
+        :param serialized:      Dictionary of the serialized attributes
+        :raise AiobastionConfigurationException:  Invalid string or boolean value
+        :return:                Dictionary of the EPV attributes class to define
 
 
-            Synomyms for configuration file:
-                api_host, host
-                max_concurrent_tasks, masktasks
-                verify, ca
+        Synomyms for configuration file:
+            api_host, host
+            max_concurrent_tasks, masktasks
+            verify, ca
 
-            All keys are already in lowercase.
+        All keys are already in lowercase.
         """
 
         def section_name(keyname: str) -> str:
@@ -175,39 +201,52 @@ class EPV:
             if k in ["api_host", "host"]:
                 if self.api_host:
                     raise AiobastionConfigurationException(
-                        f"Duplicate parameter '{section_name(k)}' in {self.config.config_source}. Specify only one.")
+                        f"Duplicate parameter '{section_name(k)}' in {self.config.config_source}. Specify only one."
+                    )
 
                 self.api_host = v
             elif k == "authtype":
                 self.authtype = v
             elif k == "keep_cookies":
-                self.keep_cookies = validate_bool(self.config.config_source, section_name(k), v)
+                self.keep_cookies = validate_bool(
+                    self.config.config_source, section_name(k), v
+                )
             elif k == "maxtasks" or k == "max_concurrent_tasks":
                 if k == "maxtasks" and self.api_options.deprecated_warning:
-                    warnings.warn(f"aiobastion - Deprecated parameter '{section_name(k)}' use 'max_concurrent_tasks' parameter instead.", DeprecationWarning, stacklevel=3)
+                    warnings.warn(
+                        f"aiobastion - Deprecated parameter '{section_name(k)}' use 'max_concurrent_tasks' parameter instead.",
+                        DeprecationWarning,
+                        stacklevel=3,
+                    )
 
                 synonym_max_concurrent_tasks += 1
-                self.max_concurrent_tasks = validate_integer(self.config.config_source, section_name(k), v)
+                self.max_concurrent_tasks = validate_integer(
+                    self.config.config_source, section_name(k), v
+                )
 
                 if synonym_max_concurrent_tasks > 1:
                     raise AiobastionConfigurationException(
                         f"Duplicate synonym parameter '{section_name(k)}': "
-                        f"in {self.config.config_source}. Specify only 'max_concurrent_tasks' and remove 'maxtasks'.")
-
+                        f"in {self.config.config_source}. Specify only 'max_concurrent_tasks' and remove 'maxtasks'."
+                    )
 
             elif k == "password":
                 self.password = v
             elif k == "timeout":
-                self.timeout = validate_integer(self.config.config_source, section_name(k), v)
+                self.timeout = validate_integer(
+                    self.config.config_source, section_name(k), v
+                )
             elif k == "token":  # For serialiszation only
-                self.__token = serialized['token']
+                self.__token = serialized["token"]
             elif k == "user_search":
                 self.user_search = v
 
                 err = EPV_AIM.valid_secret_params(v)
 
                 if err:
-                    raise AiobastionConfigurationException(f"invalid parameter in '{section_name(k)}': {err}")
+                    raise AiobastionConfigurationException(
+                        f"invalid parameter in '{section_name(k)}': {err}"
+                    )
 
             elif k == "username":
                 self.username = v
@@ -219,21 +258,26 @@ class EPV:
                 else:
                     raise AiobastionConfigurationException(
                         f"Parameter type invalid '{section_name(k)}' "
-                        f"in {self.config.config_source}: {v!r}")
-
+                        f"in {self.config.config_source}: {v!r}"
+                    )
 
                 if k == "ca" and self.api_options.deprecated_warning:
-                    warnings.warn(f"aiobastion - Deprecated parameter '{section_name(k)}' use 'verify' parameter instead.", DeprecationWarning, stacklevel=3)
+                    warnings.warn(
+                        f"aiobastion - Deprecated parameter '{section_name(k)}' use 'verify' parameter instead.",
+                        DeprecationWarning,
+                        stacklevel=3,
+                    )
 
                 if synonym_verify > 1:
                     raise AiobastionConfigurationException(
                         f"Duplicate synonym parameter '{section_name(k)}': "
-                        f"in {self.config.config_source}. Specify only 'verifiy' and remove 'ca'.")
-
+                        f"in {self.config.config_source}. Specify only 'verifiy' and remove 'ca'."
+                    )
 
             else:
                 raise AiobastionConfigurationException(
-                    f"Unknown attribute '{k}' in {self.config.config_source}: {v!r}")
+                    f"Unknown attribute '{k}' in {self.config.config_source}: {v!r}"
+                )
 
         # Default value if not initialized
         if self.authtype is None:
@@ -251,7 +295,8 @@ class EPV:
         if isinstance(self.verify, str):
             if not os.path.exists(self.verify):
                 raise AiobastionConfigurationException(
-                    f"CA certificat File not found {self.verify!r} (Parameter 'verify' in PVWA).")
+                    f"CA certificat File not found {self.verify!r} (Parameter 'verify' in PVWA)."
+                )
 
     def validate_and_setup_ssl(self):
         self._http.max_concurrent_tasks = self.max_concurrent_tasks
@@ -268,16 +313,24 @@ class EPV:
         return await self.close_session()
 
     # start of functions definition
-    async def __login_cyberark(self, username: str, password: str, auth_type: str) -> str:
+    async def __login_cyberark(
+        self, username: str, password: str, auth_type: str
+    ) -> str:
         if self.__token is not None:
             raise AiobastionException("Token is already set for this EPV instance")
         if auth_type.upper() not in ("CYBERARK", "WINDOWS", "LDAP", "RADIUS"):
             raise AiobastionException(f"Unsupported auth_type {auth_type!r}")
         url, head = self.get_url("API/Auth/" + auth_type + "/Logon")
-        request_data = {"username": username, "password": password, "concurrentSession": True}
+        request_data = {
+            "username": username,
+            "password": password,
+            "concurrentSession": True,
+        }
         try:
             session = self.get_session()
-            async with session.post(url, json=request_data, **self.request_params) as req:
+            async with session.post(
+                url, json=request_data, **self.request_params
+            ) as req:
                 if req.status != 200:
                     try:
                         error = await req.text()
@@ -297,21 +350,28 @@ class EPV:
                 tok = await req.text()
                 # Copy the cookies to insert into later sessions
                 if self.keep_cookies:
-                    self.cookies = session.cookie_jar.filter_cookies(f"https://{self.api_host}")  # type: ignore
+                    self.cookies = session.cookie_jar.filter_cookies(
+                        f"https://{self.api_host}"
+                    )  # type: ignore
                     for cookie in self.cookies:
-                        self.cookies[cookie]['domain'] = self.api_host
+                        self.cookies[cookie]["domain"] = self.api_host
                 # Closing session because now we are connected and we need to update headers which can be done
                 # only by recreating a new session (or passing the headers on each request). However, since the session
                 # token is only recognized by the PVWA instance that issued the token, load-balancers need to enable session
                 # stickiness which is often done with cookies.
                 await self._http.close()
-                return tok.replace('"', '')
+                return tok.replace('"', "")
 
         except ChallengeResponseException:
             raise
         except (ConnectionError, TimeoutError) as err:
             raise CyberarkException("Network problem connecting to PVWA") from err
-        except (aiohttp.ClientError, asyncio.TimeoutError, OSError, UnicodeError) as err:
+        except (
+            aiohttp.ClientError,
+            asyncio.TimeoutError,
+            OSError,
+            UnicodeError,
+        ) as err:
             raise CyberarkException(err) from err
 
     async def logoff(self):
@@ -320,7 +380,9 @@ class EPV:
             self.cookies and session.cookie_jar.update_cookies(self.cookies)
             async with session.post(url, headers=head, **self.request_params) as req:
                 if req.status != 200:
-                    raise CyberarkException("Error disconnecting to PVWA with code : %s" % str(req.status))
+                    raise CyberarkException(
+                        "Error disconnecting to PVWA with code : %s" % str(req.status)
+                    )
         await self.close_session()
         self.__token = None
         self.cookies = None
@@ -352,15 +414,16 @@ class EPV:
         username: str = None,
         cert_file: str = None,
         cert_key: str = None,
-        root_ca: Optional[Union[bool, str]] = None,        # Deprecated use 'verify' instead
+        root_ca: Optional[Union[bool, str]] = None,  # Deprecated use 'verify' instead
         *,  # From this point all parameters are keyword only
         auth_type=None,
         cert_passphrase=None,
         max_concurrent_tasks: int = None,
         timeout: int = None,
         user_search: dict = None,
-        verify: Optional[Union[bool, str]] = None):
-        """ Authenticate the PVWA user using AIM interface to get password (secret) in CyberArk.
+        verify: Optional[Union[bool, str]] = None,
+    ):
+        """Authenticate the PVWA user using AIM interface to get password (secret) in CyberArk.
 
         We only support client certificate authentication to the AIM.
 
@@ -406,12 +469,17 @@ class EPV:
         """
         # For compatibility with older versions
         if verify is not None and root_ca is not None and verify != root_ca:
-            raise AiobastionException("You can't specify both parameters: 'verify' and 'root_ca'.")
+            raise AiobastionException(
+                "You can't specify both parameters: 'verify' and 'root_ca'."
+            )
 
         if root_ca is not None:
             if self.api_options.deprecated_warning:
                 warnings.warn(
-                    "aiobastion - Deprecated parameter 'root_ca' in login_with_aim function use 'verify' parameter instead.", DeprecationWarning, stacklevel=2)
+                    "aiobastion - Deprecated parameter 'root_ca' in login_with_aim function use 'verify' parameter instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
 
             verify = root_ca
             root_ca = None
@@ -442,13 +510,17 @@ class EPV:
                 self.AIM.validate_and_setup_aim_ssl()
 
             # Complete undefined parameters with AIM and PVWA attributes
-            aim_host = (aim_host or self.AIM.host)
-            appid = (appid or self.AIM.appid)
-            cert_file = (cert_file or self.AIM.cert)
-            cert_key = (cert_key or self.AIM.key)
-            cert_passphrase = (cert_passphrase or self.AIM.passphrase)
-            max_concurrent_tasks = (max_concurrent_tasks or self.AIM.max_concurrent_tasks or self.max_concurrent_tasks)
-            timeout = (timeout or self.AIM.timeout or self.timeout)
+            aim_host = aim_host or self.AIM.host
+            appid = appid or self.AIM.appid
+            cert_file = cert_file or self.AIM.cert
+            cert_key = cert_key or self.AIM.key
+            cert_passphrase = cert_passphrase or self.AIM.passphrase
+            max_concurrent_tasks = (
+                max_concurrent_tasks
+                or self.AIM.max_concurrent_tasks
+                or self.max_concurrent_tasks
+            )
+            timeout = timeout or self.AIM.timeout or self.timeout
 
             if verify is None:  # May be false
                 if self.AIM.verify is not None:
@@ -459,13 +531,17 @@ class EPV:
                     else:
                         verify = Config.CYBERARK_DEFAULT_VERIFY
 
-            if (aim_host and aim_host != self.AIM.host) or \
-                    (appid and appid != self.AIM.appid) or \
-                    (cert_file and cert_file != self.AIM.cert) or \
-                    (cert_key and cert_key != self.AIM.key) or \
-                    (verify is not None and verify != self.AIM.verify) or \
-                    (cert_passphrase and cert_passphrase != self.AIM.passphrase):
-                raise CyberarkException("AIM is already initialized ! Please close EPV before reopen it.")
+            if (
+                (aim_host and aim_host != self.AIM.host)
+                or (appid and appid != self.AIM.appid)
+                or (cert_file and cert_file != self.AIM.cert)
+                or (cert_key and cert_key != self.AIM.key)
+                or (verify is not None and verify != self.AIM.verify)
+                or (cert_passphrase and cert_passphrase != self.AIM.passphrase)
+            ):
+                raise CyberarkException(
+                    "AIM is already initialized ! Please close EPV before reopen it."
+                )
         else:
             # AIM is not defined
             if verify is None:
@@ -474,19 +550,25 @@ class EPV:
                 else:
                     verify = Config.CYBERARK_DEFAULT_VERIFY
 
-            self.AIM = EPV_AIM(appid=appid, cert=cert_file, host=aim_host, key=cert_key,
-                               max_concurrent_tasks=max_concurrent_tasks,
-                               passphrase=cert_passphrase, timeout=timeout, verify=verify)
+            self.AIM = EPV_AIM(
+                appid=appid,
+                cert=cert_file,
+                host=aim_host,
+                key=cert_key,
+                max_concurrent_tasks=max_concurrent_tasks,
+                passphrase=cert_passphrase,
+                timeout=timeout,
+                verify=verify,
+            )
 
             # Valid AIM setup
             self.AIM.validate_and_setup_aim_ssl()
 
         # Check mandatory attributs
-        if self.AIM.host is None or \
-                self.AIM.appid is None or \
-                self.AIM.cert is None:
+        if self.AIM.host is None or self.AIM.appid is None or self.AIM.cert is None:
             raise AiobastionException(
-                "Missing AIM mandatory parameters: host, appid, cert.")
+                "Missing AIM mandatory parameters: host, appid, cert."
+            )
 
         # Complete undefined parameters with PVWA attributes
         if username is None and self.username:
@@ -494,19 +576,30 @@ class EPV:
 
         if username is None:
             raise AiobastionException(
-                "Username must be provided on login_with_aim call or in configuration file.")
+                "Username must be provided on login_with_aim call or in configuration file."
+            )
 
         if user_search is None and self.user_search:
             user_search = self.user_search
 
         try:
-            await self.login(username=username, password=None, auth_type=auth_type, user_search=user_search)
+            await self.login(
+                username=username,
+                password=None,
+                auth_type=auth_type,
+                user_search=user_search,
+            )
 
-        except (CyberarkAIMnotFound, CyberarkAPIException, CyberarkException, AiobastionException) as err:
+        except (
+            CyberarkAIMnotFound,
+            CyberarkAPIException,
+            CyberarkException,
+            AiobastionException,
+        ) as err:
             raise GetTokenException(str(err)) from err
 
     async def login(self, username=None, password=None, auth_type="", user_search=None):
-        """ Authenticate the PVWA user to manage of the vault.
+        """Authenticate the PVWA user to manage of the vault.
 
         | If the password is not supply, the AIM interface must be defined in the EPV initialization
             (configuration file or serialization).  You may also use the login_with_aim function
@@ -533,13 +626,15 @@ class EPV:
 
         if self.api_host is None:
             raise AiobastionException(
-                "Host must be provided in configuration file or in EPV(serialized={'api_host: 'CyberArk-host'}).")
+                "Host must be provided in configuration file or in EPV(serialized={'api_host: 'CyberArk-host'})."
+            )
 
         if username is None:
             if self.username is None:
                 raise AiobastionException(
                     "Username must be provided on login call or in configuration file."
-                    " You may also configure the AIM section.")
+                    " You may also configure the AIM section."
+                )
             username = self.username
 
         if not auth_type:
@@ -561,7 +656,8 @@ class EPV:
                 if not self.AIM:
                     raise AiobastionException(
                         "Password must be provided on login call or in configuration file."
-                        " You may configure the AIM section or call the login_with_aim function.")
+                        " You may configure the AIM section or call the login_with_aim function."
+                    )
 
                 # Valide AIM setup
                 self.AIM.validate_and_setup_aim_ssl()
@@ -576,14 +672,20 @@ class EPV:
                     err = EPV_AIM.valid_secret_params(user_search)
 
                     if err:
-                        raise GetTokenException(f"invalid parameter in 'user_search' {err}")
+                        raise GetTokenException(
+                            f"invalid parameter in 'user_search' {err}"
+                        )
 
                     params.update(user_search)
 
                 try:
                     # Get password form AIM
                     password = await self.AIM.get_secret(**params)
-                except (CyberarkAIMnotFound, CyberarkAPIException, CyberarkException) as err:
+                except (
+                    CyberarkAIMnotFound,
+                    CyberarkAPIException,
+                    CyberarkException,
+                ) as err:
                     raise GetTokenException(str(err)) from err
 
         try:
@@ -625,12 +727,11 @@ class EPV:
         self.__sema = None
 
     def get_url(self, url) -> Tuple[str, dict]:
-        addr = 'https://' + self.api_host + '/PasswordVault/' + url
+        addr = "https://" + self.api_host + "/PasswordVault/" + url
         if self.__token is None:
             head = {"Content-type": "application/json", "Authorization": "None"}
         else:
-            head = {'Content-type': 'application/json',
-                    'Authorization': self.__token}
+            head = {"Content-type": "application/json", "Authorization": self.__token}
 
         return addr, head
 
@@ -696,15 +797,24 @@ class EPV:
         return serialized
 
     async def get_version(self):
-        server_infos = await self.handle_request("GET", "WebServices/PIMServices.svc/Server",
-                                                 filter_func=lambda x: x["ExternalVersion"])
+        server_infos = await self.handle_request(
+            "GET",
+            "WebServices/PIMServices.svc/Server",
+            filter_func=lambda x: x["ExternalVersion"],
+        )
         return server_infos
 
     def versiontuple(self, v):
         return tuple(map(int, (v.split("."))))
 
-    async def handle_request(self, method: str, short_url: str, data=None, params: dict = None,
-                             filter_func=lambda x: x):
+    async def handle_request(
+        self,
+        method: str,
+        short_url: str,
+        data=None,
+        params: dict = None,
+        filter_func=lambda x: x,
+    ):
         """
         Function that handles requests to the API. This is a low-level function, and you most likely wouldn't need to
         call it. If you do, there is the opportunity to enhance other modules.
@@ -723,8 +833,14 @@ class EPV:
         session = self.get_session()
 
         async with self.__sema:
-            async with session.request(method, url, json=data, headers=head, params=params,
-                                       **self.request_params) as req:
+            async with session.request(
+                method,
+                url,
+                json=data,
+                headers=head,
+                params=params,
+                **self.request_params,
+            ) as req:
                 if req.status in (200, 201, 204):
                     try:
                         if len(await req.read()) == 0:
@@ -744,14 +860,20 @@ class EPV:
                     if req.status == 404:
                         raise CyberarkNotFoundException(f"404 error with URL {url}")
                     elif req.status == 401:
-                        raise CyberarkException("You are not logged, you need to login first")
+                        raise CyberarkException(
+                            "You are not logged, you need to login first"
+                        )
                     elif req.status == 405:
-                        raise CyberarkException("Your PVWA version does not support this function")
+                        raise CyberarkException(
+                            "Your PVWA version does not support this function"
+                        )
                     try:
                         content = await req.json(content_type=None)
                         self.logger.debug(f"Content => {content}")
                     except (KeyError, ValueError, ContentTypeError) as err:
-                        raise CyberarkException(f"Error with CyberArk status code {str(req.status)}") from err
+                        raise CyberarkException(
+                            f"Error with CyberArk status code {str(req.status)}"
+                        ) from err
 
                     if "Details" in content:
                         details = content["Details"]
@@ -759,7 +881,11 @@ class EPV:
                         details = ""
 
                     if "ErrorCode" in content and "ErrorMessage" in content:
-                        raise CyberarkAPIException(req.status, content["ErrorCode"],
-                                                   content["ErrorMessage"], details)
+                        raise CyberarkAPIException(
+                            req.status,
+                            content["ErrorCode"],
+                            content["ErrorMessage"],
+                            details,
+                        )
                     else:
                         raise CyberarkAPIException(req.status, "NO_ERR_CODE", content)

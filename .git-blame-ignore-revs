@@ -1,0 +1,6 @@
+# Bulk formatting commits to skip in `git blame`.
+# Use locally with: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# GitHub's blame view picks this file up automatically.
+
+# Format the codebase with ruff format (#6)
+1fc2186be8ffa57410593dcdd15b3fc3543990e6

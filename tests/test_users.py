@@ -6,7 +6,7 @@ import secrets
 import aiobastion
 import random
 import tests
-from aiobastion import CyberarkAPIException, CyberarkException, AiobastionException
+from aiobastion import CyberarkAPIException, AiobastionException
 
 
 class TestUsers(IsolatedAsyncioTestCase):
@@ -21,11 +21,8 @@ class TestUsers(IsolatedAsyncioTestCase):
     async def asyncTearDown(self):
         await self.vault.logoff()
 
-
     async def get_random_account(self, n=1):
-        accounts = await self.vault.account.search_account_by(
-            safe=self.test_safe
-        )
+        accounts = await self.vault.account.search_account_by(safe=self.test_safe)
         self.assertGreaterEqual(len(accounts), 1)
         if n == 1:
             return random.choice(accounts)
@@ -43,7 +40,6 @@ class TestUsers(IsolatedAsyncioTestCase):
 
         req = await self.vault.user.list(extended_details=True)
         self.assertIn("groupsMembership", [r.keys() for r in req][0])
-
 
     async def test_get_users(self):
         req = await self.vault.user.list()
@@ -94,7 +90,7 @@ class TestUsers(IsolatedAsyncioTestCase):
         req = await self.vault.user.safes(self.api_user)
         self.assertIsInstance(req, list)
 
-# Group Part
+    # Group Part
 
     async def test_groups(self):
         req = await self.vault.user.groups(self.api_user)
@@ -111,7 +107,7 @@ class TestUsers(IsolatedAsyncioTestCase):
         self.assertIn(new_key, all_key_id)
 
         await self.vault.user.del_ssh_key(self.test_usr, new_key)
-        #check
+        # check
         req = await self.vault.user.get_ssh_keys(self.test_usr)
         all_key_id = [k["KeyID"] for k in req]
         self.assertNotIn(new_key, all_key_id)
@@ -149,7 +145,6 @@ class TestUsers(IsolatedAsyncioTestCase):
         for r in req:
             self.assertIn("members", r.keys())
 
-
     async def test_details_group(self):
         self.skipTest("Not testable in this version")
         req = await self.vault.group.get_id("Vault Admins")
@@ -163,13 +158,12 @@ class TestUsers(IsolatedAsyncioTestCase):
         with self.assertRaises(AiobastionException):
             req = await self.vault.group.get_id("Les Poneys")
 
-
     async def test_add_group(self):
         new_group_name = "new_group_test"
 
         try:
             await self.vault.group.delete(new_group_name)
-        except (CyberarkAPIException,AiobastionException):
+        except (CyberarkAPIException, AiobastionException):
             pass
 
         await self.vault.group.add(new_group_name, "New awesome group")
@@ -180,8 +174,9 @@ class TestUsers(IsolatedAsyncioTestCase):
         req = await self.vault.group.list()
         self.assertNotIn(new_group_name, req)
 
-if __name__ == '__main__':
-    if sys.platform == 'win32':
+
+if __name__ == "__main__":
+    if sys.platform == "win32":
         # Turned out, using WindowsSelectorEventLoop has functionality issues such as:
         #     Can't support more than 512 sockets
         #     Can't use pipe

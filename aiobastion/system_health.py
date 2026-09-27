@@ -1,5 +1,6 @@
 from .exceptions import AiobastionConfigurationException
 
+
 class SystemHealth:
     # _SYSTEMHEALTH_DEFAULT_XXX = <value>
 
@@ -14,12 +15,16 @@ class SystemHealth:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}")
+            raise AiobastionConfigurationException(
+                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
+            )
 
     async def summary(self):
-        url = f"API/ComponentsMonitoringSummary/"
+        url = "API/ComponentsMonitoringSummary/"
 
-        return await self.epv.handle_request("get", url, filter_func=lambda x: x["Components"])
+        return await self.epv.handle_request(
+            "get", url, filter_func=lambda x: x["Components"]
+        )
 
     async def details(self, component_id):
         """
@@ -29,8 +34,9 @@ class SystemHealth:
         """
         url = f"API//ComponentsMonitoringDetails/{component_id}/"
 
-        return await self.epv.handle_request("get", url, filter_func=lambda x: x["ComponentsDetails"])
-
+        return await self.epv.handle_request(
+            "get", url, filter_func=lambda x: x["ComponentsDetails"]
+        )
 
     def to_json(self):
         serialized = {}
@@ -42,4 +48,3 @@ class SystemHealth:
                 serialized[attr_name] = v
 
         return serialized
-

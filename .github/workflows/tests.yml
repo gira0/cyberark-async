@@ -54,11 +54,8 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      # Non-blocking until the existing lint backlog is cleared (issue #6).
       - name: Ruff lint
-        continue-on-error: true
         run: uv run --locked --group dev ruff check . --output-format=github
 
       - name: Ruff format check
-        continue-on-error: true
         run: uv run --locked --group dev ruff format --check .

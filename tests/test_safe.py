@@ -1,6 +1,4 @@
-import sys
 import unittest
-import asyncio
 from unittest import IsolatedAsyncioTestCase, mock
 import aiobastion
 import random
@@ -21,11 +19,8 @@ class TestSafe(IsolatedAsyncioTestCase):
     async def asyncTearDown(self):
         await self.vault.logoff()
 
-
     async def get_random_account(self, n=1):
-        accounts = await self.vault.account.search_account_by(
-            safe=self.test_safe
-        )
+        accounts = await self.vault.account.search_account_by(safe=self.test_safe)
         self.assertGreaterEqual(len(accounts), 1)
         if n == 1:
             return random.choice(accounts)
@@ -42,7 +37,9 @@ class TestSafe(IsolatedAsyncioTestCase):
 
     async def test_add_member_profile(self):
         with self.assertRaises(CyberarkAPIException):
-            ret = await self.vault.safe.add_member(self.test_safe, self.test_usr, "tutu")
+            ret = await self.vault.safe.add_member(
+                self.test_safe, self.test_usr, "tutu"
+            )
 
         # Trying to remove first in case of the user is already username
         try:
@@ -50,19 +47,25 @@ class TestSafe(IsolatedAsyncioTestCase):
         except CyberarkException:
             pass
 
-        ret = await self.vault.safe.add_member_profile(self.test_safe, self.test_usr, "use")
+        ret = await self.vault.safe.add_member_profile(
+            self.test_safe, self.test_usr, "use"
+        )
         self.assertIn("memberId", ret)
 
         # check already username exception
         with self.assertRaises(CyberarkAPIException):
-            ret = await self.vault.safe.add_member_profile(self.test_safe, self.test_usr, "use")
+            ret = await self.vault.safe.add_member_profile(
+                self.test_safe, self.test_usr, "use"
+            )
 
         # undo
         ret = await self.vault.safe.remove_member(self.test_safe, self.test_usr)
         self.assertTrue(ret)
 
         custom_perm = {"UseAccounts": True}
-        ret = await self.vault.safe.add_member_profile(self.test_safe, self.test_usr, custom_perm)
+        ret = await self.vault.safe.add_member_profile(
+            self.test_safe, self.test_usr, custom_perm
+        )
         self.assertIn("memberId", ret)
 
         # undo
@@ -72,7 +75,9 @@ class TestSafe(IsolatedAsyncioTestCase):
     async def test_add_member(self):
 
         with self.assertRaises(CyberarkAPIException):
-            ret = await self.vault.safe.add_member(self.test_safe, self.test_usr, "tutu")
+            ret = await self.vault.safe.add_member(
+                self.test_safe, self.test_usr, "tutu"
+            )
 
         # Trying to remove first in case of the user is already username
         try:
@@ -80,17 +85,20 @@ class TestSafe(IsolatedAsyncioTestCase):
         except CyberarkException:
             pass
 
-        ret = await self.vault.safe.add_member(self.test_safe, self.test_usr, useAccounts=True, listAccounts=True)
+        ret = await self.vault.safe.add_member(
+            self.test_safe, self.test_usr, useAccounts=True, listAccounts=True
+        )
         self.assertIn("memberId", ret)
 
         # check already username exception
         with self.assertRaises(CyberarkAPIException):
-            ret = await self.vault.safe.add_member(self.test_safe, self.test_usr, useAccounts=True, listAccounts=True)
+            ret = await self.vault.safe.add_member(
+                self.test_safe, self.test_usr, useAccounts=True, listAccounts=True
+            )
 
         # undo
         ret = await self.vault.safe.remove_member(self.test_safe, self.test_usr)
         self.assertTrue(ret)
-
 
     async def test_remove_member(self):
         self.skipTest("Already covered in test_add_safe_member")
@@ -127,16 +135,20 @@ class TestSafe(IsolatedAsyncioTestCase):
         async for _m in self.vault.safe.safe_members_iterator(self.test_safe):
             self.assertIn("safeName", _m.keys())
 
-        async for _m in self.vault.safe.safe_members_iterator(self.test_safe, member_type="group", include_predefined_users=True):
+        async for _m in self.vault.safe.safe_members_iterator(
+            self.test_safe, member_type="group", include_predefined_users=True
+        ):
             self.assertEqual(_m["memberType"], "Group")
 
-        async for _m in self.vault.safe.safe_members_iterator(self.test_safe, include_predefined_users=True, search="Master"):
+        async for _m in self.vault.safe.safe_members_iterator(
+            self.test_safe, include_predefined_users=True, search="Master"
+        ):
             self.assertEqual(_m["memberName"], "Master")
 
     async def test_get(self):
         safe = await self.vault.safe.get_safe_details(self.test_safe)
-        self.assertEqual(self.test_safe, safe['safeName'])
-        [ self.assertIn(k, safe) for k in ['safeName', 'description', 'accounts']]
+        self.assertEqual(self.test_safe, safe["safeName"])
+        [self.assertIn(k, safe) for k in ["safeName", "description", "accounts"]]
         self.assertNotIn("no_such_attribute", safe)
 
     async def test_list_members(self):
@@ -149,9 +161,13 @@ class TestSafe(IsolatedAsyncioTestCase):
         print(members)
 
         with self.assertRaises(AiobastionException):
-            members = await self.vault.safe.list_members(self.test_safe, filter_perm="tutu")
+            members = await self.vault.safe.list_members(
+                self.test_safe, filter_perm="tutu"
+            )
 
-        members = await self.vault.safe.list_members(self.test_safe, filter_perm="listAccounts")
+        members = await self.vault.safe.list_members(
+            self.test_safe, filter_perm="listAccounts"
+        )
         self.assertIn(self.api_user, members)
 
         members = await self.vault.safe.list_members(self.test_safe, details=True)
@@ -163,7 +179,9 @@ class TestSafe(IsolatedAsyncioTestCase):
         self.assertIn(self.api_user, members)
 
     async def test_is_member_of(self):
-        self.assertTrue(await self.vault.safe.is_member_of(self.test_safe, self.api_user))
+        self.assertTrue(
+            await self.vault.safe.is_member_of(self.test_safe, self.api_user)
+        )
 
     async def test_get_permissions(self):
         ret = await self.vault.safe.get_permissions(self.test_safe, self.api_user)
@@ -183,7 +201,7 @@ class TestSafe(IsolatedAsyncioTestCase):
         self.assertIn(self.test_safe, safes_names)
 
     async def test_v1_get_safes(self):
-        ret = await self.vault.safe.v1_get_safes()
+        await self.vault.safe.v1_get_safes()
         self.assertIn(self.test_safe, self.test_safe)
 
     async def test_rename_safe(self):
@@ -191,20 +209,28 @@ class TestSafe(IsolatedAsyncioTestCase):
         safe_to_rename = "RENAME_ME"
         new_name = "I_AM_RENAMED"
         try:
-            ret = await self.vault.safe.rename(safe_to_rename, new_name)
+            await self.vault.safe.rename(safe_to_rename, new_name)
         except AiobastionException:
             raise
-        self.assertIn(new_name, [s["safeName"] for s in await self.vault.safe.search(new_name)])
+        self.assertIn(
+            new_name, [s["safeName"] for s in await self.vault.safe.search(new_name)]
+        )
         # undo
-        ret = await self.vault.safe.rename(new_name, safe_to_rename)
-        self.assertIn(safe_to_rename, [s["safeName"] for s in await self.vault.safe.search(safe_to_rename)])
+        await self.vault.safe.rename(new_name, safe_to_rename)
+        self.assertIn(
+            safe_to_rename,
+            [s["safeName"] for s in await self.vault.safe.search(safe_to_rename)],
+        )
+
 
 class TestSafeDetailsOffline(IsolatedAsyncioTestCase):
     """Offline regression tests for get_safe_details query parameters (issue #1)."""
 
     async def _captured_params(self, **kwargs):
         vault = aiobastion.EPV(serialized={"api_host": "pvwa.example.invalid"})
-        with mock.patch.object(vault, "handle_request", new=mock.AsyncMock(return_value={})) as handle_request:
+        with mock.patch.object(
+            vault, "handle_request", new=mock.AsyncMock(return_value={})
+        ) as handle_request:
             await vault.safe.get_safe_details("some-safe", **kwargs)
         return handle_request.await_args.kwargs["params"]
 
@@ -221,7 +247,7 @@ class TestSafeDetailsOffline(IsolatedAsyncioTestCase):
         self.assertEqual(params, {"includeAccounts": "True"})
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # if sys.platform == 'win32':
     #     # Turned out, using WindowsSelectorEventLoop has functionality issues such as:
     #     #     Can't support more than 512 sockets
@@ -230,4 +256,3 @@ if __name__ == '__main__':
     #     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     unittest.main()
-

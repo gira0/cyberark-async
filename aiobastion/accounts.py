@@ -7,30 +7,62 @@ import aiohttp
 
 from .config import validate_ip, flatten, validate_integer
 from .exceptions import (
-    CyberarkAPIException, CyberarkException, AiobastionException, CyberarkAIMnotFound, AiobastionConfigurationException
+    CyberarkAPIException,
+    CyberarkException,
+    AiobastionException,
+    CyberarkAIMnotFound,
+    AiobastionConfigurationException,
 )
 
 BASE_FILECATEGORY = ("platformId", "userName", "address", "name")
-SECRET_MANAGEMENT_FILECATEGORY = ("automaticManagementEnabled", "manualManagementReason", "lastModifiedTime",
-                                  "lastReconciledTime", "lastVerifiedTime", "status")
-REMOTE_MACHINES_ACCESS_FILECATEGORY = ("remoteMachines","accessRestrictedToRemoteMachines")
+SECRET_MANAGEMENT_FILECATEGORY = (
+    "automaticManagementEnabled",
+    "manualManagementReason",
+    "lastModifiedTime",
+    "lastReconciledTime",
+    "lastVerifiedTime",
+    "status",
+)
+REMOTE_MACHINES_ACCESS_FILECATEGORY = (
+    "remoteMachines",
+    "accessRestrictedToRemoteMachines",
+)
+
 
 class PrivilegedAccount:
     """Base class to be used with accounts fonctions"""
 
-    def __init__(self, name: str, platformId: str, safeName: str,
-                 platformAccountProperties: dict = None, secret: str = "", secretType: str = None,
-                 secretManagement: dict = None,
-                 remoteMachinesAccess: dict = None,
-                 id: str = "", address: str = "", userName: str = "",
-                 **other):
+    def __init__(
+        self,
+        name: str,
+        platformId: str,
+        safeName: str,
+        platformAccountProperties: dict = None,
+        secret: str = "",
+        secretType: str = None,
+        secretManagement: dict = None,
+        remoteMachinesAccess: dict = None,
+        id: str = "",
+        address: str = "",
+        userName: str = "",
+        **other,
+    ):
         self.secret = secret
         if remoteMachinesAccess is not None:
-            if not all([k in ["remoteMachines", "accessRestrictedToRemoteMachines"]
-                        for k in remoteMachinesAccess.keys()]):
-                raise AiobastionException("remoteMachinesAccess is not a valid dictionary")
+            if not all(
+                [
+                    k in ["remoteMachines", "accessRestrictedToRemoteMachines"]
+                    for k in remoteMachinesAccess.keys()
+                ]
+            ):
+                raise AiobastionException(
+                    "remoteMachinesAccess is not a valid dictionary"
+                )
         if secretManagement is None:
-            secretManagement = {"automaticManagementEnabled": True, "manualManagementReason": ""}
+            secretManagement = {
+                "automaticManagementEnabled": True,
+                "manualManagementReason": "",
+            }
         self.remoteMachinesAccess = remoteMachinesAccess
         self.secretManagement = secretManagement
         self.secretType = secretType
@@ -49,7 +81,7 @@ class PrivilegedAccount:
             setattr(self, k, v)
 
     def get_name(self):
-        """ Get a default name of a Privileged Account
+        """Get a default name of a Privileged Account
 
         :return: address-username of the PrivilegedAccount
         """
@@ -61,10 +93,17 @@ class PrivilegedAccount:
 
         :return: A JSON ready to use object
         """
-        json_object = {"id": self.id, "name": self.name, "address": self.address, "userName": self.userName,
-                       "platformId": self.platformId, "safeName": self.safeName, "secret": self.secret,
-                       "platformAccountProperties": self.platformAccountProperties,
-                       "secretManagement": self.secretManagement}
+        json_object = {
+            "id": self.id,
+            "name": self.name,
+            "address": self.address,
+            "userName": self.userName,
+            "platformId": self.platformId,
+            "safeName": self.safeName,
+            "secret": self.secret,
+            "platformAccountProperties": self.platformAccountProperties,
+            "secretManagement": self.secretManagement,
+        }
         if self.remoteMachinesAccess is not None:
             json_object["remoteMachinesAccess"] = self.remoteMachinesAccess
         if self.secretType is not None:
@@ -118,7 +157,6 @@ class PrivilegedAccount:
 
     # End of mapping Protocol
 
-
     def __repr__(self):
         # For Debugging, short account identification
         s = f"<{self.__class__.__name__} {hex(id(self))}:"
@@ -141,8 +179,10 @@ class PrivilegedAccount:
         if "status" in self.secretManagement:
             # 'success' or 'failure'
             return self.secretManagement["status"]
-        elif "automaticManagementEnabled" in self.secretManagement and \
-                not self.secretManagement["automaticManagementEnabled"]:
+        elif (
+            "automaticManagementEnabled" in self.secretManagement
+            and not self.secretManagement["automaticManagementEnabled"]
+        ):
             return "Deactivated"
         else:
             return "No status (yet)"
@@ -155,6 +195,7 @@ class PrivilegedAccount:
         :return: The timestamp or the number of days since last change
         """
         import time
+
         if "lastModifiedTime" in self.secretManagement:
             ts = self.secretManagement["lastModifiedTime"]
             if days:
@@ -175,20 +216,20 @@ def _filter_account(account: dict, filters: dict):
         if k.lower() == "username":
             if "userName" not in account:
                 return False
-            if account['userName'].upper() != v.upper():
+            if account["userName"].upper() != v.upper():
                 return False
         elif k.lower() == "address":
-            if account['address'].upper() != v.upper():
+            if account["address"].upper() != v.upper():
                 return False
         elif k.lower() in ("platform", "platformid"):
-            if account['platformId'].upper() != v.upper():
+            if account["platformId"].upper() != v.upper():
                 return False
         elif k.lower() == "name":
-            if account['name'].upper() != v.upper():
+            if account["name"].upper() != v.upper():
                 return False
-        elif k not in account['platformAccountProperties']:
+        elif k not in account["platformAccountProperties"]:
             return False
-        elif account['platformAccountProperties'][k] != v:
+        elif account["platformAccountProperties"][k] != v:
             return False
     return True
 
@@ -197,36 +238,55 @@ class Account:
     """
     Utility class to handle account manipulation
     """
+
     _ACCOUNT_DEFAULT_LOGON_ACCOUNT_INDEX = 2
     _ACCOUNT_DEFAULT_RECONCILE_ACCOUNT_INDEX = 3
 
     # List of attributes from configuration file and serialization
-    _SERIALIZED_FIELDS = ["logon_account_index",
-                          "reconcile_account_index"]
+    _SERIALIZED_FIELDS = ["logon_account_index", "reconcile_account_index"]
 
-    def __init__(self, epv, logon_account_index: int = None, reconcile_account_index: int = None, **kwargs):
+    def __init__(
+        self,
+        epv,
+        logon_account_index: int = None,
+        reconcile_account_index: int = None,
+        **kwargs,
+    ):
         self.epv = epv
         _section = "account"
         _config_source = self.epv.config.config_source
 
         # string conversion to int or assign default value
-        self.logon_account_index = validate_integer(_config_source, f"{_section}/{logon_account_index}",
-                                                    logon_account_index, Account._ACCOUNT_DEFAULT_LOGON_ACCOUNT_INDEX)
-        self.reconcile_account_index = validate_integer(_config_source, f"{_section}/{reconcile_account_index}",
-                                                    reconcile_account_index, Account._ACCOUNT_DEFAULT_RECONCILE_ACCOUNT_INDEX)
+        self.logon_account_index = validate_integer(
+            _config_source,
+            f"{_section}/{logon_account_index}",
+            logon_account_index,
+            Account._ACCOUNT_DEFAULT_LOGON_ACCOUNT_INDEX,
+        )
+        self.reconcile_account_index = validate_integer(
+            _config_source,
+            f"{_section}/{reconcile_account_index}",
+            reconcile_account_index,
+            Account._ACCOUNT_DEFAULT_RECONCILE_ACCOUNT_INDEX,
+        )
 
         # Validation
         if not (1 <= self.logon_account_index <= 3):
-            raise AiobastionConfigurationException(f"Invalid value for '{_section}/logon_account_index' in "
-                                                   f"{_config_source}  (expected 1 to 3): {self.logon_account_index!r}")
+            raise AiobastionConfigurationException(
+                f"Invalid value for '{_section}/logon_account_index' in "
+                f"{_config_source}  (expected 1 to 3): {self.logon_account_index!r}"
+            )
         if not (1 <= self.reconcile_account_index <= 3):
-            raise AiobastionConfigurationException(f"Invalid value for '{_section}/reconcile_account_index' in "
-                                                   f"{_config_source}  (expected 1 to 3): {self.reconcile_account_index!r}")
+            raise AiobastionConfigurationException(
+                f"Invalid value for '{_section}/reconcile_account_index' in "
+                f"{_config_source}  (expected 1 to 3): {self.reconcile_account_index!r}"
+            )
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}")
-
+            raise AiobastionConfigurationException(
+                f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
+            )
 
     def to_json(self):
         serialized = {}
@@ -252,18 +312,26 @@ class Account:
         if isinstance(account, list):
             tasks = []
             for a in account:
-                if not isinstance(a, PrivilegedAccount) and not re.match('[0-9]*_[0-9*]', a):
-                    raise AiobastionException("You must call the function with PrivilegedAccount or list of Privileged "
-                                              "Accounts")
+                if not isinstance(a, PrivilegedAccount) and not re.match(
+                    "[0-9]*_[0-9*]", a
+                ):
+                    raise AiobastionException(
+                        "You must call the function with PrivilegedAccount or list of Privileged "
+                        "Accounts"
+                    )
 
                 tasks.append(api_call(a, *args, **kwargs))
 
             return await asyncio.gather(*tasks, return_exceptions=True)
-        elif isinstance(account, PrivilegedAccount) or re.match('[0-9]*_[0-9*]', account):
+        elif isinstance(account, PrivilegedAccount) or re.match(
+            "[0-9]*_[0-9*]", account
+        ):
             return await api_call(account, *args, **kwargs)
         else:
-            raise AiobastionException("You must call the function with PrivilegedAccount or list of Privileged Accounts"
-                                      "(or valid account_id for some functions)")
+            raise AiobastionException(
+                "You must call the function with PrivilegedAccount or list of Privileged Accounts"
+                "(or valid account_id for some functions)"
+            )
 
     async def _handle_acc_id_list(self, method, url, accounts, data=None):
         """
@@ -286,8 +354,10 @@ class Account:
 
         return await self._handle_acc_list(_api_call, accounts)
 
-    async def add_account_to_safe(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]) -> str:
-        """ **This function support list of PrivilegedAccount as argument**
+    async def add_account_to_safe(
+        self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]
+    ) -> str:
+        """**This function support list of PrivilegedAccount as argument**
 
         This function creates the PrivilegedAccount (or the list of PrivilegedAccount) in the account’s safe
         (the safe attribute of the account). If the account(s) already exists, then raises a CyberarkAPIException
@@ -298,13 +368,19 @@ class Account:
         """
 
         async def _api_call(acc):
-            return await self.epv.handle_request("post", 'API/Accounts', data=acc.to_json(),
-                                                 filter_func=lambda r: r["id"])
+            return await self.epv.handle_request(
+                "post",
+                "API/Accounts",
+                data=acc.to_json(),
+                filter_func=lambda r: r["id"],
+            )
 
         return await self._handle_acc_list(_api_call, account)
 
-    async def get_account(self, account_id) -> Union[PrivilegedAccount, List[PrivilegedAccount]]:
-        """ **This function support list of PrivilegedAccount as argument**
+    async def get_account(
+        self, account_id
+    ) -> Union[PrivilegedAccount, List[PrivilegedAccount]]:
+        """**This function support list of PrivilegedAccount as argument**
 
         This function returns a Privileged account object for a given account_id (or list of account_id)
 
@@ -313,9 +389,7 @@ class Account:
         :raises CyberarkException: 404 if the account doesn't exist.
         """
         acc = await self._handle_acc_id_list(
-            "get",
-            lambda a: f"API/Accounts/{a}",
-            account_id
+            "get", lambda a: f"API/Accounts/{a}", account_id
         )
 
         if isinstance(acc, dict):
@@ -334,11 +408,16 @@ class Account:
         """
 
         if account.id == "":
-            acc = await self.search_account_by(username=account.userName, safe=account.safeName,
-                                               keywords=account.address)
+            acc = await self.search_account_by(
+                username=account.userName,
+                safe=account.safeName,
+                keywords=account.address,
+            )
             if len(acc) != 1:
-                raise CyberarkException(f"Multiple account ID were found with {account.userName} {account.safeName} "
-                                        f"{account.address}")
+                raise CyberarkException(
+                    f"Multiple account ID were found with {account.userName} {account.safeName} "
+                    f"{account.address}"
+                )
             else:
                 return acc[0].id
         else:
@@ -352,16 +431,20 @@ class Account:
         :return: account_id
         """
         if type(account) is str:
-            if re.match(r'\d+_\d+', account) is not None:
+            if re.match(r"\d+_\d+", account) is not None:
                 return account
             else:
                 raise AiobastionException("The account_id provided is not correct")
         if isinstance(account, PrivilegedAccount):
             return await self.get_privileged_account_id(account)
         else:
-            raise AiobastionException("You must provide a valid PrivilegedAccount to function get_account_id")
+            raise AiobastionException(
+                "You must provide a valid PrivilegedAccount to function get_account_id"
+            )
 
-    async def get_account_id(self, account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]]):
+    async def get_account_id(
+        self, account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]]
+    ):
         """
         Internal function to get account ID
 
@@ -374,8 +457,11 @@ class Account:
         else:
             return await self.get_single_account_id(account)
 
-    async def link_reconciliation_account(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]],
-                                          reconcile_account: PrivilegedAccount):
+    async def link_reconciliation_account(
+        self,
+        account: Union[PrivilegedAccount, List[PrivilegedAccount]],
+        reconcile_account: PrivilegedAccount,
+    ):
         """
         | This function links the account (or the list of accounts) to the given reconcile account
         | ⚠️ The "reconcile" Account is supposed to have an index of 3
@@ -388,8 +474,11 @@ class Account:
         """
         return await self.link_account(account, reconcile_account, 3)
 
-    async def link_logon_account(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]],
-                                 logon_account: PrivilegedAccount):
+    async def link_logon_account(
+        self,
+        account: Union[PrivilegedAccount, List[PrivilegedAccount]],
+        logon_account: PrivilegedAccount,
+    ):
         """
         | This function links the account (or the list of accounts) to the given logon account
         | ⚠️ The "logon" Account is supposed to have an index of 2
@@ -402,8 +491,10 @@ class Account:
         """
         return await self.link_account(account, logon_account, self.logon_account_index)
 
-    async def link_reconcile_account_by_address(self, acc_username, rec_acc_username, address):
-        """ This function links the account with the given username and address to the reconciliation account with
+    async def link_reconcile_account_by_address(
+        self, acc_username, rec_acc_username, address
+    ):
+        """This function links the account with the given username and address to the reconciliation account with
         the given rec_account_username and the given address
 
         :param acc_username:  username of the account to link
@@ -414,25 +505,35 @@ class Account:
         """
         acc, rec_acc = await asyncio.gather(
             self.search_account_by(username=acc_username, address=address),
-            self.search_account_by(username=rec_acc_username, address=address))
+            self.search_account_by(username=rec_acc_username, address=address),
+        )
 
         if len(acc) > 1:
-            raise CyberarkException(f"More than one address {acc_username} "
-                                    f"with address {address} was found !")
+            raise CyberarkException(
+                f"More than one address {acc_username} "
+                f"with address {address} was found !"
+            )
         if len(acc) == 0:
-            raise CyberarkException(f"The account {acc_username} with address {address} "
-                                    "was not found !")
+            raise CyberarkException(
+                f"The account {acc_username} with address {address} was not found !"
+            )
 
         if len(rec_acc) > 1:
-            raise CyberarkException(f"More than one reconciliation address {rec_acc_username} "
-                                    f"with address {address} was found !")
+            raise CyberarkException(
+                f"More than one reconciliation address {rec_acc_username} "
+                f"with address {address} was found !"
+            )
         if len(rec_acc) == 0:
-            raise CyberarkException(f"The reconciliation address {rec_acc_username} "
-                                    f"with address {address} was not found !")
+            raise CyberarkException(
+                f"The reconciliation address {rec_acc_username} "
+                f"with address {address} was not found !"
+            )
 
         return await self.link_reconciliation_account(acc[0], rec_acc[0])
 
-    async def remove_reconcile_account(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]):
+    async def remove_reconcile_account(
+        self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]
+    ):
         """
         | This function unlinks the reconciliation account of the given account (or the list of accounts)
         | ⚠️ The "reconcile" Account is supposed to have an index of 3
@@ -446,7 +547,9 @@ class Account:
         """
         return await self.unlink_account(account, self.reconcile_account_index)
 
-    async def remove_logon_account(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]):
+    async def remove_logon_account(
+        self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]
+    ):
         """
         | This function unlinks the logon account of the given account (or the list of accounts)
         | ⚠️ The "logon" Account index is default to 2 but can be set differently on the platform
@@ -459,9 +562,12 @@ class Account:
         """
         return await self.unlink_account(account, self.logon_account_index)
 
-    async def unlink_account(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]],
-                             extra_password_index: int):
-        """ This function unlinks the account of the given account (or the list of accounts)
+    async def unlink_account(
+        self,
+        account: Union[PrivilegedAccount, List[PrivilegedAccount]],
+        extra_password_index: int,
+    ):
+        """This function unlinks the account of the given account (or the list of accounts)
         | ⚠️ Double-check the linked account index on your platform.
 
         :param account: a PrivilegedAccount object or a list of PrivilegedAccount objects
@@ -476,12 +582,17 @@ class Account:
         return await self._handle_acc_id_list(
             "delete",
             lambda a: f"API/Accounts/{a}/LinkAccount/{extra_password_index}",
-            await self.get_account_id(account)
+            await self.get_account_id(account),
         )
 
-    async def link_account(self, account: PrivilegedAccount, link_account: PrivilegedAccount, extra_password_index: int,
-                           folder="Root") -> bool:
-        """ Links the account of the given PrivilegedAccount (or the list of accounts) to the given PrivilegedAccount
+    async def link_account(
+        self,
+        account: PrivilegedAccount,
+        link_account: PrivilegedAccount,
+        extra_password_index: int,
+        folder="Root",
+    ) -> bool:
+        """Links the account of the given PrivilegedAccount (or the list of accounts) to the given PrivilegedAccount
 
         :param account: The target address
         :param link_account: The linked address (reconcile or logon address)
@@ -492,29 +603,30 @@ class Account:
         if extra_password_index not in [1, 2, 3]:
             raise AiobastionException("ExtraPasswordIndex must be between 1 and 3")
         account_id = await self.get_account_id(account)
-        if self.epv.versiontuple(await self.epv.get_version()) > self.epv.versiontuple("12.1.1"):
+        if self.epv.versiontuple(await self.epv.get_version()) > self.epv.versiontuple(
+            "12.1.1"
+        ):
             data = {
                 "safe": link_account.safeName,
                 "extraPasswordIndex": extra_password_index,
                 "name": link_account.name,
-                "folder": folder
+                "folder": folder,
             }
         else:
             data = {
                 "safe": link_account.safeName,
                 "ExtraPassID": extra_password_index,
                 "name": link_account.name,
-                "folder": folder
+                "folder": folder,
             }
 
         return await self._handle_acc_id_list(
-            "post",
-            lambda a: f"API/Accounts/{a}/LinkAccount",
-            account_id,
-            data
+            "post", lambda a: f"API/Accounts/{a}/LinkAccount", account_id, data
         )
 
-    async def change_password(self, account: Union[PrivilegedAccount, str], change_group=False):
+    async def change_password(
+        self, account: Union[PrivilegedAccount, str], change_group=False
+    ):
         """
         | This function set the account (or list) for immediate change.
         | Keep in mind that for list, exceptions are returned and not raised.
@@ -525,15 +637,13 @@ class Account:
         :return: A boolean that indicates if the operation was successful.
         :raises CyberarkException: If change failed
         """
-        data = {
-            "ChangeEntireGroup": change_group
-        }
+        data = {"ChangeEntireGroup": change_group}
 
         return await self._handle_acc_id_list(
             "post",
             lambda acc_id: f"API/Accounts/{acc_id}/Change",
             await self.get_account_id(account),
-            data
+            data,
         )
 
     async def reconcile(self, account: Union[PrivilegedAccount, str]):
@@ -549,7 +659,7 @@ class Account:
         return await self._handle_acc_id_list(
             "post",
             lambda a: f"API/Accounts/{a}/Reconcile",
-            await self.get_account_id(account)
+            await self.get_account_id(account),
         )
 
     async def verify(self, account: Union[PrivilegedAccount, str]):
@@ -565,25 +675,25 @@ class Account:
         return await self._handle_acc_id_list(
             "post",
             lambda a: f"API/Accounts/{a}/Verify",
-            await self.get_account_id(account)
+            await self.get_account_id(account),
         )
 
     def is_valid_username(self, username: str) -> bool:
-        """ Check if the username is a valid Vault username
+        """Check if the username is a valid Vault username
 
         :param username: username to check
         :return: A boolean that indicates whether the username if valid or not.
         """
-        special_chars = "\\/.:*?\"<>|\t\r\n\x1F"
+        special_chars = '\\/.:*?"<>|\t\r\n\x1f'
         return not (len(username) > 128 or any(c in special_chars for c in username))
 
     def is_valid_safename(self, name: str) -> bool:
-        """ Check if the safename is a valid Vault safe name.
+        """Check if the safename is a valid Vault safe name.
 
         :param name: Safe name to check
         :return: A boolean that indicates whether the username if valid or not.
         """
-        special_chars = "\\/.:*?\"<>|\t\r\n\x1F"
+        special_chars = '\\/.:*?"<>|\t\r\n\x1f'
         return not (len(name) > 28 or any(c in special_chars for c in name))
 
     async def search_account_by_ip_addr(self, address: Union[PrivilegedAccount, str]):
@@ -600,10 +710,14 @@ class Account:
         elif isinstance(address, PrivilegedAccount):
             address = address.address
         else:
-            raise TypeError("search address function returned : First argument of address is not valid")
+            raise TypeError(
+                "search address function returned : First argument of address is not valid"
+            )
 
         if not validate_ip(address):
-            raise TypeError(f"The address of the object was not considered as valid IPv4 address {address}")
+            raise TypeError(
+                f"The address of the object was not considered as valid IPv4 address {address}"
+            )
 
         return await self.search_account_by(address=address)
 
@@ -618,8 +732,15 @@ class Account:
         """
         return await self.search_account_by(expression)
 
-    async def search_account_by(self, keywords=None, username=None, address=None, safe=None,
-                                platform=None, **kwargs) -> List[PrivilegedAccount]:
+    async def search_account_by(
+        self,
+        keywords=None,
+        username=None,
+        address=None,
+        safe=None,
+        platform=None,
+        **kwargs,
+    ) -> List[PrivilegedAccount]:
         """search_account_by(keywords=None, username=None, address=None, safe=None, platform=None, **kwargs) -> list
         | This function allow to search using one or more parameters and return list of address id.
         | This is the easiest way to retrieve accounts from the vault.
@@ -643,11 +764,22 @@ class Account:
 
         """
 
-        return [account async for account in
-                self.search_account_iterator(keywords, username, address, safe, platform, **kwargs)]
+        return [
+            account
+            async for account in self.search_account_iterator(
+                keywords, username, address, safe, platform, **kwargs
+            )
+        ]
 
-    async def search_account_iterator(self, keywords=None, username=None, address=None, safe=None,
-                                      platform=None, **kwargs) -> AsyncIterator[PrivilegedAccount]:
+    async def search_account_iterator(
+        self,
+        keywords=None,
+        username=None,
+        address=None,
+        safe=None,
+        platform=None,
+        **kwargs,
+    ) -> AsyncIterator[PrivilegedAccount]:
         """
         | This function allow to search using one or more parameters and return list of address id.
 
@@ -663,21 +795,33 @@ class Account:
         ℹ️ See also search_account_by
         """
 
-        filtered_args = {k: v for k, v in locals().items() if v and k not in ["safe", "self", "keywords", "kwargs"]}
+        filtered_args = {
+            k: v
+            for k, v in locals().items()
+            if v and k not in ["safe", "self", "keywords", "kwargs"]
+        }
         filtered_args.update(kwargs)
 
         page = 1
         has_next_page = True
 
         while has_next_page:
-            accounts = await self.search_account_paginate(page=page, safe=safe, search=keywords, **filtered_args)
+            accounts = await self.search_account_paginate(
+                page=page, safe=safe, search=keywords, **filtered_args
+            )
             has_next_page = accounts["has_next_page"]
             page += 1
             for a in accounts["accounts"]:
                 yield a
 
-    async def search_account_paginate(self, page: int = 1, size_of_page: int = 1000, safe: str = None,
-                                      search: str = None, **kwargs):
+    async def search_account_paginate(
+        self,
+        page: int = 1,
+        size_of_page: int = 1000,
+        safe: str = None,
+        search: str = None,
+        **kwargs,
+    ):
         """
         Search accounts in a paginated way
 
@@ -699,8 +843,10 @@ class Account:
         try:
             params = {"search": " ".join(kwargs.values())}
         except TypeError as err:
-            raise AiobastionException(f"You can't search on a list here ({kwargs.values()}), "
-                                      "provide a string instead") from err
+            raise AiobastionException(
+                f"You can't search on a list here ({kwargs.values()}), "
+                "provide a string instead"
+            ) from err
 
         if search is not None:
             params["search"] += f" {search}"
@@ -710,22 +856,22 @@ class Account:
 
         params["limit"] = size_of_page
         params["offset"] = (page - 1) * size_of_page
-        search_results = await self.epv.handle_request("get", "API/Accounts", params=params,
-                                                       filter_func=lambda x: x)
-        account_list = search_results['value']
+        search_results = await self.epv.handle_request(
+            "get", "API/Accounts", params=params, filter_func=lambda x: x
+        )
+        account_list = search_results["value"]
         # check for each address if the content of FC match the search
-        filtered_account_list = filter(lambda f: _filter_account(f, kwargs), account_list)
+        filtered_account_list = filter(
+            lambda f: _filter_account(f, kwargs), account_list
+        )
         # for each filtered address, build the PrivilegedAccount
         filtered_acc_list = [PrivilegedAccount(**acc) for acc in filtered_account_list]
 
         has_next_page = "nextLink" in search_results
-        return {
-            "accounts": filtered_acc_list,
-            "has_next_page": has_next_page
-        }
+        return {"accounts": filtered_acc_list, "has_next_page": has_next_page}
 
     async def connect_using_PSM(self, account, connection_component, reason: str = ""):
-        """ This function returns a file content (bytes) which is the equivalent RDP file of the “Connect” button
+        """This function returns a file content (bytes) which is the equivalent RDP file of the “Connect” button
 
         For example::
 
@@ -755,22 +901,29 @@ class Account:
         """
         account_id = await self.get_account_id(account)
         url, head = self.epv.get_url(f"API/Accounts/{account_id}/PSMConnect")
-        head["Accept"] = 'RDP'
+        head["Accept"] = "RDP"
         body = {"ConnectionComponent": connection_component}
         if reason:
             body["Reason"] = reason
 
-        async with aiohttp.ClientSession(headers=head, cookies = self.epv.cookies) as session:
+        async with aiohttp.ClientSession(
+            headers=head, cookies=self.epv.cookies
+        ) as session:
             async with session.post(url, json=body, **self.epv.request_params) as req:
                 if req.status != 200:
                     content = await req.json()
-                    raise CyberarkAPIException(req.status, content["ErrorCode"], content["ErrorMessage"])
+                    raise CyberarkAPIException(
+                        req.status, content["ErrorCode"], content["ErrorMessage"]
+                    )
 
                 return await req.read()
 
-    async def disable_password_management(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]],
-                                          reason: str = ""):
-        """ This disables the account (or list) password management
+    async def disable_password_management(
+        self,
+        account: Union[PrivilegedAccount, List[PrivilegedAccount]],
+        reason: str = "",
+    ):
+        """This disables the account (or list) password management
 
         :param account: a PrivilegedAccount object or a list of PrivilegedAccount objects
         :type account: PrivilegedAccount, list
@@ -779,25 +932,37 @@ class Account:
         :raises CyberarkException: If disabling failed.
         """
         data = [
-            {"op": "replace", "path": "/secretManagement/automaticManagementEnabled", "value": False},
-            {"op": "add", "path": "/secretManagement/manualManagementReason", "value": reason}
+            {
+                "op": "replace",
+                "path": "/secretManagement/automaticManagementEnabled",
+                "value": False,
+            },
+            {
+                "op": "add",
+                "path": "/secretManagement/manualManagementReason",
+                "value": reason,
+            },
         ]
 
         _results = await self._handle_acc_id_list(
             "patch",
             lambda account_id: f"API/Accounts/{account_id}",
             await self.get_account_id(account),
-            data
+            data,
         )
         # Single item
         if isinstance(_results, dict):
             return PrivilegedAccount(**_results)
         # list
         else:
-            return [PrivilegedAccount(**r) if isinstance(r, dict) else r for r in _results]
+            return [
+                PrivilegedAccount(**r) if isinstance(r, dict) else r for r in _results
+            ]
 
-    async def resume_password_management(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]):
-        """ This resume the account (or list) password management
+    async def resume_password_management(
+        self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]
+    ):
+        """This resume the account (or list) password management
 
         :param account: a PrivilegedAccount object or a list of PrivilegedAccount objects
         :type account: PrivilegedAccount, list
@@ -806,13 +971,17 @@ class Account:
         """
 
         data = [
-            {"op": "replace", "path": "/secretManagement/automaticManagementEnabled", "value": True},
+            {
+                "op": "replace",
+                "path": "/secretManagement/automaticManagementEnabled",
+                "value": True,
+            },
         ]
         _results = await self._handle_acc_id_list(
             "patch",
             lambda account_id: f"API/Accounts/{account_id}",
             await self.get_account_id(account),
-            data
+            data,
         )
 
         # Single item
@@ -820,11 +989,15 @@ class Account:
             return PrivilegedAccount(**_results)
         # list
         else:
-            return [PrivilegedAccount(**r) if isinstance(r, dict) else r for r in _results]
+            return [
+                PrivilegedAccount(**r) if isinstance(r, dict) else r for r in _results
+            ]
         # return await self.epv.handle_request("patch", f"API/Accounts/{account_id}", data=data)
 
-    async def update_using_list(self, account, data) -> Union[PrivilegedAccount, List[PrivilegedAccount]]:
-        """ **This function support list of PrivilegedAccount as argument**
+    async def update_using_list(
+        self, account, data
+    ) -> Union[PrivilegedAccount, List[PrivilegedAccount]]:
+        """**This function support list of PrivilegedAccount as argument**
 
         | This function updates an account (or list) with the data list of changes. For more infos, check CyberArk doc.
         | Valid operations are : Replace, Remove or Add
@@ -845,19 +1018,24 @@ class Account:
 
         :return: The updated PrivilegedAccount or the list of updated PrivilegedAccount
         """
-        self.epv.logger.debug(f"Going to patch {await self.get_account_id(account)} with {data}")
+        self.epv.logger.debug(
+            f"Going to patch {await self.get_account_id(account)} with {data}"
+        )
 
         updated_accounts = await self._handle_acc_id_list(
             "patch",
             lambda account_id: f"API/Accounts/{account_id}",
             await self.get_account_id(account),
-            data
+            data,
         )
         if isinstance(updated_accounts, dict):
             return PrivilegedAccount(**updated_accounts)
         else:
             # Will return exception if met
-            return [PrivilegedAccount(**r) if isinstance(r, dict) else r for r in updated_accounts]
+            return [
+                PrivilegedAccount(**r) if isinstance(r, dict) else r
+                for r in updated_accounts
+            ]
             # return [PrivilegedAccount(**u) for u in updated_accounts]
 
     def detect_fc_path(self, fc: str):
@@ -888,13 +1066,20 @@ class Account:
         :raises AiobastionException: if the FC was not found in the Vault
         :raises CyberarkAPIException: if another error occured
         """
-        data = [{"path": f"{self.detect_fc_path(file_category)}{file_category}", "op": "remove"}]
+        data = [
+            {
+                "path": f"{self.detect_fc_path(file_category)}{file_category}",
+                "op": "remove",
+            }
+        ]
         try:
             return await self.update_using_list(account, data)
         except CyberarkAPIException:
             raise
 
-    async def update_single_fc(self,  account, file_category, new_value, operation="replace"):
+    async def update_single_fc(
+        self, account, file_category, new_value, operation="replace"
+    ):
         """
         Update / Delete / Create a File Category for an account or a list of accounts
         The path of the file_category is (hopefully) automatically detected
@@ -912,16 +1097,26 @@ class Account:
             operation = "remove"
 
         # if we "add" and FC exists it will replace it
-        data = [{"path": f"{self.detect_fc_path(file_category)}{file_category}", "op": operation, "value": new_value}]
+        data = [
+            {
+                "path": f"{self.detect_fc_path(file_category)}{file_category}",
+                "op": operation,
+                "value": new_value,
+            }
+        ]
         try:
             # self.epv.logger.debug(f"Data : {data}")
             return await self.update_using_list(account, data)
         except CyberarkAPIException as err:
             if err.err_code == "PASWS164E" and operation == "replace":
                 # Try to add FC instead of replacing it
-                return await self.update_single_fc(account, file_category, new_value, "add")
+                return await self.update_single_fc(
+                    account, file_category, new_value, "add"
+                )
             if err.http_status == 400:
-                raise AiobastionException("The FC was not found in the Vault (it is case sensitive)") from err
+                raise AiobastionException(
+                    "The FC was not found in the Vault (it is case sensitive)"
+                ) from err
             else:
                 raise
 
@@ -938,9 +1133,13 @@ class Account:
         data = []
         if isinstance(file_category, list):
             if not isinstance(new_value, list):
-                raise AiobastionException("If file_category is a list, then new value must be a list as well")
+                raise AiobastionException(
+                    "If file_category is a list, then new value must be a list as well"
+                )
             if len(file_category) != len(new_value):
-                raise AiobastionException("You must provide the same list size for file_category and values")
+                raise AiobastionException(
+                    "You must provide the same list size for file_category and values"
+                )
 
             for f, n in zip(file_category, new_value):
                 # self.epv.logger.debug(f"Detected path for {f}: {self.detect_fc_path(f)}")
@@ -951,12 +1150,30 @@ class Account:
                             _u["value"][f] = n
                             found = True
                     if not found:
-                        data.append({"path": self.detect_fc_path(f), "op": "replace", "value": {f: n}})
+                        data.append(
+                            {
+                                "path": self.detect_fc_path(f),
+                                "op": "replace",
+                                "value": {f: n},
+                            }
+                        )
                 else:
                     # we trust user and don't check if FC is defined at platform level
-                    data.append({"path": f"{self.detect_fc_path(f)}{f}", "op": "add", "value": n})
+                    data.append(
+                        {
+                            "path": f"{self.detect_fc_path(f)}{f}",
+                            "op": "add",
+                            "value": n,
+                        }
+                    )
         else:
-            data.append({"path": f"{self.detect_fc_path(file_category)}{file_category}", "op": "add", "value": new_value})
+            data.append(
+                {
+                    "path": f"{self.detect_fc_path(file_category)}{file_category}",
+                    "op": "add",
+                    "value": new_value,
+                }
+            )
 
         # self.epv.logger.debug(f"Updating {account.id} with {data}")
         return await self.update_using_list(account, data)
@@ -976,7 +1193,7 @@ class Account:
         if len(cpm_versions) > 0:
             good_ver = max(cpm_versions)
             password_to_set = await self.get_secret_version(account, good_ver)
-            return await self.set_password(account,password_to_set)
+            return await self.set_password(account, password_to_set)
         else:
             raise AiobastionException("There is no CPM version for this account")
 
@@ -998,7 +1215,9 @@ class Account:
         else:
             raise AiobastionException("There is no CPM version for this account")
 
-    async def get_secret_version(self, account: PrivilegedAccount, version: int, reason: str = None):
+    async def get_secret_version(
+        self, account: PrivilegedAccount, version: int, reason: str = None
+    ):
         """
         Get the version of a password
 
@@ -1020,7 +1239,11 @@ class Account:
 
         return await self.epv.handle_request("post", url, data=data)
 
-    async def get_password(self, account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]], reason: str = None):
+    async def get_password(
+        self,
+        account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]],
+        reason: str = None,
+    ):
         """
         | Retrieve the password of an address
         | ✅ Use get_secret instead if you want to retrieve password or ssh_key
@@ -1038,12 +1261,13 @@ class Account:
             "post",
             lambda account_id: f"API/Accounts/{account_id}/Password/Retrieve",
             await self.get_account_id(account),
-            data=data
+            data=data,
         )
 
-
     # Test me
-    async def get_ssh_key(self, account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]]):
+    async def get_ssh_key(
+        self, account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]]
+    ):
         """
         Retrieve the SSH Key of an account
 
@@ -1055,10 +1279,14 @@ class Account:
         return await self._handle_acc_id_list(
             "post",
             lambda account_id: f"API/Accounts/{account_id}/Secret/Retrieve",
-            await self.get_account_id(account)
+            await self.get_account_id(account),
         )
 
-    async def get_secret_versions(self, account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]], reason: str = None):
+    async def get_secret_versions(
+        self,
+        account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]],
+        reason: str = None,
+    ):
         """
         Retrieve the secret versions
 
@@ -1073,7 +1301,7 @@ class Account:
             "get",
             lambda account_id: f"API/Accounts/{account_id}/Secret/Versions/",
             await self.get_account_id(account),
-            data = data
+            data=data,
         )
 
         if isinstance(versions, list):
@@ -1084,7 +1312,9 @@ class Account:
             raise AiobastionException(versions)
 
     # Test
-    async def get_secret(self, account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]]):
+    async def get_secret(
+        self, account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]]
+    ):
         """
         Get the secret of an account, detecting if the secret type is password or key
 
@@ -1119,7 +1349,7 @@ class Account:
             "post",
             lambda account_id: f"API/Accounts/{account_id}/Password/Update",
             await self.get_account_id(account),
-            {"NewCredentials": password}
+            {"NewCredentials": password},
         )
 
     async def set_next_password(self, account, password):
@@ -1135,11 +1365,13 @@ class Account:
             "post",
             lambda account_id: f"API/Accounts/{account_id}/SetNextPassword",
             await self.get_account_id(account),
-            {"ChangeImmediately": True, "NewCredentials": password}
+            {"ChangeImmediately": True, "NewCredentials": password},
         )
 
-    async def delete(self, account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]]):
-        """ **This function support list of PrivilegedAccount as argument**
+    async def delete(
+        self, account: Union[PrivilegedAccount, str, List[PrivilegedAccount], List[str]]
+    ):
+        """**This function support list of PrivilegedAccount as argument**
 
         | This deletes the account (or list).
         | ⚠️ If this is an SSH Key, this function will delete it on the Vault but not on systems!
@@ -1148,19 +1380,23 @@ class Account:
         :return: True if succeeded
         :raises CyberarkException: If delete failed
         """
+
         # account_id = await self.get_account_id(address),
         async def api_call(account_id):
             try:
-                return await self.epv.handle_request("delete", f"API/Accounts/{account_id}")
+                return await self.epv.handle_request(
+                    "delete", f"API/Accounts/{account_id}"
+                )
             except CyberarkAPIException:
-                return await self.epv.handle_request("delete", f"WebServices/PIMServices.svc/Accounts/{account_id}")
+                return await self.epv.handle_request(
+                    "delete", f"WebServices/PIMServices.svc/Accounts/{account_id}"
+                )
 
-        return await self._handle_acc_list(
-            api_call,
-            await self.get_account_id(account)
-        )
+        return await self._handle_acc_list(api_call, await self.get_account_id(account))
 
-    async def get_cpm_status(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]):
+    async def get_cpm_status(
+        self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]
+    ):
         """
         | Get the CPM status of an account or a list of accounts.
         | ✅ You can also use the cpm_status() method of the object PrivilegedAccount
@@ -1174,7 +1410,9 @@ class Account:
         else:
             return account.secretManagement
 
-    async def activity(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]):
+    async def activity(
+        self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]
+    ):
         """
         Get account(s) activity
 
@@ -1185,8 +1423,10 @@ class Account:
         """
         activities = await self._handle_acc_id_list(
             "get",
-            lambda account_id: f"WebServices/PIMServices.svc/Accounts/{account_id}/Activities/",
-            await self.get_account_id(account)
+            lambda account_id: (
+                f"WebServices/PIMServices.svc/Accounts/{account_id}/Activities/"
+            ),
+            await self.get_account_id(account),
         )
 
         if isinstance(activities, list):
@@ -1196,7 +1436,9 @@ class Account:
         else:
             return None
 
-    async def last_cpm_error_message(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]):
+    async def last_cpm_error_message(
+        self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]
+    ):
         """
         Get the last CPM Error message
 
@@ -1226,9 +1468,12 @@ class Account:
         else:
             return single_cpm_error(activities)
 
-    async def add_member_to_group(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]],
-                                  group_name: str = "") -> str:
-        """ **This function support list of PrivilegedAccount as argument**
+    async def add_member_to_group(
+        self,
+        account: Union[PrivilegedAccount, List[PrivilegedAccount]],
+        group_name: str = "",
+    ) -> str:
+        """**This function support list of PrivilegedAccount as argument**
         Add an address to a group
 
         :param account: a PrivilegedAccount object or a list of PrivilegedAccount objects
@@ -1255,12 +1500,11 @@ class Account:
             data = {"AccountId": acc.id}
             return await self.epv.handle_request("post", url, data=data)
 
-        return await self._handle_acc_list(
-            _api_call,
-            account
-        )
+        return await self._handle_acc_list(_api_call, account)
 
-    async def get_account_group(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]):
+    async def get_account_group(
+        self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]
+    ):
         """
         | Returns the GroupID of a given PrivilegedAccount
         | To get the group name, and more, check the Account Group section of this documentation.
@@ -1280,8 +1524,10 @@ class Account:
 
         return await self._handle_acc_list(_api_call, account)
 
-    async def del_account_group_membership(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]):
-        """ Find and delete the account_group membership of a PrivilegedAccount (or list)
+    async def del_account_group_membership(
+        self, account: Union[PrivilegedAccount, List[PrivilegedAccount]]
+    ):
+        """Find and delete the account_group membership of a PrivilegedAccount (or list)
 
         :param account: a PrivilegedAccount object or a list of PrivilegedAccount objects
         :type account: PrivilegedAccount, list
@@ -1296,14 +1542,24 @@ class Account:
             else:
                 try:
                     await self.epv.accountgroup.delete_member(acc, groupid)
-                except (CyberarkAPIException, CyberarkException, AiobastionException) as err:
-                    raise CyberarkException("Unable to remove address group " + str(err)) from err
+                except (
+                    CyberarkAPIException,
+                    CyberarkException,
+                    AiobastionException,
+                ) as err:
+                    raise CyberarkException(
+                        "Unable to remove address group " + str(err)
+                    ) from err
                 return True
 
         return await self._handle_acc_list(_del_accountgroup, account)
 
-    async def update_platform(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]], new_platform: str):
-        """ This function updates the account’s (or list) platform
+    async def update_platform(
+        self,
+        account: Union[PrivilegedAccount, List[PrivilegedAccount]],
+        new_platform: str,
+    ):
+        """This function updates the account’s (or list) platform
 
         :param account: PrivilegedAccount, list of Privileged Accounts
         :param new_platform: The new plaform ID (e.g. Unix-SSH)
@@ -1313,8 +1569,10 @@ class Account:
         data = [{"path": "/platformID", "op": "replace", "value": new_platform}]
         return await self.epv.account.update_using_list(account, data)
 
-    async def move(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]], new_safe: str):
-        """ Delete the account (or list) and recreate it (or them) in with the same parameters and password in the new
+    async def move(
+        self, account: Union[PrivilegedAccount, List[PrivilegedAccount]], new_safe: str
+    ):
+        """Delete the account (or list) and recreate it (or them) in with the same parameters and password in the new
         safe.
 
         :param account: a PrivilegedAccount object or a list of PrivilegedAccount objects
@@ -1322,6 +1580,7 @@ class Account:
         :param new_safe: New safe to move the account(s) into
         :return: Boolean that indicates if the operation was successful
         """
+
         async def _move(acc, _new_safe, semaphore):
             async with semaphore:
                 self.epv.logger.debug(f"Now trying to move {acc} to {_new_safe}")
@@ -1330,15 +1589,21 @@ class Account:
                 try:
                     acc.secret = await self.get_password(acc)
                 except CyberarkAPIException as err:
-                    raise CyberarkException(f"Unable to recover {acc.name} password : {str(err)}")
+                    raise CyberarkException(
+                        f"Unable to recover {acc.name} password : {str(err)}"
+                    )
                 try:
                     new_account_id = await self.add_account_to_safe(acc)
                 except CyberarkAPIException as err:
-                    raise CyberarkException(f"Unable to create {acc.name} new address : {str(err)}")
+                    raise CyberarkException(
+                        f"Unable to create {acc.name} new address : {str(err)}"
+                    )
                 try:
                     await self.delete(old_id)
                 except CyberarkAPIException as err:
-                    raise CyberarkException(f"Unable to delete {acc.name} old address : {str(err)}")
+                    raise CyberarkException(
+                        f"Unable to delete {acc.name} old address : {str(err)}"
+                    )
                 return new_account_id
 
         # Packets of 50 to avoid many duplicates
@@ -1347,8 +1612,12 @@ class Account:
         return await self._handle_acc_list(_move, account, new_safe, sem)
 
     # AIM get secret function
-    async def get_secret_aim(self, account: Union[PrivilegedAccount, List[PrivilegedAccount]], reason: str = None):
-        """ **This function support list of PrivilegedAccount as argument**
+    async def get_secret_aim(
+        self,
+        account: Union[PrivilegedAccount, List[PrivilegedAccount]],
+        reason: str = None,
+    ):
+        """**This function support list of PrivilegedAccount as argument**
 
         | This function update the secret attribute of the PrivilegedAccount with the password
           returned by the **AIM Web service**. If the account is not found, the secret is set to None.
@@ -1364,12 +1633,15 @@ class Account:
         """
         if self.epv.AIM is None:
             raise AiobastionException(
-                    "Missing AIM information to perform AIM authentication, see documentation")
+                "Missing AIM information to perform AIM authentication, see documentation"
+            )
 
         if isinstance(account, list):
             tasks = []
             for acc in account:
-                if not acc.secretType or (acc.secretType and acc.secretType == "password"):
+                if not acc.secretType or (
+                    acc.secretType and acc.secretType == "password"
+                ):
                     tasks.append(self.get_secret_aim(acc, reason))
             return await asyncio.gather(*tasks)
 
@@ -1377,7 +1649,7 @@ class Account:
         if not isinstance(account, PrivilegedAccount):
             raise AiobastionException("You must provide a valid PrivilegedAccount.")
 
-        params={"object": account.name }
+        params = {"object": account.name}
 
         if reason:
             params["reason"] = reason
@@ -1391,7 +1663,6 @@ class Account:
             account.secret = None
 
         return account
-
 
     async def get_password_aim(self, **kwargs):
         """
@@ -1432,6 +1703,7 @@ class Account:
         """
         if self.epv.AIM is None:
             raise AiobastionException(
-                    "Missing AIM information to perform AIM authentication, see documentation")
+                "Missing AIM information to perform AIM authentication, see documentation"
+            )
 
         return await self.epv.AIM.get_secret_detail(**kwargs)

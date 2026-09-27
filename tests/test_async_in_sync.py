@@ -27,8 +27,10 @@ async def get_session(epv_session):
         raise GetTokenException
     return epv
 
+
 async def logoff_cyberark(epv_session):
     await epv_session.logoff()
+
 
 async def list_safes_2(epv_session):
     epv = await get_session(epv_session)
@@ -65,12 +67,14 @@ def main():
     global epv_json
     epv_json = epv_session.to_json()
 
+
 def main2():
     epv = asyncio.run(get_session(epv_json))
     # Doing async stuff
     safes = asyncio.run(list_safes(epv))
     print(f"List of Safes : {safes}")
     # pass
+
 
 if __name__ == "__main__":
     # logging.basicConfig(

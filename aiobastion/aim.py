@@ -8,19 +8,26 @@ from typing import Union, Tuple, Optional
 import aiohttp
 from aiohttp import ContentTypeError
 
-from .exceptions import AiobastionException, CyberarkException, CyberarkAPIException, CyberarkAIMnotFound, AiobastionConfigurationException
+from .exceptions import (
+    AiobastionException,
+    CyberarkException,
+    CyberarkAPIException,
+    CyberarkAIMnotFound,
+    AiobastionConfigurationException,
+)
 from .config import Config, validate_integer
 from .http_session import HttpSession
 # from .cyberark import EPV
 
 # AIM section
-AIM_secret_resp = namedtuple('AIM_secret_resp', ['secret', 'detail'])
+AIM_secret_resp = namedtuple("AIM_secret_resp", ["secret", "detail"])
 
 
 class EPV_AIM:
     """
     Class managing communication with the Central Credential Provider (AIM) GetPassword Web Service
     """
+
     # List of attributes from configuration file and serialization
     _SERIALIZED_FIELDS_IN = [
         "appid",
@@ -31,7 +38,7 @@ class EPV_AIM:
         "passphrase",
         "timeout",
         "verify",
-        ]
+    ]
 
     # List of attributes for serialization (to_json)
     _SERIALIZED_FIELDS_OUT = [
@@ -43,7 +50,7 @@ class EPV_AIM:
         # "passphrase",     # Exclude
         "timeout",
         "verify",
-        ]
+    ]
 
     # List of attributes for user_search available in AIM
     _GETPASSWORD_REQUEST_PARM = [
@@ -59,20 +66,22 @@ class EPV_AIM:
         "reason",
         "safe",
         "username",
-        ]
+    ]
 
     # You must specify the following parameters by key=value (no positional parameters allowed):
-    def __init__(self, *,
-                 appid: Optional[str] = None,
-                 cert: Optional[str] = None,
-                 host: Optional[str] = None,
-                 key: Optional[str] = None,
-                 max_concurrent_tasks: int = Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS,
-                 passphrase: Optional[str] = None,
-                 serialized: Optional[dict] = None,
-                 timeout: int = Config.CYBERARK_DEFAULT_TIMEOUT,
-                 verify: Optional[Union[str, bool]] = None,
-                 ):
+    def __init__(
+        self,
+        *,
+        appid: Optional[str] = None,
+        cert: Optional[str] = None,
+        host: Optional[str] = None,
+        key: Optional[str] = None,
+        max_concurrent_tasks: int = Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS,
+        passphrase: Optional[str] = None,
+        serialized: Optional[dict] = None,
+        timeout: int = Config.CYBERARK_DEFAULT_TIMEOUT,
+        verify: Optional[Union[str, bool]] = None,
+    ):
 
         self.appid = appid
         self.cert = cert
@@ -87,7 +96,9 @@ class EPV_AIM:
         self.__sema = None
         self.session = None
         self.request_params = None
-        self._http = HttpSession(max_concurrent_tasks=max_concurrent_tasks, timeout=timeout)
+        self._http = HttpSession(
+            max_concurrent_tasks=max_concurrent_tasks, timeout=timeout
+        )
 
         if serialized:
             for k, v in serialized.items():
@@ -95,7 +106,9 @@ class EPV_AIM:
                 if keyname in EPV_AIM._SERIALIZED_FIELDS_IN:
                     setattr(self, keyname, v)
                 else:
-                    raise AiobastionException(f"Unknown serialized AIM field: {k} = {v!r}")
+                    raise AiobastionException(
+                        f"Unknown serialized AIM field: {k} = {v!r}"
+                    )
 
         # Optional attributes
         if self.timeout is None:
@@ -104,18 +117,23 @@ class EPV_AIM:
         if self.max_concurrent_tasks is None:
             self.max_concurrent_tasks = Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS
 
-        if self.verify is not None and not (isinstance(self.verify, str) or isinstance(self.verify, bool)):
+        if self.verify is not None and not (
+            isinstance(self.verify, str) or isinstance(self.verify, bool)
+        ):
             raise AiobastionException(
-                f"Invalid type for parameter 'verify' in AIM: {type(self.verify)} value: {self.verify!r}")
+                f"Invalid type for parameter 'verify' in AIM: {type(self.verify)} value: {self.verify!r}"
+            )
 
         if isinstance(self.verify, str):
             if not os.path.exists(self.verify):
                 raise AiobastionConfigurationException(
-                    f"CA certificat File not found {self.verify!r} (Parameter 'verify' in AIM).")
-
+                    f"CA certificat File not found {self.verify!r} (Parameter 'verify' in AIM)."
+                )
 
     @classmethod
-    def validate_class_attributes(cls, serialized: dict, section: str, epv, configfile: Optional[str] = None) -> dict:
+    def validate_class_attributes(
+        cls, serialized: dict, section: str, epv, configfile: Optional[str] = None
+    ) -> dict:
         """validate_class_attributes      Initialize and validate the EPV_AIM definition (file configuration and serialized)
 
         Arguments:
@@ -155,15 +173,20 @@ class EPV_AIM:
             # Special validation: integer, boolean
             if keyname in ["max_concurrent_tasks", "timeout"]:
                 if serialized[k] is not None:
-                    new_serialized[keyname] = validate_integer(_config_source, f"{section}/{keyname}", serialized[k])
+                    new_serialized[keyname] = validate_integer(
+                        _config_source, f"{section}/{keyname}", serialized[k]
+                    )
             elif keyname in ["verify"]:
                 if serialized[k] is not None:
-                    if isinstance(serialized[k], str) or isinstance(serialized[k], bool):
+                    if isinstance(serialized[k], str) or isinstance(
+                        serialized[k], bool
+                    ):
                         new_serialized["verify"] = serialized[k]
                     else:
                         raise AiobastionConfigurationException(
                             f"Parameter type invalid '{section}/{k}' "
-                            f"in {_config_source}: {serialized[k]!r}")
+                            f"in {_config_source}: {serialized[k]!r}"
+                        )
 
             elif keyname in EPV_AIM._SERIALIZED_FIELDS_IN:
                 # String definition
@@ -171,9 +194,9 @@ class EPV_AIM:
                     new_serialized[keyname] = serialized[k]
             else:
                 # Unknown attribute
-                raise AiobastionConfigurationException(f"Unknown attribute in section '{section}' from {_config_source}: {k} is unknown.")
-
-
+                raise AiobastionConfigurationException(
+                    f"Unknown attribute in section '{section}' from {_config_source}: {k} is unknown."
+                )
 
         # Complete initialization with epv section (file configuration and serialized)
         if epv:
@@ -181,20 +204,28 @@ class EPV_AIM:
                 new_serialized["host"] = epv.api_host
 
             # Should not be None or the default value
-            if "timeout" not in new_serialized and epv.timeout and \
-               epv.timeout != Config.CYBERARK_DEFAULT_TIMEOUT:
+            if (
+                "timeout" not in new_serialized
+                and epv.timeout
+                and epv.timeout != Config.CYBERARK_DEFAULT_TIMEOUT
+            ):
                 new_serialized["timeout"] = epv.timeout
 
             # Should not be None or the default value
-            if "max_concurrent_tasks" not in new_serialized and \
-                epv.max_concurrent_tasks is not None and \
-                epv.max_concurrent_tasks != Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS:
+            if (
+                "max_concurrent_tasks" not in new_serialized
+                and epv.max_concurrent_tasks is not None
+                and epv.max_concurrent_tasks
+                != Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS
+            ):
                 new_serialized["max_concurrent_tasks"] = epv.max_concurrent_tasks
 
             # Should not be None or the default value
-            if "verify" not in new_serialized and \
-               epv.verify is not None and \
-               epv.verify != Config.CYBERARK_DEFAULT_VERIFY:
+            if (
+                "verify" not in new_serialized
+                and epv.verify is not None
+                and epv.verify != Config.CYBERARK_DEFAULT_VERIFY
+            ):
                 new_serialized["verify"] = epv.verify
 
         # If no value has been set, return a empty dictionary. AIM should not be set.
@@ -202,7 +233,9 @@ class EPV_AIM:
             return {}
 
         # Default values if not set
-        new_serialized.setdefault("max_concurrent_tasks", Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS)
+        new_serialized.setdefault(
+            "max_concurrent_tasks", Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS
+        )
         new_serialized.setdefault("timeout", Config.CYBERARK_DEFAULT_TIMEOUT)
         new_serialized.setdefault("verify", Config.CYBERARK_DEFAULT_VERIFY)
 
@@ -210,7 +243,8 @@ class EPV_AIM:
         if isinstance(new_serialized["verify"], str):
             if not os.path.exists(new_serialized["verify"]):
                 raise AiobastionConfigurationException(
-                    f"CA certificat File not found {new_serialized['verify']!r} (Parameter 'verify' in AIM).")
+                    f"CA certificat File not found {new_serialized['verify']!r} (Parameter 'verify' in AIM)."
+                )
 
         return new_serialized
 
@@ -219,17 +253,21 @@ class EPV_AIM:
             return
 
         # Check mandatory attributes
-        if self.host is None or \
-           self.appid is None or \
-           self.cert is None:
-            raise AiobastionException("Missing AIM mandatory parameters. "
-                                       "Required parameters are: host, appid, cert.")
+        if self.host is None or self.appid is None or self.cert is None:
+            raise AiobastionException(
+                "Missing AIM mandatory parameters. "
+                "Required parameters are: host, appid, cert."
+            )
 
         if not os.path.exists(self.cert):
-            raise AiobastionException(f"Parameter 'cert' in AIM: Public certificate file not found: {self.cert!r}")
+            raise AiobastionException(
+                f"Parameter 'cert' in AIM: Public certificate file not found: {self.cert!r}"
+            )
 
         if self.key and not os.path.exists(self.key):
-            raise AiobastionException(f"Parameter 'key' in AIM: Private key certificat file not found: {self.key!r}")
+            raise AiobastionException(
+                f"Parameter 'key' in AIM: Private key certificat file not found: {self.key!r}"
+            )
 
         # Set verify if it is not set
         self._http.max_concurrent_tasks = self.max_concurrent_tasks
@@ -260,8 +298,8 @@ class EPV_AIM:
         return error_str
 
     def set_semaphore(self, sema, session):
-        """ Initialize the semaphore of the AIM interface,
-            so that EPV and EPV_AIM could share the same semaphore.
+        """Initialize the semaphore of the AIM interface,
+        so that EPV and EPV_AIM could share the same semaphore.
         """
         if not self.__sema:
             self.__sema = sema
@@ -331,7 +369,7 @@ class EPV_AIM:
         return secret_detail.secret
 
     async def get_secret_detail(self, **kwargs):
-        """ Retrieve the secret from the GetPassword Web Service Central Credential Provider (AIM)
+        """Retrieve the secret from the GetPassword Web Service Central Credential Provider (AIM)
 
         | ℹ️ The following parameters are optional searchable keys. Refer to
             `CyberArk Central Credential Provider - REST web service`.
@@ -382,7 +420,9 @@ class EPV_AIM:
 
         return f"url: {url}, params: {params_new}"
 
-    async def handle_aim_request(self, method: str, short_url: str, params: dict = None, filter_func=lambda x: x):
+    async def handle_aim_request(
+        self, method: str, short_url: str, params: dict = None, filter_func=lambda x: x
+    ):
         """
         Function that handles AIM requests to the API
         :param method: "get"
@@ -400,15 +440,17 @@ class EPV_AIM:
         url, head = self.get_url(short_url)
         session = self.get_aim_session()
 
-        if 'applid' not in params:
+        if "applid" not in params:
             params_new = copy.copy(params)
-            params_new.setdefault('appid', self.appid)
+            params_new.setdefault("appid", self.appid)
         else:
             params_new = params
 
         async with self.__sema:
             try:
-                async with session.request(method, url, headers=head, params=params_new, **self.request_params) as req:
+                async with session.request(
+                    method, url, headers=head, params=params_new, **self.request_params
+                ) as req:
                     # if req.status == 404:
                     #     raise CyberarkException(f"Error 404 : Endpoint {url} not found")
 
@@ -416,9 +458,12 @@ class EPV_AIM:
                         resp_json = await req.json()
                         if req.status == 200:
                             if "Content" not in resp_json:
-                                raise CyberarkAPIException(req.status, "INVALID_JSON",
-                                                           "Could not find the password ('Content')",
-                                                           EPV_AIM.handle_error_detail_info(url, params_new))
+                                raise CyberarkAPIException(
+                                    req.status,
+                                    "INVALID_JSON",
+                                    "Could not find the password ('Content')",
+                                    EPV_AIM.handle_error_detail_info(url, params_new),
+                                )
 
                             return filter_func(resp_json)
                         else:
@@ -426,31 +471,51 @@ class EPV_AIM:
                             if "Details" in resp_json:
                                 details = resp_json["Details"]
                             else:
-                                details = EPV_AIM.handle_error_detail_info(url, params_new)
+                                details = EPV_AIM.handle_error_detail_info(
+                                    url, params_new
+                                )
 
                             if "ErrorCode" in resp_json and "ErrorMsg" in resp_json:
                                 if resp_json["ErrorCode"] == "APPAP004E":
-                                    raise CyberarkAIMnotFound(req.status, resp_json["ErrorCode"], resp_json["ErrorMsg"],
-                                                              details)
+                                    raise CyberarkAIMnotFound(
+                                        req.status,
+                                        resp_json["ErrorCode"],
+                                        resp_json["ErrorMsg"],
+                                        details,
+                                    )
                                 else:
-                                    raise CyberarkAPIException(req.status, resp_json["ErrorCode"],
-                                                               resp_json["ErrorMsg"], details)
+                                    raise CyberarkAPIException(
+                                        req.status,
+                                        resp_json["ErrorCode"],
+                                        resp_json["ErrorMsg"],
+                                        details,
+                                    )
                             else:
                                 http_error = HTTPStatus(req.status)
 
-                                raise CyberarkAPIException(req.status, "HTTP_ERR_CODE", http_error.phrase, details)
+                                raise CyberarkAPIException(
+                                    req.status,
+                                    "HTTP_ERR_CODE",
+                                    http_error.phrase,
+                                    details,
+                                )
 
                     except json.decoder.JSONDecodeError as err:
                         http_error = HTTPStatus(req.status)
                         details = EPV_AIM.handle_error_detail_info(url, params_new)
-                        raise CyberarkAPIException(req.status, "HTTP_ERR_CODE", http_error.phrase, details) from err
+                        raise CyberarkAPIException(
+                            req.status, "HTTP_ERR_CODE", http_error.phrase, details
+                        ) from err
 
                     except (KeyError, ValueError, ContentTypeError) as err:
                         # http_error = HTTPStatus(req.status)
                         details = EPV_AIM.handle_error_detail_info(url, params_new)
                         raise CyberarkException(
-                            f"HTTP error {req.status}: {str(err)} || Additional Details : {details}") from err
+                            f"HTTP error {req.status}: {str(err)} || Additional Details : {details}"
+                        ) from err
 
             except aiohttp.ClientError as err:
                 details = EPV_AIM.handle_error_detail_info(url, params_new)
-                raise CyberarkException(f"HTTP error: {str(err)} || Additional Details : {details}") from err
+                raise CyberarkException(
+                    f"HTTP error: {str(err)} || Additional Details : {details}"
+                ) from err
