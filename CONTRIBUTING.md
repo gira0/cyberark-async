@@ -38,6 +38,11 @@ If you wish to contribute with code the workflow is :
 - Submit a pull request to the `main` branch
 - Delete the feature branch once the pull request is merged
 
+Pull requests get an automatic GitHub Copilot review. Its project-specific rules
+are in `.github/copilot-instructions.md`, `.github/instructions/` and
+`.github/skills/code-review/`. Copilot reads them from the pull request's branch,
+so a change to the review rules takes effect on the PR that makes it.
+
 ## Test
 
 - Most tests are offline and run without a Vault or PVWA.
