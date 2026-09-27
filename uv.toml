@@ -1,0 +1,8 @@
+# uv settings for this repository. They live here rather than in pyproject.toml's [tool.uv]
+# because uv releases older than 0.9.17 cannot parse the relative `exclude-newer` value: they only
+# warn about [tool.uv], then resolve without any cutoff and rewrite uv.lock. A uv.toml they cannot
+# parse makes them stop with an error instead.
+required-version = ">=0.9.17"
+
+# Only resolve packages that have been on PyPI for at least a week.
+exclude-newer = "1 week"
