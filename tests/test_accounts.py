@@ -5,9 +5,8 @@ import os.path
 import random
 import secrets
 import unittest
-from unittest import TestCase, IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase
 
-import aiobastion
 
 # import aiobastion.EPV
 import tests

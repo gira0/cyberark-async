@@ -79,7 +79,7 @@ MODULE_DIRNAME = os.path.dirname(__file__)
 MODULE_NAME = os.path.basename(__file__)
 HEADERLINE = "---------------------------------------------"
 # HEADER = f"\n\n# {HEADERLINE}\n# %s\n# {HEADERLINE}\n"
-HEADER = f"# %s (start)"
+HEADER = "# %s (start)"
 
 UNDEFINED_VALUE = "?? unknown ??"
 EPV_OPTIONS_MODULES_LIST = [
@@ -696,7 +696,7 @@ class TestConfigEpv(unittest.TestCase):
 
         # check every field
         self.assertIsInstance(
-            config_instance, Config, msg=f"""("test_data/custom_config.yml") in error"""
+            config_instance, Config, msg="""("test_data/custom_config.yml") in error"""
         )
 
         # Config class
@@ -1414,7 +1414,7 @@ class TestConfigEpv(unittest.TestCase):
                 with self.subTest(attrName=attr_name):
                     with self.assertRaisesRegex(
                         aiobastion.exceptions.AiobastionConfigurationException,
-                        f"^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in",
+                        "^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in",
                     ):
                         self.call_EPV(
                             f"{fnc_name} - duplicate field account/{attr_name}",
@@ -1425,7 +1425,7 @@ class TestConfigEpv(unittest.TestCase):
                 with self.subTest(attrName=attr_name):
                     with self.assertRaisesRegex(
                         aiobastion.exceptions.AiobastionConfigurationException,
-                        f"^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in",
+                        "^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in",
                     ):
                         self.call_EPV(
                             f"{fnc_name} - duplicate field account/{attr_name}",
@@ -1445,7 +1445,7 @@ class TestConfigEpv(unittest.TestCase):
                 with self.subTest(attrName=attr_name):
                     with self.assertRaisesRegex(
                         aiobastion.exceptions.AiobastionConfigurationException,
-                        f"^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition",
+                        "^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition",
                     ):
                         self.call_EPV(
                             f"{fnc_name} - duplicate field safe/{attr_name}",
@@ -1456,7 +1456,7 @@ class TestConfigEpv(unittest.TestCase):
                 with self.subTest(attrName=attr_name):
                     with self.assertRaisesRegex(
                         aiobastion.exceptions.AiobastionConfigurationException,
-                        f"^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition",
+                        "^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition",
                     ):
                         self.call_EPV(
                             f"{fnc_name} - duplicate field safe/{attr_name}",
@@ -1525,7 +1525,7 @@ class TestConfigEpv(unittest.TestCase):
         with self.subTest(add_section=add_section, attrName=attr_name):
             with self.assertRaisesRegex(
                 aiobastion.exceptions.AiobastionConfigurationException,
-                f"^Duplicate key 'aim/appid' in ",
+                "^Duplicate key 'aim/appid' in ",
             ):
                 self.call_EPV(
                     f"{fnc_name} - duplicate field aim/{attr_name}",
@@ -1544,7 +1544,7 @@ class TestConfigEpv(unittest.TestCase):
         with self.subTest(attrName=attr_name):
             with self.assertRaisesRegex(
                 aiobastion.exceptions.AiobastionConfigurationException,
-                f"^Duplicate key '/pvwa/host' in ",
+                "^Duplicate key '/pvwa/host' in ",
             ):
                 self.call_EPV(
                     f"{fnc_name} - duplicate field pvwa/host (lower/uppercase)",
@@ -1604,7 +1604,7 @@ class TestConfigEpv(unittest.TestCase):
         serialize_dict["API_HOST"] = serialize_dict["api_host"]
 
         with self.assertRaisesRegex(
-            aiobastion.exceptions.AiobastionConfigurationException, f"^Duplicate key '/"
+            aiobastion.exceptions.AiobastionConfigurationException, "^Duplicate key '/"
         ):
             self.call_EPV(
                 f"{fnc_name} - duplicate field api_host  (lower/uppercase)",
@@ -1677,7 +1677,7 @@ class TestConfigEpv(unittest.TestCase):
                 yaml_dict = {attrName: "err"}
 
             with self.assertRaisesRegex(
-                aiobastion.exceptions.AiobastionConfigurationException, f"^Invalid "
+                aiobastion.exceptions.AiobastionConfigurationException, "^Invalid "
             ):
                 self.call_EPV(
                     f"{fnc_name} - Invalid type {section_name}/{attrName}",
@@ -1711,7 +1711,7 @@ class TestConfigEpv(unittest.TestCase):
 
             with self.assertRaisesRegex(
                 aiobastion.exceptions.AiobastionConfigurationException,
-                f"^Parameter type invalid ",
+                "^Parameter type invalid ",
             ):
                 self.call_EPV(
                     f"{fnc_name} - Invalid type {section_name}/{attrName}",
@@ -1779,7 +1779,7 @@ class TestConfigEpv(unittest.TestCase):
 
             with self.subTest(attrName=attrName, type="integer"):
                 with self.assertRaisesRegex(
-                    aiobastion.exceptions.AiobastionConfigurationException, f"^Invalid "
+                    aiobastion.exceptions.AiobastionConfigurationException, "^Invalid "
                 ):
                     self.call_EPV(
                         f"{fnc_name} - Invalid type {section_name}/{attrName}",
@@ -1815,7 +1815,7 @@ class TestConfigEpv(unittest.TestCase):
             with self.subTest(attrName=attrName, type="string/bool"):
                 with self.assertRaisesRegex(
                     aiobastion.exceptions.AiobastionConfigurationException,
-                    f"^Parameter type invalid ",
+                    "^Parameter type invalid ",
                 ):
                     self.call_EPV(
                         f"{fnc_name} - Invalid type {section_name}/{attrName}",

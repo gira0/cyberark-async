@@ -1,14 +1,10 @@
 import sys
 import asyncio
-import os
 import random
-import secrets
 import unittest
 from unittest import TestCase, IsolatedAsyncioTestCase
 import aiobastion
 from aiobastion.exceptions import (
-    CyberarkAPIException,
-    CyberarkException,
     AiobastionException,
 )
 from aiobastion.accounts import PrivilegedAccount

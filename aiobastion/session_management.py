@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from .exceptions import (
-    CyberarkException,
-    CyberarkAPIException,
     AiobastionConfigurationException,
 )
 
@@ -29,7 +27,7 @@ class SessionManagement:
         """
         :return: A list of all connection components
         """
-        return await self.epv.handle_request("get", f"API/PSM/Connectors/")
+        return await self.epv.handle_request("get", "API/PSM/Connectors/")
 
     def to_json(self):
         serialized = {}

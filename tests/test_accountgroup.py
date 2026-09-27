@@ -1,5 +1,4 @@
 import sys
-import logging
 import random
 import time
 import unittest
@@ -239,7 +238,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
             new_gid = await self.vault.accountgroup.move_account_group(
                 ag_name, source_safe, target_safe
             )
-        except Exception as err:
+        except Exception:
             raise
 
         # New group should have members now
@@ -286,7 +285,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
             await self.vault.accountgroup.move_all_account_groups(
                 self.test_safe, self.test_target_safe, account_filter=filtered
             )
-        except Exception as err:
+        except Exception:
             raise
 
         # The account should remain in src safe
@@ -308,7 +307,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
             await self.vault.accountgroup.move_all_account_groups(
                 self.test_safe, self.test_target_safe
             )
-        except Exception as err:
+        except Exception:
             raise
 
         # In src safe, the account group should be empty now
@@ -334,7 +333,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
             await self.vault.accountgroup.move_all_account_groups(
                 self.test_target_safe, self.test_safe
             )
-        except Exception as err:
+        except Exception:
             raise
 
         for _r in await self.vault.accountgroup.members(group_id):

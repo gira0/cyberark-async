@@ -5,7 +5,6 @@ import unittest
 from unittest import IsolatedAsyncioTestCase
 import aiobastion
 import tests
-from aiobastion import CyberarkException
 
 
 class TestEPV(IsolatedAsyncioTestCase):

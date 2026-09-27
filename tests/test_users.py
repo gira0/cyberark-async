@@ -6,7 +6,7 @@ import secrets
 import aiobastion
 import random
 import tests
-from aiobastion import CyberarkAPIException, CyberarkException, AiobastionException
+from aiobastion import CyberarkAPIException, AiobastionException
 
 
 class TestUsers(IsolatedAsyncioTestCase):

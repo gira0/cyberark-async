@@ -254,7 +254,7 @@ class User:
         new_user_filtered = {k: v for k, v in new_user.items() if v is not None}
 
         return await self.epv.handle_request(
-            "post", f"API/Users/", data=new_user_filtered
+            "post", "API/Users/", data=new_user_filtered
         )
 
     async def delete(self, username: str):
@@ -329,7 +329,7 @@ class Group:
         :param include_members:
         :return:
         """
-        url = f"api/UserGroups"
+        url = "api/UserGroups"
         params = {}
 
         if group_type is not None:
@@ -370,7 +370,7 @@ class Group:
         :return: Unique ID of the group
         :raise: Aiobastion exception if group was not found
         """
-        url = f"api/UserGroups"
+        url = "api/UserGroups"
         ret = await self.epv.handle_request(
             "get", url, filter_func=lambda x: x["value"]
         )
@@ -410,7 +410,7 @@ class Group:
         :param group_name: Name of the group
         :return: List of members
         """
-        url = f"api/UserGroups"
+        url = "api/UserGroups"
         params = {"includeMembers": "True", "filter": f"groupName eq {group_name}"}
         ret = await self.epv.handle_request(
             "get", url, params=params, filter_func=lambda x: x["value"]

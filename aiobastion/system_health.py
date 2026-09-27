@@ -20,7 +20,7 @@ class SystemHealth:
             )
 
     async def summary(self):
-        url = f"API/ComponentsMonitoringSummary/"
+        url = "API/ComponentsMonitoringSummary/"
 
         return await self.epv.handle_request(
             "get", url, filter_func=lambda x: x["Components"]

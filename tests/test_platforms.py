@@ -7,7 +7,6 @@ import unittest
 from pathlib import Path
 from unittest import IsolatedAsyncioTestCase
 import aiobastion
-from aiobastion.exceptions import AiobastionException
 import tests
 
 

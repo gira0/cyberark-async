@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import sys  # Debug
 import yaml
 import warnings
 from .exceptions import AiobastionConfigurationException
-from typing import Optional, Union
+from typing import Union
 from .api_options import Api_options
 
 

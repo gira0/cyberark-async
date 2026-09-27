@@ -3,9 +3,7 @@ import asyncio
 import unittest
 from unittest import IsolatedAsyncioTestCase
 import aiobastion
-import random
 import tests
-from aiobastion import CyberarkAPIException, CyberarkException, AiobastionException
 
 
 class TestSystemHealth(IsolatedAsyncioTestCase):
