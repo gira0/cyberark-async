@@ -201,7 +201,7 @@ class TestSafe(IsolatedAsyncioTestCase):
         self.assertIn(self.test_safe, safes_names)
 
     async def test_v1_get_safes(self):
-        ret = await self.vault.safe.v1_get_safes()
+        await self.vault.safe.v1_get_safes()
         self.assertIn(self.test_safe, self.test_safe)
 
     async def test_rename_safe(self):
@@ -209,14 +209,14 @@ class TestSafe(IsolatedAsyncioTestCase):
         safe_to_rename = "RENAME_ME"
         new_name = "I_AM_RENAMED"
         try:
-            ret = await self.vault.safe.rename(safe_to_rename, new_name)
+            await self.vault.safe.rename(safe_to_rename, new_name)
         except AiobastionException:
             raise
         self.assertIn(
             new_name, [s["safeName"] for s in await self.vault.safe.search(new_name)]
         )
         # undo
-        ret = await self.vault.safe.rename(new_name, safe_to_rename)
+        await self.vault.safe.rename(new_name, safe_to_rename)
         self.assertIn(
             safe_to_rename,
             [s["safeName"] for s in await self.vault.safe.search(safe_to_rename)],

@@ -150,7 +150,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
         # ensure the address do not belong to the group
         try:
             await self.vault.accountgroup.delete_member(account, group)
-        except:
+        except Exception:
             pass
 
         await self.vault.accountgroup.add_member(account, group)
@@ -339,7 +339,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
         for _r in await self.vault.accountgroup.members(group_id):
             try:
                 await self.vault.accountgroup.delete_member(_r, group_id)
-            except:
+            except Exception:
                 pass
 
 

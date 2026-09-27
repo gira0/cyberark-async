@@ -132,7 +132,7 @@ class TestAccount(IsolatedAsyncioTestCase):
         else:
             try:
                 await self.vault.account.add_account_to_safe(create_me)
-            except:
+            except Exception:
                 self.assertRaises(CyberarkException)
 
         create_me_list = [create_me, create_me2, create_me3]
@@ -142,7 +142,7 @@ class TestAccount(IsolatedAsyncioTestCase):
         create_me_filter = [
             c
             for c in create_me_safe_account_list
-            if c.name in [l.name for l in create_me_list]
+            if c.name in [acc.name for acc in create_me_list]
         ]
         if len(create_me_filter) == 0:
             # No "create_me" accounts were found, we try to create it !
@@ -177,7 +177,7 @@ class TestAccount(IsolatedAsyncioTestCase):
 
         try:
             account = await self.vault.account.get_account("12_1212")
-        except:
+        except Exception:
             self.assertRaises(CyberarkException)
 
     async def test_get_account_id(self):
@@ -438,7 +438,7 @@ class TestAccount(IsolatedAsyncioTestCase):
                 account, "sample_group_name"
             )
             self.assertTrue("AccountId" in ret)
-        except:
+        except Exception:
             # the address is already username of the group
             pass
 
@@ -624,11 +624,7 @@ class TestAccount(IsolatedAsyncioTestCase):
 
         retrieved_password = await self.vault.account.get_secret(account[15])
 
-        import time
-
-        start_time = time.time()
         get_secret = await self.vault.account.get_secret_aim(account)
-        execution_time = time.time() - start_time
 
         self.assertEqual(retrieved_password, get_secret[15].secret)
         #

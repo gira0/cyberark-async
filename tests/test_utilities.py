@@ -92,9 +92,7 @@ class TestUtilities(IsolatedAsyncioTestCase):
         start = time.time()
 
         all_user_list = await self.vault.user.list()
-        all_user_details = await asyncio.gather(
-            *[self.vault.user.details(_u) for _u in all_user_list]
-        )
+        await asyncio.gather(*[self.vault.user.details(_u) for _u in all_user_list])
         end = time.time()
 
         print(f"Good logic took {end - start} seconds")
