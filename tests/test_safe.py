@@ -1,16 +1,20 @@
 import unittest
 from unittest import IsolatedAsyncioTestCase, mock
-import aiobastion
+import cyberark_async
 import random
 import tests
 import yarl
-from aiobastion import CyberarkAPIException, CyberarkException, AiobastionException
+from cyberark_async import (
+    CyberarkAPIException,
+    CyberarkException,
+    CyberarkAsyncException,
+)
 
 
 class TestSafe(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
-        self.vault = aiobastion.EPV(tests.CONFIG)
+        tests.require_integration_tests(tests.CONFIG, "CYBERARK_ASYNC_TEST_CONFIG")
+        self.vault = cyberark_async.EPV(tests.CONFIG)
         await self.vault.login()
         self.api_user = tests.API_USER
         self.test_safe = "sample-it-dept"
@@ -160,7 +164,7 @@ class TestSafe(IsolatedAsyncioTestCase):
         self.assertIsInstance(members, list)
         print(members)
 
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             members = await self.vault.safe.list_members(
                 self.test_safe, filter_perm="tutu"
             )
@@ -210,7 +214,7 @@ class TestSafe(IsolatedAsyncioTestCase):
         new_name = "I_AM_RENAMED"
         try:
             await self.vault.safe.rename(safe_to_rename, new_name)
-        except AiobastionException:
+        except CyberarkAsyncException:
             raise
         self.assertIn(
             new_name, [s["safeName"] for s in await self.vault.safe.search(new_name)]
@@ -227,7 +231,7 @@ class TestSafeDetailsOffline(IsolatedAsyncioTestCase):
     """Offline regression tests for get_safe_details query parameters (issue #1)."""
 
     async def _captured_params(self, **kwargs):
-        vault = aiobastion.EPV(serialized={"api_host": "pvwa.example.invalid"})
+        vault = cyberark_async.EPV(serialized={"api_host": "pvwa.example.invalid"})
         with mock.patch.object(
             vault, "handle_request", new=mock.AsyncMock(return_value={})
         ) as handle_request:

@@ -15,7 +15,7 @@ It has the following extra attributes:
 
 Functions
 -----------
-.. currentmodule:: aiobastion.accountgroup.AccountGroup
+.. currentmodule:: cyberark_async.accountgroup.AccountGroup
 .. autofunction:: list_by_safe
 .. autofunction:: get_account_group_id
 .. autofunction:: members

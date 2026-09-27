@@ -2,7 +2,7 @@ Safes
 ========================
 Main functions
 --------------------------
-.. currentmodule:: aiobastion.safe.Safe
+.. currentmodule:: cyberark_async.safe.Safe
 .. autofunction:: add_member
 .. autofunction:: add_member_profile
 .. autofunction:: remove_member

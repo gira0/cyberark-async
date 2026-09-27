@@ -9,9 +9,9 @@ from .config import validate_ip, flatten, validate_integer
 from .exceptions import (
     CyberarkAPIException,
     CyberarkException,
-    AiobastionException,
+    CyberarkAsyncException,
     CyberarkAIMnotFound,
-    AiobastionConfigurationException,
+    CyberarkAsyncConfigurationException,
 )
 
 BASE_FILECATEGORY = ("platformId", "userName", "address", "name")
@@ -55,7 +55,7 @@ class PrivilegedAccount:
                     for k in remoteMachinesAccess.keys()
                 ]
             ):
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     "remoteMachinesAccess is not a valid dictionary"
                 )
         if secretManagement is None:
@@ -67,7 +67,7 @@ class PrivilegedAccount:
         self.secretManagement = secretManagement
         self.secretType = secretType
         if secretType not in [None, "password", "key"]:
-            raise AiobastionException("secretType is not valid")
+            raise CyberarkAsyncException("secretType is not valid")
         if platformAccountProperties is None:
             platformAccountProperties = {}
         self.platformAccountProperties = platformAccountProperties
@@ -272,19 +272,19 @@ class Account:
 
         # Validation
         if not (1 <= self.logon_account_index <= 3):
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Invalid value for '{_section}/logon_account_index' in "
                 f"{_config_source}  (expected 1 to 3): {self.logon_account_index!r}"
             )
         if not (1 <= self.reconcile_account_index <= 3):
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Invalid value for '{_section}/reconcile_account_index' in "
                 f"{_config_source}  (expected 1 to 3): {self.reconcile_account_index!r}"
             )
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
             )
 
@@ -315,7 +315,7 @@ class Account:
                 if not isinstance(a, PrivilegedAccount) and not re.match(
                     "[0-9]*_[0-9*]", a
                 ):
-                    raise AiobastionException(
+                    raise CyberarkAsyncException(
                         "You must call the function with PrivilegedAccount or list of Privileged "
                         "Accounts"
                     )
@@ -328,7 +328,7 @@ class Account:
         ):
             return await api_call(account, *args, **kwargs)
         else:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 "You must call the function with PrivilegedAccount or list of Privileged Accounts"
                 "(or valid account_id for some functions)"
             )
@@ -346,7 +346,7 @@ class Account:
         :param data: if relevant, a dict that contains data
 
         :return: the result of the subsequent calls
-        :raises Aiobastion: if the function was not called with PrivilegedAccount(s)
+        :raises CyberarkAsync: if the function was not called with PrivilegedAccount(s)
         """
 
         async def _api_call(acc_id):
@@ -434,11 +434,11 @@ class Account:
             if re.match(r"\d+_\d+", account) is not None:
                 return account
             else:
-                raise AiobastionException("The account_id provided is not correct")
+                raise CyberarkAsyncException("The account_id provided is not correct")
         if isinstance(account, PrivilegedAccount):
             return await self.get_privileged_account_id(account)
         else:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 "You must provide a valid PrivilegedAccount to function get_account_id"
             )
 
@@ -577,7 +577,7 @@ class Account:
         :raises CyberarkException: If link failed:
         """
         if extra_password_index not in [1, 2, 3]:
-            raise AiobastionException("ExtraPasswordIndex must be between 1 and 3")
+            raise CyberarkAsyncException("ExtraPasswordIndex must be between 1 and 3")
 
         return await self._handle_acc_id_list(
             "delete",
@@ -601,7 +601,7 @@ class Account:
         :return: True if success, exception otherwise
         """
         if extra_password_index not in [1, 2, 3]:
-            raise AiobastionException("ExtraPasswordIndex must be between 1 and 3")
+            raise CyberarkAsyncException("ExtraPasswordIndex must be between 1 and 3")
         account_id = await self.get_account_id(account)
         if self.epv.versiontuple(await self.epv.get_version()) > self.epv.versiontuple(
             "12.1.1"
@@ -843,7 +843,7 @@ class Account:
         try:
             params = {"search": " ".join(kwargs.values())}
         except TypeError as err:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 f"You can't search on a list here ({kwargs.values()}), "
                 "provide a string instead"
             ) from err
@@ -1063,7 +1063,7 @@ class Account:
         :param account: address, list of accounts, account_id, list of accounts id
         :param file_category: the File Category to delete
         :return: The updated PrivilegedAccount or the list of updated PrivilegedAccount
-        :raises AiobastionException: if the FC was not found in the Vault
+        :raises CyberarkAsyncException: if the FC was not found in the Vault
         :raises CyberarkAPIException: if another error occured
         """
         data = [
@@ -1089,7 +1089,7 @@ class Account:
         :param new_value: The new value of the FC, or None if you want to delete the FC
         :param operation: Replace, Remove or Add
         :return: The updated PrivilegedAccount or the list of updated PrivilegedAccount
-        :raises AiobastionException: if the FC was not found in the Vault
+        :raises CyberarkAsyncException: if the FC was not found in the Vault
         :raises CyberarkAPIException: if another error occured
         """
 
@@ -1114,7 +1114,7 @@ class Account:
                     account, file_category, new_value, "add"
                 )
             if err.http_status == 400:
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     "The FC was not found in the Vault (it is case sensitive)"
                 ) from err
             else:
@@ -1133,11 +1133,11 @@ class Account:
         data = []
         if isinstance(file_category, list):
             if not isinstance(new_value, list):
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     "If file_category is a list, then new value must be a list as well"
                 )
             if len(file_category) != len(new_value):
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     "You must provide the same list size for file_category and values"
                 )
 
@@ -1186,7 +1186,7 @@ class Account:
         :param account: a PrivilegedAccount object
         :param cpm: the name of the CPM who set the password
         :return: True if success
-        :raises AiobastionException: if no CPM version was found
+        :raises CyberarkAsyncException: if no CPM version was found
         """
         versions = await self.get_secret_versions(account)
         cpm_versions = [v["versionID"] for v in versions if v["modifiedBy"] == cpm]
@@ -1195,7 +1195,7 @@ class Account:
             password_to_set = await self.get_secret_version(account, good_ver)
             return await self.set_password(account, password_to_set)
         else:
-            raise AiobastionException("There is no CPM version for this account")
+            raise CyberarkAsyncException("There is no CPM version for this account")
 
     async def restore_last_cpm_version_by_cpm(self, account: PrivilegedAccount, cpm):
         """
@@ -1204,7 +1204,7 @@ class Account:
         :param account: a PrivilegedAccount object
         :param cpm: the name of the CPM who set the password
         :return: True if success
-        :raises AiobastionException: if there is no CPM version for this account
+        :raises CyberarkAsyncException: if there is no CPM version for this account
         """
         versions = await self.get_secret_versions(account)
         cpm_versions = [v["versionID"] for v in versions if v["modifiedBy"] == cpm]
@@ -1213,7 +1213,7 @@ class Account:
             password_to_set = await self.get_secret_version(account, good_ver)
             return await self.set_next_password(account, password_to_set)
         else:
-            raise AiobastionException("There is no CPM version for this account")
+            raise CyberarkAsyncException("There is no CPM version for this account")
 
     async def get_secret_version(
         self, account: PrivilegedAccount, version: int, reason: str = None
@@ -1228,7 +1228,9 @@ class Account:
         :raises CyberarkException: if the version was not found
         """
         if version < 1:
-            raise AiobastionException("The version must be a non-zero natural integer")
+            raise CyberarkAsyncException(
+                "The version must be a non-zero natural integer"
+            )
 
         data = {"Version": version}
         if reason:
@@ -1309,7 +1311,7 @@ class Account:
         elif isinstance(versions, dict):
             return versions["Versions"]
         else:
-            raise AiobastionException(versions)
+            raise CyberarkAsyncException(versions)
 
     # Test
     async def get_secret(
@@ -1493,7 +1495,7 @@ class Account:
                 if group_name.lower() == group.name.lower():
                     group_id = group.id
         if group_id == 0:
-            raise AiobastionException("Group name was incorrect or not found")
+            raise CyberarkAsyncException("Group name was incorrect or not found")
 
         async def _api_call(acc):
             url = f"API/AccountGroups/{group_id}/Members"
@@ -1545,7 +1547,7 @@ class Account:
                 except (
                     CyberarkAPIException,
                     CyberarkException,
-                    AiobastionException,
+                    CyberarkAsyncException,
                 ) as err:
                     raise CyberarkException(
                         "Unable to remove address group " + str(err)
@@ -1629,10 +1631,10 @@ class Account:
         :return: PrivilegedAccount Object updated, if the password is not found the secret will be None
         :raise CyberarkAPIException: HTTP error or CyberArk error
         :raise CyberarkException: Runtime error
-        :raise AiobastionException: AIM configuration setup error
+        :raise CyberarkAsyncException: AIM configuration setup error
         """
         if self.epv.AIM is None:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 "Missing AIM information to perform AIM authentication, see documentation"
             )
 
@@ -1647,7 +1649,7 @@ class Account:
 
         # Deal with a single account
         if not isinstance(account, PrivilegedAccount):
-            raise AiobastionException("You must provide a valid PrivilegedAccount.")
+            raise CyberarkAsyncException("You must provide a valid PrivilegedAccount.")
 
         params = {"object": account.name}
 
@@ -1699,10 +1701,10 @@ class Account:
         :raise CyberarkAIMnotFound: Account not found
         :raise CyberarkAPIException: HTTP error or CyberArk error
         :raise CyberarkException: Runtime error
-        :raise AiobastionException: AIM configuration setup error
+        :raise CyberarkAsyncException: AIM configuration setup error
         """
         if self.epv.AIM is None:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 "Missing AIM information to perform AIM authentication, see documentation"
             )
 

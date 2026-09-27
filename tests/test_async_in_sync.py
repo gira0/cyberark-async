@@ -2,16 +2,16 @@ import asyncio
 import sys
 import time
 
-import aiobastion
+import cyberark_async
 import tests
-from aiobastion import GetTokenException
+from cyberark_async import GetTokenException
 
 
 # Automatic login using configuration setup
 async def login_cyberark():
     # tests.CONFIG="/path/to/config_file.yml"
-    tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
-    epv_env = aiobastion.EPV(tests.CONFIG)
+    tests.require_integration_tests(tests.CONFIG, "CYBERARK_ASYNC_TEST_CONFIG")
+    epv_env = cyberark_async.EPV(tests.CONFIG)
     try:
         await epv_env.login()
     except GetTokenException as err:
@@ -21,7 +21,7 @@ async def login_cyberark():
 
 # Utility function to rebuild EPV object from serialized session
 async def get_session(epv_session):
-    epv = aiobastion.EPV(serialized=epv_session)
+    epv = cyberark_async.EPV(serialized=epv_session)
     if not await epv.check_token():
         # Ensure that the token is still valid
         raise GetTokenException
@@ -49,7 +49,7 @@ def main():
     print("Main program started python", sys.version)
 
     # Async login to Cyberark
-    epv_session: aiobastion.EPV = asyncio.run(login_cyberark())
+    epv_session: cyberark_async.EPV = asyncio.run(login_cyberark())
 
     # Doing sync stuff
     for i in range(3):

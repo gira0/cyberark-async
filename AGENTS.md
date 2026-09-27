@@ -1,9 +1,9 @@
-# AIObastion
+# cyberark-async
 
 ## Project Shape
 
 - This is an asynchronous Python 3.12+ library for the CyberArk API, built on `asyncio` and `aiohttp`.
-- `aiobastion/cyberark.py` owns the `EPV` facade, authentication, HTTP sessions, request handling, concurrency, serialization, and lifecycle.
+- `cyberark_async/cyberark.py` owns the `EPV` facade, authentication, HTTP sessions, request handling, concurrency, serialization, and lifecycle.
 - Feature modules are initialized by `EPV` and keep a reference to it: `accounts.py`, `safe.py`, `users.py`, `platforms.py`, `accountgroup.py`, `applications.py`, `session_management.py`, and `system_health.py`.
 - `config.py` owns configuration parsing, defaults, validation, and compatibility aliases. Keep transport concerns in `EPV` rather than duplicating them in feature modules.
 - `utilities.py` contains higher-level bulk helpers; `exceptions.py` defines the public exception hierarchy; `api_options.py` holds compatibility/deprecation options.
@@ -42,7 +42,7 @@
 ## Testing Constraints
 
 - Most tests are offline. Live CyberArk tests are opt-in and require a working Vault/PVWA environment.
-- Enable live tests only with `AIOBASTION_RUN_INTEGRATION_TESTS=1`; optional test config and user overrides are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+- Enable live tests only with `CYBERARK_ASYNC_RUN_INTEGRATION_TESTS=1`; optional test config and user overrides are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 - Integration tests can be slow, destructive, permission-sensitive, or skipped when prerequisites are absent. Never add real secrets to test files.
 
 ## Code Review

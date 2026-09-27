@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Breaking changes
+- The import package is renamed from `aiobastion` to `cyberark_async`, matching the `cyberark-async` distribution and no longer clashing with the upstream `aiobastion` package when both are installed. Replace `import aiobastion` with `import cyberark_async`. There is no `aiobastion` compatibility module (#27)
+- `AiobastionException` and `AiobastionConfigurationException` are now `CyberarkAsyncException` and `CyberarkAsyncConfigurationException`. The old names remain importable as aliases (#27)
+- The library logger is now `cyberark_async` instead of `aiobastion`, and the test switches are now `CYBERARK_ASYNC_*` (for example `CYBERARK_ASYNC_RUN_INTEGRATION_TESTS`) instead of `AIOBASTION_*` (#27)
+
 ### Changes
 - uv settings moved from `[tool.uv]` in `pyproject.toml` to `uv.toml`, which requires uv 0.9.17 or newer. Older uv releases now stop with an error instead of silently ignoring the one-week `exclude-newer` cutoff and rewriting `uv.lock` (#7)
 - `aiobastion.__all__` now lists `EPV` and the exception classes; the old `all` list had no effect. The empty `aiobastion/__main__.py` was removed, and Dependabot now updates `uv.lock` through the `uv` ecosystem (#10)

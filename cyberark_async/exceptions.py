@@ -46,7 +46,7 @@ class CyberarkAPIException(Exception):
     pass
 
 
-class AiobastionConfigurationException(Exception):
+class CyberarkAsyncConfigurationException(Exception):
     """
     This exception is raised when a required field in configuration was not provided
     """
@@ -54,7 +54,7 @@ class AiobastionConfigurationException(Exception):
     pass
 
 
-class AiobastionException(Exception):
+class CyberarkAsyncException(Exception):
     """
     This exception is raised when a function does not have correct parameters
     and thus can't call the API.
@@ -89,3 +89,8 @@ class CyberarkAIMnotFound(Exception):
         return error
 
     pass
+
+
+# Names used before the package was renamed from ``aiobastion`` (#27).
+AiobastionConfigurationException = CyberarkAsyncConfigurationException
+AiobastionException = CyberarkAsyncException

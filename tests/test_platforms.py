@@ -6,14 +6,14 @@ import asyncio
 import unittest
 from pathlib import Path
 from unittest import IsolatedAsyncioTestCase
-import aiobastion
+import cyberark_async
 import tests
 
 
 class TestApplication(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
-        self.vault = aiobastion.EPV(tests.CONFIG)
+        tests.require_integration_tests(tests.CONFIG, "CYBERARK_ASYNC_TEST_CONFIG")
+        self.vault = cyberark_async.EPV(tests.CONFIG)
         await self.vault.login()
 
     async def asyncTearDown(self):

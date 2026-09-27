@@ -1,7 +1,7 @@
 FAQ
 =======
 
-How to integrate aiobastion with my "regular" sync programs ?
+How to integrate cyberark-async with my "regular" sync programs ?
 -----------------------------------------------------------------
 Basically, we just need to call asyncio.run() to run async code in sync function.
 
@@ -14,14 +14,14 @@ Basically, we just need to call asyncio.run() to run async code in sync function
     import sys
     import time
 
-    import aiobastion
-    from aiobastion import GetTokenException
+    import cyberark_async
+    from cyberark_async import GetTokenException
 
 
     # Automatic login using configuration setup
     async def login_cyberark():
         # tests.CONFIG="/path/to/config_file.yml"
-        epv_env = aiobastion.EPV(tests.CONFIG)
+        epv_env = cyberark_async.EPV(tests.CONFIG)
         try:
             await epv_env.login()
         except GetTokenException as err:
@@ -42,7 +42,7 @@ Basically, we just need to call asyncio.run() to run async code in sync function
         print("Main program started python", sys.version)
 
         # Async login to Cyberark
-        epv_session: aiobastion.EPV = asyncio.run(login_cyberark())
+        epv_session: cyberark_async.EPV = asyncio.run(login_cyberark())
 
         # Doing sync stuff
         for i in range(3):
@@ -86,7 +86,7 @@ Here's an example of serialization / deserialization:
     # Other program:
     # Utility function to rebuild EPV object from serialized session
     async def get_session(epv_json):
-        epv = aiobastion.EPV(serialized=epv_json)
+        epv = cyberark_async.EPV(serialized=epv_json)
         if not await epv.check_token():
             # Ensure that the token is still valid
             raise GetTokenException

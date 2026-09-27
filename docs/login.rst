@@ -1,17 +1,17 @@
 Login to the Vault
 ==================
-aiobastion and CyberArk
------------------------
+cyberark-async and CyberArk
+---------------------------
 
 .. _CyberArk Central Credential Provider - REST web service: https://docs.cyberark.com/AAM-CP/Latest/en/Content/CCP/Calling-the-Web-Service-using-REST.htm
 .. _CyberArk Privileged Access Manager REST API: https://docs.cyberark.com/PAS/Latest/en/Content/WebServices/Implementing%20Privileged%20Account%20Security%20Web%20Services%20.htm
 
 
-There are 2 different CyberArk API used in **aiobastion**:
+There are 2 different CyberArk API used in **cyberark-async**:
 
 * Password Vault Web Access (refer in this documentation as *PVWA*)
     * The Password Vault Web Access (PVWA) enables both end users and administrators to access and manage privileged accounts from any local or remote location through a web client.
-      This is the main reason why **aiobastion** has been made.
+      This is the main reason why **cyberark-async** has been made.
 
     * To use the interface you will need to set up a PWVA user in CyberArk (refer as the *PVWA user*).  This user will be allowed to access part or all the different components of CyberArk like
 
@@ -26,7 +26,7 @@ For more information see `CyberArk Privileged Access Manager REST API`_ .
 
 * Central Credential Provider web service (refer in this documentation as *AIM*)
     * The AIM API is the interface to get the secret (password) from one account at a time. The query has to return a unique account.
-        * To use the interface you will need to set up an application user (applID) in CyberArk (refer as the *AIM user*) and for security reason **you must define a client certificate authentication to the AIM** (this is an aiobastion requirement).
+        * To use the interface you will need to set up an application user (applID) in CyberArk (refer as the *AIM user*) and for security reason **you must define a client certificate authentication to the AIM** (this is a cyberark-async requirement).
 
 For more information see `CyberArk Central Credential Provider - REST web service`_.
 
@@ -46,11 +46,11 @@ There are several ways to login to the Vault:
 
 Connect with context manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Once *aiobastion.EPV* is set up, use the context manager to login and logoff automatically.
+Once *cyberark_async.EPV* is set up, use the context manager to login and logoff automatically.
 
 .. code-block:: python
 
-    epv_env = aiobastion.EPV("/path/aiobastion_prod_config.yml")
+    epv_env = cyberark_async.EPV("/path/cyberark_async_prod_config.yml")
 
     # Automatic login using configuration setup
     async with epv_env as epv:
@@ -70,11 +70,11 @@ See `Define a configuration file` for more information.
 
 .. code-block:: python
 
-    import aiobastion
+    import cyberark_async
     import asyncio
 
     async def main():
-        epv_env = aiobastion.EPV("/path/aiobastion_prod_config.yml")
+        epv_env = cyberark_async.EPV("/path/cyberark_async_prod_config.yml")
 
         async with epv_env as epv:
             # do something, e.g.:
@@ -90,13 +90,13 @@ Sometimes you need to ask the username and password in your code.
 
 .. code-block:: python
 
-    import aiobastion
+    import cyberark_async
     import asyncio
     import getpass
 
     async def initialize_pvwa():
         # Define login and password
-        epv_env = aiobastion.EPV("/path/aiobastion_prod_config.yml")
+        epv_env = cyberark_async.EPV("/path/cyberark_async_prod_config.yml")
 
         username = input("Enter CyberArk user: ")
         password = getpass.getpass("Enter CyberArk Password: ")
@@ -139,7 +139,7 @@ You can use the `Serialization tools`_ to extract the EPV serialization at any t
 
 .. code-block:: python
 
-    import aiobastion
+    import cyberark_async
     import asyncio
 
     async def initialize_pvwa():
@@ -189,7 +189,7 @@ You can use the `Serialization tools`_ to extract the EPV serialization at any t
             "api_options": api_options_config           # (optional) Global api options
             }
 
-        epv_env  = aiobastion.EPV(serialized=global_config)
+        epv_env  = cyberark_async.EPV(serialized=global_config)
         username = 'PVWAUSER001'
 
         # If PVWA username is unique
@@ -243,7 +243,7 @@ For demonstration purpose, AIM serialization is not define here. Otherwise refer
 
 .. code-block:: python
 
-    import aiobastion
+    import cyberark_async
     import asyncio
 
     async def initialize_pvwa():
@@ -260,7 +260,7 @@ For demonstration purpose, AIM serialization is not define here. Otherwise refer
             "aim": aim_config
             }
 
-        epv_env  = aiobastion.EPV(serialized=global_config)
+        epv_env  = cyberark_async.EPV(serialized=global_config)
         username = 'PVWAUSER001'
 
         # If PVWA username is unique
@@ -316,7 +316,7 @@ If you need to authenticate with RADIUS challenge / response mode, you need to c
 
 .. code-block:: python
 
-    import aiobastion
+    import cyberark_async
     import asyncio
     # import getpass
 
@@ -328,7 +328,7 @@ If you need to authenticate with RADIUS challenge / response mode, you need to c
 
         global_config = {'api_host': pvwa_host}
 
-        epv_env  = aiobastion.EPV(serialized=global_config)
+        epv_env  = cyberark_async.EPV(serialized=global_config)
 
         try:
             await epv_env.login(username=username, password=password, auth_type=authtype)
@@ -366,7 +366,7 @@ In rare cases, you may want to connect only with the AIM interface (without PVWA
 
 .. code-block:: python
 
-    import aiobastion
+    import cyberark_async
     import asyncio
 
     def initialize_aim():
@@ -382,7 +382,7 @@ In rare cases, you may want to connect only with the AIM interface (without PVWA
             "verify": True                              # (optional) Directory or filename of the ROOT certificate authority (CA)
             }
 
-        aim_env  = aiobastion.aim.EPV_AIM(serialized=aim_config)
+        aim_env  = cyberark_async.aim.EPV_AIM(serialized=aim_config)
 
         return aim_env
 
@@ -402,12 +402,12 @@ In rare cases, you may want to connect only with the AIM interface (without PVWA
             print("secret (password): ", secret_info.secret)
             print("detail: ", secret_info.detail)
 
-        except aiobastion.exceptions.CyberarkAIMnotFound as err:
+        except cyberark_async.exceptions.CyberarkAIMnotFound as err:
             print(f"Account {username} not found in safe {user_safe}: {err}")
 
-        except (aiobastion.exceptions.CyberarkAPIException,
-                aiobastion.exceptions.CyberarkException,
-                aiobastion.exceptions.AiobastionException) as err:
+        except (cyberark_async.exceptions.CyberarkAPIException,
+                cyberark_async.exceptions.CyberarkException,
+                cyberark_async.exceptions.CyberarkAsyncException) as err:
             print(f"Unexcepted error: {str(err)}")
             raise
 
@@ -450,7 +450,7 @@ The configuration file contains the following main sections:
 +---------------+-----------------------+----------------------------------------------------------------------------------------------------------------------+
 | custom        | Optional              | Customer section (EPV.config.custom).                                                                                +
 |               |                       |                                                                                                                      +
-|               |                       | This section is not used by aiobastion.                                                                              +
+|               |                       | This section is not used by cyberark-async.                                                                          +
 |               |                       |                                                                                                                      +
 |               |                       | It is available to custom to add their own information if necessary.                                                 +
 +---------------+-----------------------+----------------------------------------------------------------------------------------------------------------------+
@@ -664,7 +664,7 @@ A minimal file only defines a PVWA host.  You must call the `login function`_ or
 
 EPV Functions references
 ------------------------
-.. currentmodule:: aiobastion.cyberark.EPV
+.. currentmodule:: cyberark_async.cyberark.EPV
 
 Serialization tools
 ~~~~~~~~~~~~~~~~~~~
@@ -675,7 +675,7 @@ However, since your token is valid you can use it.
 
 .. code-block:: python
 
-    epv = EPV("/path/aiobastion_prod_config.yml)
+    epv = EPV("/path/cyberark_async_prod_config.yml)
     json_epv = epv.to_json()
 
     epv = EPV(serialized=json_epv)

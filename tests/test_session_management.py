@@ -2,18 +2,20 @@ import sys
 import asyncio
 import unittest
 from unittest import IsolatedAsyncioTestCase
-import aiobastion
+import cyberark_async
 import tests
 
 
 @unittest.skipUnless(
     tests.INTEGRATION_TESTS_ENABLED,
-    "Integration tests are disabled. Set AIOBASTION_RUN_INTEGRATION_TESTS=1.",
+    "Integration tests are disabled. Set CYBERARK_ASYNC_RUN_INTEGRATION_TESTS=1.",
 )
 class TestSessionManagement(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        tests.require_integration_tests(tests.AIM_CONFIG, "AIOBASTION_TEST_AIM_CONFIG")
-        self.vault = aiobastion.EPV(tests.AIM_CONFIG)
+        tests.require_integration_tests(
+            tests.AIM_CONFIG, "CYBERARK_ASYNC_TEST_AIM_CONFIG"
+        )
+        self.vault = cyberark_async.EPV(tests.AIM_CONFIG)
         await self.vault.login()
 
     async def asyncTearDown(self):

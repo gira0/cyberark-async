@@ -2,10 +2,10 @@ import re
 from typing import Union, List
 
 from .accounts import PrivilegedAccount
-from aiobastion.exceptions import (
-    AiobastionException,
+from cyberark_async.exceptions import (
+    CyberarkAsyncException,
     CyberarkAPIException,
-    AiobastionConfigurationException,
+    CyberarkAsyncConfigurationException,
     CyberarkNotFoundException,
 )
 
@@ -45,7 +45,7 @@ class AccountGroup:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
             )
 
@@ -84,7 +84,7 @@ class AccountGroup:
             for a in acc:
                 if a.name == account_group.name:
                     return a.id
-            raise AiobastionException(f"No ID found for group {account_group.name}")
+            raise CyberarkAsyncException(f"No ID found for group {account_group.name}")
         return account_group.id
 
     async def get_account_group_id(self, group_name: str, safe: str) -> str:
@@ -99,7 +99,7 @@ class AccountGroup:
         for _a in ais:
             if _a.name.lower() == group_name.lower():
                 return _a.id
-        raise AiobastionException(f"Group {group_name} not found in {safe}")
+        raise CyberarkAsyncException(f"Group {group_name} not found in {safe}")
 
     async def get_group_id(self, account_group) -> str:
         """
@@ -111,10 +111,10 @@ class AccountGroup:
         if isinstance(account_group, str):
             if re.match(r"\d+_\d+", account_group):
                 return account_group
-            raise AiobastionException("The account_group_id provided is not correct")
+            raise CyberarkAsyncException("The account_group_id provided is not correct")
         if isinstance(account_group, PrivilegedAccountGroup):
             return await self.get_privileged_account_group_id(account_group)
-        raise AiobastionException(
+        raise CyberarkAsyncException(
             "You must provide a valid PrivilegedAccount to function get_account_id"
         )
 
@@ -141,7 +141,7 @@ class AccountGroup:
         :return: group id
         """
         if not await self.epv.safe.exists(safe_name):
-            raise AiobastionException(f"Safe {safe_name} does not exists")
+            raise CyberarkAsyncException(f"Safe {safe_name} does not exists")
         data = {
             "GroupName": group_name,
             "GroupPlatformID": group_platform,
@@ -160,7 +160,7 @@ class AccountGroup:
         :return: group id
         """
         if not await self.epv.safe.exists(account_group.safe):
-            raise AiobastionException(f"Safe {account_group.safe} does not exists")
+            raise CyberarkAsyncException(f"Safe {account_group.safe} does not exists")
         try:
             await self.epv.handle_request(
                 "post",

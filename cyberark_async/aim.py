@@ -9,11 +9,11 @@ import aiohttp
 from aiohttp import ContentTypeError
 
 from .exceptions import (
-    AiobastionException,
+    CyberarkAsyncException,
     CyberarkException,
     CyberarkAPIException,
     CyberarkAIMnotFound,
-    AiobastionConfigurationException,
+    CyberarkAsyncConfigurationException,
 )
 from .config import Config, validate_integer
 from .http_session import HttpSession
@@ -106,7 +106,7 @@ class EPV_AIM:
                 if keyname in EPV_AIM._SERIALIZED_FIELDS_IN:
                     setattr(self, keyname, v)
                 else:
-                    raise AiobastionException(
+                    raise CyberarkAsyncException(
                         f"Unknown serialized AIM field: {k} = {v!r}"
                     )
 
@@ -120,13 +120,13 @@ class EPV_AIM:
         if self.verify is not None and not (
             isinstance(self.verify, str) or isinstance(self.verify, bool)
         ):
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 f"Invalid type for parameter 'verify' in AIM: {type(self.verify)} value: {self.verify!r}"
             )
 
         if isinstance(self.verify, str):
             if not os.path.exists(self.verify):
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     f"CA certificat File not found {self.verify!r} (Parameter 'verify' in AIM)."
                 )
 
@@ -145,7 +145,7 @@ class EPV_AIM:
             configfile {str}            Name of the configuration file
 
         Raises:
-            AiobastionConfigurationException
+            CyberarkAsyncConfigurationException
 
         Information:
             "appid":                # Default = Connection (appid)
@@ -183,7 +183,7 @@ class EPV_AIM:
                     ):
                         new_serialized["verify"] = serialized[k]
                     else:
-                        raise AiobastionConfigurationException(
+                        raise CyberarkAsyncConfigurationException(
                             f"Parameter type invalid '{section}/{k}' "
                             f"in {_config_source}: {serialized[k]!r}"
                         )
@@ -194,7 +194,7 @@ class EPV_AIM:
                     new_serialized[keyname] = serialized[k]
             else:
                 # Unknown attribute
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     f"Unknown attribute in section '{section}' from {_config_source}: {k} is unknown."
                 )
 
@@ -242,7 +242,7 @@ class EPV_AIM:
         # Validation
         if isinstance(new_serialized["verify"], str):
             if not os.path.exists(new_serialized["verify"]):
-                raise AiobastionConfigurationException(
+                raise CyberarkAsyncConfigurationException(
                     f"CA certificat File not found {new_serialized['verify']!r} (Parameter 'verify' in AIM)."
                 )
 
@@ -254,18 +254,18 @@ class EPV_AIM:
 
         # Check mandatory attributes
         if self.host is None or self.appid is None or self.cert is None:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 "Missing AIM mandatory parameters. "
                 "Required parameters are: host, appid, cert."
             )
 
         if not os.path.exists(self.cert):
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 f"Parameter 'cert' in AIM: Public certificate file not found: {self.cert!r}"
             )
 
         if self.key and not os.path.exists(self.key):
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 f"Parameter 'key' in AIM: Private key certificat file not found: {self.key!r}"
             )
 
@@ -398,7 +398,7 @@ class EPV_AIM:
         :raise CyberarkAIMnotFound: Account not found
         :raise CyberarkAPIException: HTTP error or CyberArk error
         :raise CyberarkException: Runtime error
-        :raise AiobastionException: AIM configuration setup error
+        :raise CyberarkAsyncException: AIM configuration setup error
         :return:  namedtuple of (secret, detail)
             secret = password
             detail = dictionary from the Central Credential Provider (AIM) GetPassword Web Service

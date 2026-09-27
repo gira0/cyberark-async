@@ -7,7 +7,7 @@ you want to manage.
 
 Users
 ---------------------------
-.. currentmodule:: aiobastion.users.User
+.. currentmodule:: cyberark_async.users.User
 .. autofunction:: get_logged_on_user_details
 .. autofunction:: list
 .. autofunction:: get_id
@@ -24,7 +24,7 @@ Users
 
 Groups
 ---------------------------
-.. currentmodule:: aiobastion.users.Group
+.. currentmodule:: cyberark_async.users.Group
 .. autofunction:: list
 .. autofunction:: get_id
 .. autofunction:: details

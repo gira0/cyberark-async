@@ -1,7 +1,7 @@
 Applications
 ===============
 
-.. currentmodule:: aiobastion.applications.Applications
+.. currentmodule:: cyberark_async.applications.Applications
 .. autofunction:: add
 .. autofunction:: delete
 .. autofunction:: details

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import warnings
-from .exceptions import AiobastionConfigurationException
+from .exceptions import CyberarkAsyncConfigurationException
 from typing import Optional
 
 
@@ -31,7 +31,7 @@ class Api_options:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
             )
 
@@ -55,8 +55,8 @@ class Api_options:
     ) -> bool:
         """Set/reset deprecated_warning option
 
-        :param bool value: Activate (True) or deactivate (False) aiobastion deprecated warning option
-        :raise AiobastionConfigurationException(f"Invalid value 'value' in 'set_deprecated_warning' funtion (expected bool): ...")
+        :param bool value: Activate (True) or deactivate (False) cyberark_async deprecated warning option
+        :raise CyberarkAsyncConfigurationException(f"Invalid value 'value' in 'set_deprecated_warning' funtion (expected bool): ...")
         """
         if _config_source is None and _section is None:
             _config_source = "'set_deprecated_warning' function"
@@ -82,12 +82,12 @@ class Api_options:
         if value:
             cls.deprecated_warning_enabled_ind = True
             warnings.filterwarnings(
-                "module", category=DeprecationWarning, module=r"^aiobastion\."
+                "module", category=DeprecationWarning, module=r"^cyberark_async\."
             )
         else:
             cls.deprecated_warning_enabled_ind = False
             warnings.filterwarnings(
-                "ignore", category=DeprecationWarning, module=r"^aiobastion\."
+                "ignore", category=DeprecationWarning, module=r"^cyberark_async\."
             )
 
         return cls.deprecated_warning_enabled_ind
@@ -106,7 +106,7 @@ class Api_options:
         if isinstance(val, bool):
             rt = val
         else:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Invalid value '{section_name}' "
                 f"in {config_source} (expected bool): {val!r}"
             )

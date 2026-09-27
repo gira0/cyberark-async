@@ -4,22 +4,22 @@ import time
 import unittest
 import asyncio
 from unittest import IsolatedAsyncioTestCase
-import aiobastion
+import cyberark_async
 import tests
 
 # from . import CONFIG
-from aiobastion.exceptions import (
+from cyberark_async.exceptions import (
     CyberarkAPIException,
     CyberarkException,
-    AiobastionException,
+    CyberarkAsyncException,
 )
-from aiobastion.accountgroup import PrivilegedAccountGroup
+from cyberark_async.accountgroup import PrivilegedAccountGroup
 
 
 class TestAccountGroup(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        tests.require_integration_tests(tests.CONFIG, "AIOBASTION_TEST_CONFIG")
-        self.vault = aiobastion.EPV(tests.CONFIG)
+        tests.require_integration_tests(tests.CONFIG, "CYBERARK_ASYNC_TEST_CONFIG")
+        self.vault = cyberark_async.EPV(tests.CONFIG)
         await self.vault.login()
 
         self.test_safe = "sample-it-dept"
@@ -63,7 +63,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
         group_id = await self.vault.accountgroup.get_group_id(group)
         self.assertRegex(group_id, r"\d+_\d+")
 
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             await self.vault.accountgroup.get_group_id("toto")
 
         group_id2 = await self.vault.accountgroup.get_group_id(group_id)
@@ -74,11 +74,11 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
         self.assertEqual(group_id2, group_id)
 
         group.name = "toto"
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             await self.vault.accountgroup.get_group_id(group)
 
         group = 22
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             await self.vault.accountgroup.get_group_id(group)
 
     async def test_members(self):
@@ -102,7 +102,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
 
     async def test_add(self):
         # Unfortunately we can't delete Account Group so the test is only relevant the first time
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             await self.vault.accountgroup.add("toto", "titi", "tata")
 
         try:
@@ -127,7 +127,7 @@ class TestAccountGroup(IsolatedAsyncioTestCase):
             "bad", "non-existent-group", "non-existent-safe"
         )
 
-        with self.assertRaises(AiobastionException):
+        with self.assertRaises(CyberarkAsyncException):
             await self.vault.accountgroup.add_privileged_account_group(
                 bad_account_group
             )

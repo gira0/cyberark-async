@@ -35,7 +35,7 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
 
       # Live CyberArk integration tests stay skipped unless
-      # AIOBASTION_RUN_INTEGRATION_TESTS is set, so this runs the offline suite.
+      # CYBERARK_ASYNC_RUN_INTEGRATION_TESTS is set, so this runs the offline suite.
       - name: Run offline test suite
         run: uv run --locked --python ${{ matrix.python-version }} --group test pytest -q
 

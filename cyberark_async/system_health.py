@@ -1,4 +1,4 @@
-from .exceptions import AiobastionConfigurationException
+from .exceptions import CyberarkAsyncConfigurationException
 
 
 class SystemHealth:
@@ -15,7 +15,7 @@ class SystemHealth:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
             )
 

@@ -6,7 +6,7 @@ For your convenience we provide some "utility" function that are not directly an
 CPM Functions
 ---------------------------
 
-.. currentmodule:: aiobastion.utilities.Utilities
+.. currentmodule:: cyberark_async.utilities.Utilities
 .. autofunction:: cpm_change
 .. autofunction:: cpm_change_failed_accounts
 .. autofunction:: manual_set_password
@@ -24,7 +24,7 @@ Accounts related function
 Platform related functions
 ------------------------------------
 Call me with epv.utils.platform.func_name
-.. currentmodule:: aiobastion.utilities.Utilities.Platform
+.. currentmodule:: cyberark_async.utilities.Utilities.Platform
 .. autofunction:: count_platforms
 .. autofunction:: connection_component_usage
 .. autofunction:: migrate_platform

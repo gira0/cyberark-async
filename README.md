@@ -2,7 +2,7 @@
 
 > I'm currently updating the tooling, migrating and linting this repo.
 
-**aiobastion** is a simple and fully asynchronous framework for [Cyberark API](https://docs.cyberark.com/Product-Doc/OnlineHelp/PAS/Latest/en/Content/WebServices/Implementing%20Privileged%20Account%20Security%20Web%20Services%20.htm) written in Python 3.12 with [asyncio](https://docs.python.org/3/library/asyncio.html) and [aiohttp](https://github.com/aio-libs/aiohttp).
+**cyberark-async** is a simple and fully asynchronous framework for [Cyberark API](https://docs.cyberark.com/Product-Doc/OnlineHelp/PAS/Latest/en/Content/WebServices/Implementing%20Privileged%20Account%20Security%20Web%20Services%20.htm) written in Python 3.12 with [asyncio](https://docs.python.org/3/library/asyncio.html) and [aiohttp](https://github.com/aio-libs/aiohttp).
 It helps you to manage your Cyberark implementation faster and in an intuitive way.
 
 
@@ -14,18 +14,18 @@ See [examples of usage](https://aiobastion.readthedocs.io/en/latest/started.html
 
 Here's a minimal python snippet to list safes
 
-```python 
-import aiobastion
+```python
+import cyberark_async
 import asyncio
 
-from aiobastion import GetTokenException
+from cyberark_async import GetTokenException
 
 
 async def main():
     # Define your PVWA host here
     pvwa_host = "pvwa.mycompany.fr"
-    vault = aiobastion.EPV(serialized={'api_host': pvwa_host})
-    
+    vault = cyberark_async.EPV(serialized={'api_host': pvwa_host})
+
     # Define login and password
     login = input("Login: ")
     password = input("Password: ")
@@ -69,15 +69,15 @@ This repository currently targets Python 3.12 and newer. The current maintenance
 The live CyberArk tests are opt-in. Set the environment variable below to enable them:
 
 ```bash
-export AIOBASTION_RUN_INTEGRATION_TESTS=1
+export CYBERARK_ASYNC_RUN_INTEGRATION_TESTS=1
 ```
 
 You can override the default local test config paths with:
 
 ```bash
-export AIOBASTION_TEST_CONFIG=/path/to/config_tests.yml
-export AIOBASTION_TEST_AIM_CONFIG=/path/to/config_aim_hp.yml
-export AIOBASTION_TEST_API_USER=admin_test_restapi
+export CYBERARK_ASYNC_TEST_CONFIG=/path/to/config_tests.yml
+export CYBERARK_ASYNC_TEST_AIM_CONFIG=/path/to/config_aim_hp.yml
+export CYBERARK_ASYNC_TEST_API_USER=admin_test_restapi
 ```
 
 With those set, run the live suite with:

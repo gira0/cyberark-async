@@ -1,5 +1,5 @@
-# import aiobastion.exceptions
-from .exceptions import AiobastionException, AiobastionConfigurationException
+# import cyberark_async.exceptions
+from .exceptions import CyberarkAsyncException, CyberarkAsyncConfigurationException
 from typing import Union
 
 # class AamObject:
@@ -26,7 +26,7 @@ class Applications:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
             )
 
@@ -75,14 +75,14 @@ class Applications:
 
         if access_from is not None:
             if access_from not in list(range(23)):
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     f"access_from argument must be int between 0 and 23, given : {access_from}"
                 )
             data["application"]["AccessPermittedFrom"] = access_from
 
         if access_to is not None:
             if access_to not in list(range(23)):
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     f"access_from argument must be int between 0 and 23, given : {access_to}"
                 )
             data["application"]["AccessPermittedTo"] = access_to
@@ -98,7 +98,7 @@ class Applications:
             import re
 
             if not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", owner_email):
-                raise AiobastionException(
+                raise CyberarkAsyncException(
                     f"owner_email argument must be valid mail, given : {owner_email}"
                 )
             data["application"]["BusinessOwnerEmail"] = owner_email
@@ -147,11 +147,11 @@ class Applications:
 
         if len(apps) > 1:
             app_names = [x["AppID"] for x in apps]
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 f"Provided name {app_name} returns more than one application : {app_names}"
             )
         elif len(apps) == 0:
-            raise AiobastionException(f"No results found for {app_name}")
+            raise CyberarkAsyncException(f"No results found for {app_name}")
 
     async def search(self, search: str):
         """

@@ -3,10 +3,10 @@ import copy
 
 from .accounts import PrivilegedAccount
 from .exceptions import (
-    AiobastionException,
+    CyberarkAsyncException,
     CyberarkAPIException,
     CyberarkException,
-    AiobastionConfigurationException,
+    CyberarkAsyncConfigurationException,
 )
 
 
@@ -47,7 +47,7 @@ class Utilities:
 
         # Check for unknown attributes
         if kwargs:
-            raise AiobastionConfigurationException(
+            raise CyberarkAsyncConfigurationException(
                 f"Unknown attribute in section '{_section}' from {_config_source}: {', '.join(kwargs.keys())}"
             )
 
@@ -136,7 +136,7 @@ class Utilities:
             except (
                 CyberarkAPIException,
                 CyberarkException,
-                AiobastionException,
+                CyberarkAsyncException,
             ) as err:
                 self.epv.logger.error(
                     f"{account.userName};{address};An error occured when trying to change password : {err}"
@@ -282,7 +282,7 @@ class Utilities:
             address=address, username=username
         )
         if len(accounts) != 1:
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 f"More than one address was found with {address} and {username}"
             )
         else:
@@ -411,7 +411,7 @@ class Utilities:
                 except (
                     CyberarkAPIException,
                     CyberarkException,
-                    AiobastionException,
+                    CyberarkAsyncException,
                 ) as e:
                     self.epv.logger.error(
                         f"{acc.address};{acc.userName};An error occured when trying to change platform : {e}"

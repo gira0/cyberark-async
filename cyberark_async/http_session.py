@@ -9,10 +9,10 @@ from typing import Optional
 import aiohttp
 
 from .config import Config
-from .exceptions import AiobastionException
+from .exceptions import CyberarkAsyncException
 
 
-logger = logging.getLogger("aiobastion")
+logger = logging.getLogger("cyberark_async")
 
 
 class HttpSession:
@@ -40,13 +40,15 @@ class HttpSession:
         if verify is None:
             verify = Config.CYBERARK_DEFAULT_VERIFY
         if not isinstance(verify, (str, bool)):
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 f"Invalid type for parameter 'verify': {type(verify)} value: {verify!r}"
             )
 
         if isinstance(verify, str):
             if not os.path.exists(verify):
-                raise AiobastionException(f"CA certificate file not found {verify!r}")
+                raise CyberarkAsyncException(
+                    f"CA certificate file not found {verify!r}"
+                )
             if os.path.isdir(verify):
                 ssl_context = ssl.create_default_context(capath=verify)
             else:
@@ -67,9 +69,9 @@ class HttpSession:
     ) -> None:
         """Build request SSL parameters with an AIM client certificate."""
         if not os.path.exists(cert):
-            raise AiobastionException(f"Public certificate file not found: {cert!r}")
+            raise CyberarkAsyncException(f"Public certificate file not found: {cert!r}")
         if key and not os.path.exists(key):
-            raise AiobastionException(
+            raise CyberarkAsyncException(
                 f"Private key certificate file not found: {key!r}"
             )
 

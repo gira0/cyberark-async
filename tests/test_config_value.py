@@ -3,7 +3,7 @@ test_config_value.py
 
 This is a exhaustive test of the Config and EPV class initialization.
 It does not access CyberArk.
-For debugging purpose, this test generates a lot of trace in the 'aiobastion_test' logger define in setUpClass.
+For debugging purpose, this test generates a lot of trace in the 'cyberark_async_test' logger define in setUpClass.
 
 test 0#  Check value complete base test
     test 01:    Check value return from config Class from the YAML complete base test
@@ -69,8 +69,8 @@ from typing import Optional
 
 import yaml
 
-import aiobastion
-from aiobastion.config import Config
+import cyberark_async
+from cyberark_async.config import Config
 
 # -----------------------------------
 # constants
@@ -138,11 +138,11 @@ class TestConfigEpv(unittest.TestCase):
     yaml_filename = os.path.join(MODULE_DIRNAME, "test_data", "custom_config.yml")
     yaml_temp_name = os.path.join(
         tempfile.gettempdir(),
-        f"aiobastion_test_{MODULE_NAME}_{datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')}{os.getppid()}.yml",
+        f"cyberark_async_test_{MODULE_NAME}_{datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')}{os.getppid()}.yml",
     )
     logging_name = os.path.join(
         tempfile.gettempdir(),
-        f"aiobastion_test_{MODULE_NAME}_{datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')}_{os.getppid()}.trc",
+        f"cyberark_async_test_{MODULE_NAME}_{datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')}_{os.getppid()}.trc",
     )
 
     @classmethod
@@ -169,7 +169,7 @@ class TestConfigEpv(unittest.TestCase):
         fnc_name = inspect.currentframe().f_code.co_name
 
         # Setup logger if needed
-        logger = logging.getLogger("aiobastion_test")
+        logger = logging.getLogger("cyberark_async_test")
 
         logger.setLevel(logging.DEBUG)
         fh = logging.FileHandler(cls.logging_name)
@@ -269,7 +269,7 @@ class TestConfigEpv(unittest.TestCase):
 
             if (
                 section_name_new
-                not in aiobastion.config.Config.CYBERARK_OPTIONS_MODULES_LIST
+                not in cyberark_async.config.Config.CYBERARK_OPTIONS_MODULES_LIST
                 + [
                     "pvwa",
                     "connection",
@@ -430,7 +430,7 @@ class TestConfigEpv(unittest.TestCase):
         )
 
     @classmethod
-    def write_EPV(cls, title, epv_env: aiobastion.EPV, **kwargs):
+    def write_EPV(cls, title, epv_env: cyberark_async.EPV, **kwargs):
         """write_EPV - Write EPV class attribute to logger"""
         stacklevel = kwargs.pop("stacklevel", 1) + 1
         # kwargs.setdefault("stacklevel", 3)
@@ -517,7 +517,7 @@ class TestConfigEpv(unittest.TestCase):
                 ):
                     expected_value["config"]["configfile"] = file_name
 
-                epv_env = aiobastion.EPV(configfile=file_name)
+                epv_env = cyberark_async.EPV(configfile=file_name)
             else:  # serialized
                 if trace_input:
                     self.write_pprint(
@@ -527,7 +527,7 @@ class TestConfigEpv(unittest.TestCase):
                         **kwargs,
                     )
 
-                epv_env = aiobastion.EPV(serialized=serialized)
+                epv_env = cyberark_async.EPV(serialized=serialized)
         except Exception as err:
             self.writelog(f"{title}: raise {err}", stacklevel=stacklevel, **kwargs)
             raise err
@@ -647,7 +647,7 @@ class TestConfigEpv(unittest.TestCase):
     def check_epv_value_with_dict(
         self,
         testname: str,
-        epv_env: aiobastion.EPV,
+        epv_env: cyberark_async.EPV,
         expected_value: dict,
         trace_check: bool = False,
         **kwargs,
@@ -662,7 +662,7 @@ class TestConfigEpv(unittest.TestCase):
 
         # check every field
         self.assertIsInstance(
-            epv_env, aiobastion.EPV, msg=f"""{testname}: Wrong epv_env type"""
+            epv_env, cyberark_async.EPV, msg=f"""{testname}: Wrong epv_env type"""
         )
 
         if trace_check:
@@ -690,7 +690,7 @@ class TestConfigEpv(unittest.TestCase):
             TestConfigEpv.yaml_filename, f"{fnc_name} - original Yaml file"
         )
         # with self.assertWarns()
-        config_instance = aiobastion.config.Config(
+        config_instance = cyberark_async.config.Config(
             configfile=TestConfigEpv.yaml_filename
         )
 
@@ -716,7 +716,7 @@ class TestConfigEpv(unittest.TestCase):
             with self.subTest(section=sectionName):
                 self.assertIn(
                     sectionName,
-                    aiobastion.config.Config.CYBERARK_OPTIONS_MODULES_LIST,
+                    cyberark_async.config.Config.CYBERARK_OPTIONS_MODULES_LIST,
                     msg=f"{sectionName} Unknowed section '{sectionName}' in options_modules.",
                 )
 
@@ -984,21 +984,22 @@ class TestConfigEpv(unittest.TestCase):
         # Global API options
         self.assertEqual(
             epv_env.api_options.deprecated_warning,
-            aiobastion.config.Api_options.API_OPTIONS_DEFAULT_DEPRECATED_WARNING,
+            cyberark_async.config.Api_options.API_OPTIONS_DEFAULT_DEPRECATED_WARNING,
         )
         # EPV
         self.assertEqual(
-            epv_env.keep_cookies, aiobastion.config.Config.CYBERARK_DEFAULT_KEEP_COOKIES
+            epv_env.keep_cookies,
+            cyberark_async.config.Config.CYBERARK_DEFAULT_KEEP_COOKIES,
         )
         self.assertEqual(
             epv_env.max_concurrent_tasks,
-            aiobastion.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS,
+            cyberark_async.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS,
         )
         self.assertEqual(
-            epv_env.timeout, aiobastion.config.Config.CYBERARK_DEFAULT_TIMEOUT
+            epv_env.timeout, cyberark_async.config.Config.CYBERARK_DEFAULT_TIMEOUT
         )
         self.assertEqual(
-            epv_env.verify, aiobastion.config.Config.CYBERARK_DEFAULT_VERIFY
+            epv_env.verify, cyberark_async.config.Config.CYBERARK_DEFAULT_VERIFY
         )
 
         # account
@@ -1014,13 +1015,13 @@ class TestConfigEpv(unittest.TestCase):
         # aim
         self.assertEqual(
             epv_env.AIM.max_concurrent_tasks,
-            aiobastion.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS,
+            cyberark_async.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS,
         )
         self.assertEqual(
-            epv_env.AIM.timeout, aiobastion.config.Config.CYBERARK_DEFAULT_TIMEOUT
+            epv_env.AIM.timeout, cyberark_async.config.Config.CYBERARK_DEFAULT_TIMEOUT
         )
         self.assertEqual(
-            epv_env.AIM.verify, aiobastion.config.Config.CYBERARK_DEFAULT_VERIFY
+            epv_env.AIM.verify, cyberark_async.config.Config.CYBERARK_DEFAULT_VERIFY
         )
 
         # safe
@@ -1065,22 +1066,22 @@ class TestConfigEpv(unittest.TestCase):
 
         self.epv_env_fields_check(epv_env)
         # Global API options
-        # self.assertEqual(epv_env.api_options.deprecated_warning, aiobastion.config.Api_options.API_OPTIONS_DEFAULT_DEPRECATED_WARNING)
+        # self.assertEqual(epv_env.api_options.deprecated_warning, cyberark_async.config.Api_options.API_OPTIONS_DEFAULT_DEPRECATED_WARNING)
         #
         # # EPV
-        # self.assertEqual(epv_env.keep_cookies, aiobastion.config.Config.CYBERARK_DEFAULT_KEEP_COOKIES)
-        # self.assertEqual(epv_env.max_concurrent_tasks, aiobastion.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS)
-        # self.assertEqual(epv_env.timeout, aiobastion.config.Config.CYBERARK_DEFAULT_TIMEOUT)
-        # self.assertEqual(epv_env.verify, aiobastion.config.Config.CYBERARK_DEFAULT_VERIFY)
+        # self.assertEqual(epv_env.keep_cookies, cyberark_async.config.Config.CYBERARK_DEFAULT_KEEP_COOKIES)
+        # self.assertEqual(epv_env.max_concurrent_tasks, cyberark_async.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS)
+        # self.assertEqual(epv_env.timeout, cyberark_async.config.Config.CYBERARK_DEFAULT_TIMEOUT)
+        # self.assertEqual(epv_env.verify, cyberark_async.config.Config.CYBERARK_DEFAULT_VERIFY)
         #
         # # account
         # self.assertEqual(epv_env.account._ACCOUNT_DEFAULT_LOGON_ACCOUNT_INDEX, epv_env.account.logon_account_index)
         # self.assertEqual(epv_env.account._ACCOUNT_DEFAULT_RECONCILE_ACCOUNT_INDEX, epv_env.account.reconcile_account_index)
         #
         # # aim
-        # self.assertEqual(epv_env.AIM.max_concurrent_tasks, aiobastion.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS)
-        # self.assertEqual(epv_env.AIM.timeout, aiobastion.config.Config.CYBERARK_DEFAULT_TIMEOUT)
-        # self.assertEqual(epv_env.AIM.verify, aiobastion.config.Config.CYBERARK_DEFAULT_VERIFY)
+        # self.assertEqual(epv_env.AIM.max_concurrent_tasks, cyberark_async.config.Config.CYBERARK_DEFAULT_MAX_CONCURRENT_TASKS)
+        # self.assertEqual(epv_env.AIM.timeout, cyberark_async.config.Config.CYBERARK_DEFAULT_TIMEOUT)
+        # self.assertEqual(epv_env.AIM.verify, cyberark_async.config.Config.CYBERARK_DEFAULT_VERIFY)
         #
         # # safe
         # self.assertEqual(epv_env.safe._SAFE_DEFAULT_CPM, epv_env.safe.cpm)
@@ -1209,7 +1210,7 @@ class TestConfigEpv(unittest.TestCase):
 
         with self.subTest(section="global"):
             with self.assertRaisesRegex(
-                aiobastion.exceptions.AiobastionConfigurationException,
+                cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                 r"^Unknown attribute in global section in",
             ):
                 self.call_EPV(
@@ -1225,7 +1226,7 @@ class TestConfigEpv(unittest.TestCase):
         # -------------------------------------
         yaml_dict = self.check_section_fields_raise(yaml_dict, fnc_name)
 
-        # for section_name in aiobastion.config.Config.CYBERARK_OPTIONS_MODULES_LIST:
+        # for section_name in cyberark_async.config.Config.CYBERARK_OPTIONS_MODULES_LIST:
         #     if section_name == "cyberark":
         #         continue
         #
@@ -1242,7 +1243,7 @@ class TestConfigEpv(unittest.TestCase):
         #     yaml_dict[section_name]["a_wrong_field2"] = "This-is-wrong2"
         #
         #     with self.subTest(section=section_name):
-        #         with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
+        #         with self.assertRaisesRegex(cyberark_async.exceptions.CyberarkAsyncConfigurationException,
         #                                     f"^Unknown attribute in section '{section_name.lower()}' from "):
         #             self.call_EPV(f"{fnc_name} - wrong field in section_name {section_name}", yaml_dict=yaml_dict,
         #                           raise_condition=True)
@@ -1260,7 +1261,7 @@ class TestConfigEpv(unittest.TestCase):
 
         with self.subTest(section="user_search"):
             with self.assertRaisesRegex(
-                aiobastion.exceptions.AiobastionConfigurationException,
+                cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                 r"^invalid parameter in ",
             ):
                 self.call_EPV(
@@ -1274,7 +1275,7 @@ class TestConfigEpv(unittest.TestCase):
 
     def check_section_fields_raise(self, yaml_dict, fnc_name, serialized=False):
 
-        for section_name in aiobastion.config.Config.CYBERARK_OPTIONS_MODULES_LIST:
+        for section_name in cyberark_async.config.Config.CYBERARK_OPTIONS_MODULES_LIST:
             if section_name == "cyberark":
                 continue
 
@@ -1293,7 +1294,7 @@ class TestConfigEpv(unittest.TestCase):
             if serialized:
                 with self.subTest(section=section_name):
                     with self.assertRaisesRegex(
-                        aiobastion.exceptions.AiobastionConfigurationException,
+                        cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                         f"^Unknown attribute in section '{section_name.lower()}' from ",
                     ):
                         self.call_EPV(
@@ -1304,7 +1305,7 @@ class TestConfigEpv(unittest.TestCase):
             else:
                 with self.subTest(section=section_name):
                     with self.assertRaisesRegex(
-                        aiobastion.exceptions.AiobastionConfigurationException,
+                        cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                         f"^Unknown attribute in section '{section_name.lower()}' from ",
                     ):
                         self.call_EPV(
@@ -1339,10 +1340,10 @@ class TestConfigEpv(unittest.TestCase):
 
         with self.subTest(section="Global"):
             with self.assertRaisesRegex(
-                aiobastion.exceptions.AiobastionConfigurationException,
+                cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                 r"^Unknown attribute 'a_wrong_field' in serialization",
             ):
-                # epv_env = aiobastion.EPV(serialized=serialize_dict)
+                # epv_env = cyberark_async.EPV(serialized=serialize_dict)
                 self.call_EPV(
                     f"{fnc_name} - wrong field in section global",
                     serialized=serialize_dict,
@@ -1359,7 +1360,7 @@ class TestConfigEpv(unittest.TestCase):
             serialize_dict, fnc_name, serialized=True
         )
 
-        # for section_name in aiobastion.config.Config.CYBERARK_OPTIONS_MODULES_LIST:
+        # for section_name in cyberark_async.config.Config.CYBERARK_OPTIONS_MODULES_LIST:
         #     if section_name == "cyberark":
         #         continue
         #
@@ -1376,7 +1377,7 @@ class TestConfigEpv(unittest.TestCase):
         #     serialize_dict[section_name]["a_wrong_field2"] = "This-is-wrong2"
         #
         #     with self.subTest(section=section_name):
-        #         with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
+        #         with self.assertRaisesRegex(cyberark_async.exceptions.CyberarkAsyncConfigurationException,
         #                                     f"^Unknown attribute in section '{section_name.lower()}' from serialized:"):
         #             self.call_EPV(f"{fnc_name} - wrong field in section {section_name}", serialized=serialize_dict,
         #                         raise_condition=True)
@@ -1394,7 +1395,7 @@ class TestConfigEpv(unittest.TestCase):
 
         with self.subTest(section="user_search"):
             with self.assertRaisesRegex(
-                aiobastion.exceptions.AiobastionConfigurationException,
+                cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                 "^invalid parameter in 'user_search': ",
             ):
                 self.call_EPV(
@@ -1413,7 +1414,7 @@ class TestConfigEpv(unittest.TestCase):
             if serialized:
                 with self.subTest(attrName=attr_name):
                     with self.assertRaisesRegex(
-                        aiobastion.exceptions.AiobastionConfigurationException,
+                        cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                         "^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in",
                     ):
                         self.call_EPV(
@@ -1424,7 +1425,7 @@ class TestConfigEpv(unittest.TestCase):
             else:
                 with self.subTest(attrName=attr_name):
                     with self.assertRaisesRegex(
-                        aiobastion.exceptions.AiobastionConfigurationException,
+                        cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                         "^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in",
                     ):
                         self.call_EPV(
@@ -1444,7 +1445,7 @@ class TestConfigEpv(unittest.TestCase):
             if serialized:
                 with self.subTest(attrName=attr_name):
                     with self.assertRaisesRegex(
-                        aiobastion.exceptions.AiobastionConfigurationException,
+                        cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                         "^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition",
                     ):
                         self.call_EPV(
@@ -1455,7 +1456,7 @@ class TestConfigEpv(unittest.TestCase):
             else:
                 with self.subTest(attrName=attr_name):
                     with self.assertRaisesRegex(
-                        aiobastion.exceptions.AiobastionConfigurationException,
+                        cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                         "^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition",
                     ):
                         self.call_EPV(
@@ -1488,7 +1489,7 @@ class TestConfigEpv(unittest.TestCase):
         #     yaml_dict["custom"][attr_name] = yaml_dict["account"][attr_name.lower()]
         #
         #     with self.subTest(attrName=attr_name):
-        #         with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
+        #         with self.assertRaisesRegex(cyberark_async.exceptions.CyberarkAsyncConfigurationException,
         #                 f"^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in"):
         #             self.call_EPV(f"{fnc_name} - duplicate field account/{attr_name}", yaml_dict=yaml_dict,
         #                         raise_condition=True)
@@ -1502,7 +1503,7 @@ class TestConfigEpv(unittest.TestCase):
         #     yaml_dict[attr_name] = yaml_dict["safe"][attr_name.lower()]
         #
         #     with self.subTest(attrName=attr_name):
-        #         with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
+        #         with self.assertRaisesRegex(cyberark_async.exceptions.CyberarkAsyncConfigurationException,
         #                 f"^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition"):
         #             self.call_EPV(f"{fnc_name} - duplicate field safe/{attr_name}", yaml_dict=yaml_dict,
         #                         raise_condition=True)
@@ -1524,7 +1525,7 @@ class TestConfigEpv(unittest.TestCase):
 
         with self.subTest(add_section=add_section, attrName=attr_name):
             with self.assertRaisesRegex(
-                aiobastion.exceptions.AiobastionConfigurationException,
+                cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                 "^Duplicate key 'aim/appid' in ",
             ):
                 self.call_EPV(
@@ -1543,7 +1544,7 @@ class TestConfigEpv(unittest.TestCase):
 
         with self.subTest(attrName=attr_name):
             with self.assertRaisesRegex(
-                aiobastion.exceptions.AiobastionConfigurationException,
+                cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                 "^Duplicate key '/pvwa/host' in ",
             ):
                 self.call_EPV(
@@ -1575,9 +1576,9 @@ class TestConfigEpv(unittest.TestCase):
         #     serialize_dict["custom"][attrName] = serialize_dict["account"][attrName.lower()]
         #
         #     with self.subTest(attrName=attrName):
-        #         with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
+        #         with self.assertRaisesRegex(cyberark_async.exceptions.CyberarkAsyncConfigurationException,
         #                 f"^Duplicate definition: move 'logon_account_index' and 'reconcile_account_index' from 'custom' to 'account' section in"):
-        #             # epv_env = aiobastion.EPV(serialized=serialize_dict)
+        #             # epv_env = cyberark_async.EPV(serialized=serialize_dict)
         #             self.call_EPV(f"{fnc_name} - duplicate field account/{attrName}", serialized=serialize_dict,
         #                         raise_condition=True)
         #
@@ -1590,9 +1591,9 @@ class TestConfigEpv(unittest.TestCase):
         #     serialize_dict[attrName] = serialize_dict["safe"][attrName.lower()]
         #
         #     with self.subTest(attrName=attrName):
-        #         with self.assertRaisesRegex(aiobastion.exceptions.AiobastionConfigurationException,
+        #         with self.assertRaisesRegex(cyberark_async.exceptions.CyberarkAsyncConfigurationException,
         #                 f"^Duplicate definition: Move 'cpm' and 'retention' to the 'safe' definition"):
-        #             # epv_env = aiobastion.EPV(serialized=serialize_dict)
+        #             # epv_env = cyberark_async.EPV(serialized=serialize_dict)
         #             self.call_EPV(f"{fnc_name} - duplicate field safe/{attrName}", serialized=serialize_dict,
         #                             raise_condition=True)
         #
@@ -1604,7 +1605,8 @@ class TestConfigEpv(unittest.TestCase):
         serialize_dict["API_HOST"] = serialize_dict["api_host"]
 
         with self.assertRaisesRegex(
-            aiobastion.exceptions.AiobastionConfigurationException, "^Duplicate key '/"
+            cyberark_async.exceptions.CyberarkAsyncConfigurationException,
+            "^Duplicate key '/",
         ):
             self.call_EPV(
                 f"{fnc_name} - duplicate field api_host  (lower/uppercase)",
@@ -1677,7 +1679,8 @@ class TestConfigEpv(unittest.TestCase):
                 yaml_dict = {attrName: "err"}
 
             with self.assertRaisesRegex(
-                aiobastion.exceptions.AiobastionConfigurationException, "^Invalid "
+                cyberark_async.exceptions.CyberarkAsyncConfigurationException,
+                "^Invalid ",
             ):
                 self.call_EPV(
                     f"{fnc_name} - Invalid type {section_name}/{attrName}",
@@ -1693,7 +1696,7 @@ class TestConfigEpv(unittest.TestCase):
                 yaml_dict = {attrName: "err"}
 
             with self.assertRaisesRegex(
-                aiobastion.exceptions.AiobastionConfigurationException,
+                cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                 f"^Invalid value '{section_name}/{attrName}'",
             ):
                 self.call_EPV(
@@ -1710,7 +1713,7 @@ class TestConfigEpv(unittest.TestCase):
                 yaml_dict = {attrName: 1}
 
             with self.assertRaisesRegex(
-                aiobastion.exceptions.AiobastionConfigurationException,
+                cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                 "^Parameter type invalid ",
             ):
                 self.call_EPV(
@@ -1779,7 +1782,8 @@ class TestConfigEpv(unittest.TestCase):
 
             with self.subTest(attrName=attrName, type="integer"):
                 with self.assertRaisesRegex(
-                    aiobastion.exceptions.AiobastionConfigurationException, "^Invalid "
+                    cyberark_async.exceptions.CyberarkAsyncConfigurationException,
+                    "^Invalid ",
                 ):
                     self.call_EPV(
                         f"{fnc_name} - Invalid type {section_name}/{attrName}",
@@ -1796,7 +1800,7 @@ class TestConfigEpv(unittest.TestCase):
 
             with self.subTest(attrName=attrName, type="bool"):
                 with self.assertRaisesRegex(
-                    aiobastion.exceptions.AiobastionConfigurationException,
+                    cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                     f"^Invalid value '{attrName}'",
                 ):
                     self.call_EPV(
@@ -1814,7 +1818,7 @@ class TestConfigEpv(unittest.TestCase):
 
             with self.subTest(attrName=attrName, type="string/bool"):
                 with self.assertRaisesRegex(
-                    aiobastion.exceptions.AiobastionConfigurationException,
+                    cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                     "^Parameter type invalid ",
                 ):
                     self.call_EPV(
@@ -1832,7 +1836,7 @@ class TestConfigEpv(unittest.TestCase):
 
             with self.subTest(attrName=attrName, type="ser"):
                 with self.assertRaisesRegex(
-                    aiobastion.exceptions.AiobastionConfigurationException,
+                    cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                     f"^Invalid value for 'account/{attrName}' ",
                 ):
                     self.call_EPV(
@@ -1843,7 +1847,7 @@ class TestConfigEpv(unittest.TestCase):
 
             with self.subTest(attrName=attrName, type="Yaml"):
                 with self.assertRaisesRegex(
-                    aiobastion.exceptions.AiobastionConfigurationException,
+                    cyberark_async.exceptions.CyberarkAsyncConfigurationException,
                     f"^Invalid value for 'account/{attrName}' ",
                 ):
                     self.call_EPV(
@@ -1859,10 +1863,10 @@ class TestConfigEpv(unittest.TestCase):
         self.writelog(HEADER, fnc_name)
 
         with self.assertRaisesRegex(
-            aiobastion.exceptions.AiobastionConfigurationException,
+            cyberark_async.exceptions.CyberarkAsyncConfigurationException,
             "Internal error: no configfile and no serialized",
         ):
-            # epv_env = aiobastion.EPV(serialized=serialize_dict)
+            # epv_env = cyberark_async.EPV(serialized=serialize_dict)
             self.call_EPV(f"{fnc_name} - No param")
 
     def test_91_to_json(self):

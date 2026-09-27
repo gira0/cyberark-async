@@ -67,7 +67,7 @@ Calling functions
 
 Finding accounts
 ---------------------
-.. currentmodule:: aiobastion.accounts.Account
+.. currentmodule:: cyberark_async.accounts.Account
 .. autofunction:: search_account_by
 .. autofunction:: search_account
 .. autofunction:: search_account_iterator
@@ -146,11 +146,11 @@ Miscellaneous
 
 ..
     for documenting a single function =>
-    .. autofunction:: aiobastion.accounts.Account.handle_acc_id_list
+    .. autofunction:: cyberark_async.accounts.Account.handle_acc_id_list
 
-    .. currentmodule:: aiobastion.accounts.Account
+    .. currentmodule:: cyberark_async.accounts.Account
     .. autofunction:: link_account
 
 
-    .. autoclass:: aiobastion.accounts.Account
+    .. autoclass:: cyberark_async.accounts.Account
     :members: set_next_password
