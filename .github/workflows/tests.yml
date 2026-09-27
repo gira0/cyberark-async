@@ -1,0 +1,64 @@
+name: Tests
+
+'on':
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: pytest (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@557e51de59eb14aaaba2ed9621916900a91d50c6 # v6.6.1
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ matrix.python-version }}
+
+      # Live CyberArk integration tests stay skipped unless
+      # AIOBASTION_RUN_INTEGRATION_TESTS is set, so this runs the offline suite.
+      - name: Run offline test suite
+        run: uv run --locked --python ${{ matrix.python-version }} --group test pytest -q
+
+  lint:
+    name: ruff
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@557e51de59eb14aaaba2ed9621916900a91d50c6 # v6.6.1
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      # Non-blocking until the existing lint backlog is cleared (issue #6).
+      - name: Ruff lint
+        continue-on-error: true
+        run: uv run --locked --group dev ruff check . --output-format=github
+
+      - name: Ruff format check
+        continue-on-error: true
+        run: uv run --locked --group dev ruff format --check .

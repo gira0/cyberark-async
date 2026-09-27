@@ -336,7 +336,7 @@ class TestConfigEpv(unittest.TestCase):
             username = getpass.getuser()
         else:
             import pwd
-            username, uid, gid, gid_name, home = pwd.getpwuid(os.getuid())
+            username = pwd.getpwuid(os.getuid()).pw_name
 
         return username
 
