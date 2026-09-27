@@ -14,7 +14,7 @@ Report problems in this order, and say which category each finding belongs to:
 
 ## Project rules
 
-- Send HTTP requests through `EPV.handle_request()` (or `EPV.get_session()` plus `self.epv.request_params`). Flag new `aiohttp.ClientSession(...)` instances in feature modules; they bypass TLS settings, timeouts and the shared concurrency semaphore.
+- Feature modules must send HTTP requests through `self.epv.handle_request()`. Flag any direct `get_session()`, `session.request(...)`, `session.post(...)` or `aiohttp.ClientSession(...)` use outside the EPV transport and authentication code (`cyberark.py`, `http_session.py`, `aim.py`): it bypasses the shared concurrency semaphore, TLS and timeout settings, and the normalised non-2xx error handling. Existing bypasses are tracked in #12; new ones should not be added.
 - Keep public APIs `async`. Do not add synchronous wrappers.
 - Raise the exceptions from `aiobastion/exceptions.py` (`AiobastionException`, `CyberarkException`, `CyberarkAPIException`, ...) instead of bare `Exception` or `ValueError`, following the neighbouring functions.
 - Use the canonical configuration names `api_host`, `max_concurrent_tasks` and `verify`. Legacy aliases stay only for compatibility and must not appear in new examples or docs.
@@ -24,5 +24,5 @@ Report problems in this order, and say which category each finding belongs to:
 
 ## Checking against the CyberArk API
 
-- `tests/test_data/cyberark-pvwa-swagger.json` is the PVWA OpenAPI (Swagger 2.0) spec. Use its `paths` to check that a new or changed call uses an existing route, the right method and valid parameter names.
+- `tests/test_data/cyberark-pvwa-swagger.json` is the PVWA OpenAPI (Swagger 2.0) spec. Use its `paths` to check that every new or changed HTTP call, whether through `handle_request()` or a direct session, uses an existing route, the right method and valid parameter names.
 - `tests/test_data/support_manifest.json` lists the implemented operations as `[METHOD, "/api/..."]` pairs. A PR that adds or removes an API call should update it, or the API support report will drift.
