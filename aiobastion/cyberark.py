@@ -600,6 +600,10 @@ class EPV:
         #     await self.close_session()
 
     def get_session(self):
+        # An EPV built from a serialized token can issue requests (e.g. check_token) before login()
+        # has set up TLS and timeouts, so set them up on first use.
+        if self.request_params is None:
+            self.validate_and_setup_ssl()
         self._http.max_concurrent_tasks = self.max_concurrent_tasks
         self._http.timeout = self.timeout
         self.session = self._http.get_session(token=self.__token, cookies=self.cookies)

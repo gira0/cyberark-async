@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Bugfixes
+- EPV instances built from a serialized token no longer crash in `check_token()` / `async with` because TLS and timeout settings were not set up yet (#2)
+
 ## [0.1.9] - 2025-27-01
 ### Changes
 - added include_accounts option to get_safe_details
