@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project uses calendar versioning (`YYYY.MM.DD`, with PEP 440 pre-release suffixes such as `a1`). Releases up to 0.1.9 were made by the upstream [aiobastion](https://github.com/safepost/aiobastion) project and used Semantic Versioning.
 
 ## [Unreleased]
 ### Breaking changes
@@ -16,13 +16,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `aiobastion.__all__` now lists `EPV` and the exception classes; the old `all` list had no effect. The empty `aiobastion/__main__.py` was removed, and Dependabot now updates `uv.lock` through the `uv` ecosystem (#10)
 - The codebase is formatted with `ruff format` and passes `ruff check`; both checks now fail CI on new findings (#6)
 - GitHub Copilot code reviews now follow project-specific rules from `.github/copilot-instructions.md`, `.github/instructions/` and the `code-review` skill in `.github/skills/` (#24)
+- The README now presents the project as a fork of aiobastion, `docs/compatibility.rst` explains how to migrate from `aiobastion`, the package metadata says Alpha and links the changelog, and this changelog covers the two alpha releases (#9)
+- CI now runs the repository's pre-commit hooks, and the files they flagged no longer have trailing whitespace or a missing final newline
 
 ### Bugfixes
 - EPV instances built from a serialized token no longer crash in `check_token()` / `async with` because TLS and timeout settings were not set up yet (#2)
 - `safe.get_safe_details()` no longer fails because `includeAccounts` was sent as a bool query parameter, which aiohttp rejects (#1)
 - Importing `aiobastion` no longer emits `SyntaxWarning: invalid escape sequence`, and AIM errors no longer print the raw response body to stdout (#10)
 
-## [0.1.9] - 2025-27-01
+## [2026.09.09a2] - 2026-09-09
+### Changes
+- Offline contract tests against a Prism mock of the bundled PVWA Swagger spec, run in a new CI workflow
+- Added `http_session.py`, which manages the shared aiohttp session and its TLS settings
+
+### Bugfixes
+- Fixed the PyPI publish action reference in the release workflow
+
+## [2026.09.08a1] - 2026-09-08
+First alpha of the `cyberark-async` fork of aiobastion.
+
+### Changes
+- Python 3.12 or newer is now required, and dependencies are managed with uv (`uv.lock`)
+- Releases publish through GitHub Releases and PyPI Trusted Publishing, and the docs build in CI
+- Added pre-commit hooks, Dependabot, `CONTRIBUTING.md` and `AGENTS.md`
+- Switched to calendar versioning
+
+## [0.1.9] - 2025-01-27
 ### Changes
 - added include_accounts option to get_safe_details
 - Add support the File Category: remoteMachinesAccess (credits BKFlister)
@@ -141,7 +160,7 @@ Internal modification for a better management for file configuration and seriali
 - Add support to provide "Reason" when retrieving passwords
 - Update documentation for testing
 
-## [0.0.30] - 2024-16-01
+## [0.0.30] - 2024-01-16
 ### Changes
 - Adding platform deactivation
 

@@ -1,6 +1,8 @@
 # cyberark-async
 
-> I'm currently updating the tooling, migrating and linting this repo.
+> **cyberark-async is a maintained fork of [aiobastion](https://github.com/safepost/aiobastion)** by Gautier Leveille, and builds on that project's work.
+> It is published on PyPI as `cyberark-async` and imported as `cyberark_async`.
+> It is in alpha while the tooling, tests and API are being modernised, so expect breaking changes between releases (see [CHANGELOG.md](CHANGELOG.md)).
 
 **cyberark-async** is a simple and fully asynchronous framework for [Cyberark API](https://docs.cyberark.com/Product-Doc/OnlineHelp/PAS/Latest/en/Content/WebServices/Implementing%20Privileged%20Account%20Security%20Web%20Services%20.htm) written in Python 3.12 with [asyncio](https://docs.python.org/3/library/asyncio.html) and [aiohttp](https://github.com/aio-libs/aiohttp).
 It helps you to manage your Cyberark implementation faster and in an intuitive way.
@@ -134,7 +136,7 @@ The hooks run `ruff`, `ruff-format`, and basic checks like end-of-file, trailing
 
 
 ## Documentation
-The documention is hosted on readthedocs : https://aiobastion.readthedocs.io/en/latest/index.html
+The documentation sources are in [`docs/`](docs/). This fork does not have its own Read the Docs site yet. Until it does, the upstream [aiobastion documentation](https://aiobastion.readthedocs.io/en/latest/index.html) covers most of the API, but uses the old `aiobastion` import name.
 
 ## Rationale
 
