@@ -36,6 +36,6 @@ autodoc_typehints = "description"
 html_theme = "furo"
 html_theme_options = {
     "source_repository": "https://github.com/gira0/cyberark-async",
-    "source_branch": "dev",
+    "source_branch": "main",
     "source_directory": "docs/",
 }

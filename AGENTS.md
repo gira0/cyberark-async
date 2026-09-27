@@ -10,6 +10,8 @@
 
 ## Development Workflow
 
+- `main` is the only long-lived branch. Start every change on a short-lived feature branch from the latest `main` (for example `fix/...`, `feat/...`, `chore/...`, `docs/...`) and merge it through a pull request. Do not commit directly to `main` and do not recreate a `dev` branch.
+
 - Use `uv` for dependencies and tooling. Run `uv sync` before local checks.
 - Run the default offline suite with `uv run --group test pytest`.
 - Run formatting and lint checks with `uv run --group dev ruff format .` and `uv run --group dev ruff check .`.
