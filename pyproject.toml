@@ -70,9 +70,6 @@ test = [
 [tool.ruff]
 target-version = "py312"
 
-[tool.uv]
-exclude-newer = "1 week"
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

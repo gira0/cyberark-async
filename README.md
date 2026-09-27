@@ -90,6 +90,8 @@ uv run --group test pytest tests/test_accounts.py tests/test_cyberark.py tests/t
 
 This repository uses [uv](https://docs.astral.sh/uv/) for dependency management and local tooling.
 
+It needs uv 0.9.17 or newer (check with `uv --version`, upgrade with `uv self update` or your package manager). Older releases stop with a `Failed to parse: uv.toml` error.
+
 Install the project dependencies with:
 
 ```bash
@@ -110,7 +112,7 @@ If you need to refresh the lockfile after dependency changes, run:
 uv lock
 ```
 
-The project config currently limits resolution to packages uploaded at least one week ago, so `uv sync` and `uv lock` may intentionally avoid very new releases.
+`uv.toml` currently limits resolution to packages uploaded at least one week ago, so `uv sync` and `uv lock` may intentionally avoid very new releases.
 
 ## Pre-commit hooks
 

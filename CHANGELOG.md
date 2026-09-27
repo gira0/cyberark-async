@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changes
+- uv settings moved from `[tool.uv]` in `pyproject.toml` to `uv.toml`, which requires uv 0.9.17 or newer. Older uv releases now stop with an error instead of silently ignoring the one-week `exclude-newer` cutoff and rewriting `uv.lock` (#7)
+
 ### Bugfixes
 - EPV instances built from a serialized token no longer crash in `check_token()` / `async with` because TLS and timeout settings were not set up yet (#2)
 - `safe.get_safe_details()` no longer fails because `includeAccounts` was sent as a bool query parameter, which aiohttp rejects (#1)

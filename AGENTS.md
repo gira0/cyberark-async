@@ -12,11 +12,11 @@
 
 - `main` is the only long-lived branch. Start every change on a short-lived feature branch from the latest `main` (for example `fix/...`, `feat/...`, `chore/...`, `docs/...`) and merge it through a pull request. Do not commit directly to `main` and do not recreate a `dev` branch.
 
-- Use `uv` for dependencies and tooling. Run `uv sync` before local checks.
+- Use `uv` (0.9.17 or newer) for dependencies and tooling. Run `uv sync` before local checks.
 - Run the default offline suite with `uv run --group test pytest`.
 - Run formatting and lint checks with `uv run --group dev ruff format .` and `uv run --group dev ruff check .`.
 - Install and run all repository hooks with `uv run --group dev pre-commit install` and `uv run --group dev pre-commit run --all-files`.
-- Refresh `uv.lock` with `uv lock` after dependency changes. Resolution is intentionally limited by `exclude-newer` in `pyproject.toml`.
+- Refresh `uv.lock` with `uv lock` after dependency changes. Resolution is intentionally limited by `exclude-newer` in `uv.toml`, which requires uv 0.9.17 or newer.
 - Make focused changes and run the narrowest relevant test file first, then the full offline suite when practical.
 
 ## Collaboration

@@ -28,6 +28,7 @@ branches that are merged into `main` through pull requests.
 
 If you wish to contribute with code the workflow is :
 - Clone the Github repo
+- Install [uv](https://docs.astral.sh/uv/) 0.9.17 or newer (the minimum is set in `uv.toml`)
 - Create a feature branch from the latest `main`, named after the change, e.g.
   `fix/safe-details-include-accounts`, `feat/ssh-key-reason`, `chore/ci-tests`
   or `docs/readme-rename`
