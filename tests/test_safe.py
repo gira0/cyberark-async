@@ -1,10 +1,11 @@
 import sys
 import unittest
 import asyncio
-from unittest import IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase, mock
 import aiobastion
 import random
 import tests
+import yarl
 from aiobastion import CyberarkAPIException, CyberarkException, AiobastionException
 
 
@@ -197,6 +198,28 @@ class TestSafe(IsolatedAsyncioTestCase):
         # undo
         ret = await self.vault.safe.rename(new_name, safe_to_rename)
         self.assertIn(safe_to_rename, [s["safeName"] for s in await self.vault.safe.search(safe_to_rename)])
+
+class TestSafeDetailsOffline(IsolatedAsyncioTestCase):
+    """Offline regression tests for get_safe_details query parameters (issue #1)."""
+
+    async def _captured_params(self, **kwargs):
+        vault = aiobastion.EPV(serialized={"api_host": "pvwa.example.invalid"})
+        with mock.patch.object(vault, "handle_request", new=mock.AsyncMock(return_value={})) as handle_request:
+            await vault.safe.get_safe_details("some-safe", **kwargs)
+        return handle_request.await_args.kwargs["params"]
+
+    async def test_include_accounts_is_a_valid_query_value(self):
+        for include_accounts in (True, False):
+            with self.subTest(include_accounts=include_accounts):
+                params = await self._captured_params(include_accounts=include_accounts)
+                # aiohttp builds the query with yarl, which rejects bool values
+                url = yarl.URL("https://pvwa.example.invalid/").with_query(params)
+                self.assertEqual(url.query["includeAccounts"], str(include_accounts))
+
+    async def test_include_accounts_defaults_to_true(self):
+        params = await self._captured_params()
+        self.assertEqual(params, {"includeAccounts": "True"})
+
 
 if __name__ == '__main__':
     # if sys.platform == 'win32':

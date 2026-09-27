@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Bugfixes
 - EPV instances built from a serialized token no longer crash in `check_token()` / `async with` because TLS and timeout settings were not set up yet (#2)
+- `safe.get_safe_details()` no longer fails because `includeAccounts` was sent as a bool query parameter, which aiohttp rejects (#1)
 
 ## [0.1.9] - 2025-27-01
 ### Changes
