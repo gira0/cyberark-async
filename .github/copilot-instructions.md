@@ -1,0 +1,28 @@
+# Copilot instructions for cyberark-async
+
+cyberark-async (import name `aiobastion`) is an asynchronous Python 3.12+ client for the CyberArk PVWA REST API, built on `asyncio` and `aiohttp`. `AGENTS.md` describes the project layout, workflow and conventions; read it for context. This file lists what matters most when reviewing a pull request.
+
+## Review priorities
+
+Report problems in this order, and say which category each finding belongs to:
+
+1. **Secret exposure.** Passwords, tokens, AIM/CCP response bodies or certificates that reach logs, `print`, exception messages or test files. The body of a CCP (`aim.py`) response can contain the retrieved password.
+2. **Correctness of API calls.** Wrong HTTP method or path, query parameters or JSON bodies whose values aiohttp/yarl cannot encode (for example `bool` query values must be sent as strings), and missing error handling for non-2xx responses.
+3. **Async and lifecycle bugs.** Blocking calls in async code, un-awaited coroutines, `asyncio.run()` inside library code, and sessions that are not closed.
+4. **Behaviour changes without tests or docs.** Anything user-visible needs an offline test and a `CHANGELOG.md` entry under `## [Unreleased]`, and public API changes need the matching page under `docs/`.
+5. Everything else. Formatting and lint are enforced by `ruff` in CI, so do not comment on style that ruff accepts.
+
+## Project rules
+
+- Send HTTP requests through `EPV.handle_request()` (or `EPV.get_session()` plus `self.epv.request_params`). Flag new `aiohttp.ClientSession(...)` instances in feature modules; they bypass TLS settings, timeouts and the shared concurrency semaphore.
+- Keep public APIs `async`. Do not add synchronous wrappers.
+- Raise the exceptions from `aiobastion/exceptions.py` (`AiobastionException`, `CyberarkException`, `CyberarkAPIException`, ...) instead of bare `Exception` or `ValueError`, following the neighbouring functions.
+- Use the canonical configuration names `api_host`, `max_concurrent_tasks` and `verify`. Legacy aliases stay only for compatibility and must not appear in new examples or docs.
+- New exported names belong in `aiobastion/__init__.py` `__all__`.
+- Dependencies are managed with uv (0.9.17 or newer). A `uv.lock` change is only expected when `pyproject.toml` dependencies change; otherwise ask why it changed.
+- Never suggest disabling TLS verification (`verify: False`) as a fix.
+
+## Checking against the CyberArk API
+
+- `tests/test_data/cyberark-pvwa-swagger.json` is the PVWA OpenAPI (Swagger 2.0) spec. Use its `paths` to check that a new or changed call uses an existing route, the right method and valid parameter names.
+- `tests/test_data/support_manifest.json` lists the implemented operations as `[METHOD, "/api/..."]` pairs. A PR that adds or removes an API call should update it, or the API support report will drift.

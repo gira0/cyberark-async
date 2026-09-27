@@ -45,6 +45,10 @@
 - Enable live tests only with `AIOBASTION_RUN_INTEGRATION_TESTS=1`; optional test config and user overrides are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 - Integration tests can be slow, destructive, permission-sensitive, or skipped when prerequisites are absent. Never add real secrets to test files.
 
+## Code Review
+
+- Review guidance for GitHub Copilot lives in `.github/copilot-instructions.md`, path-specific rules in `.github/instructions/*.instructions.md`, and the review procedure in `.github/skills/code-review/SKILL.md`. Keep them in sync with the conventions above instead of duplicating this file.
+
 ## Documentation Map
 
 - [README.md](README.md): installation, quick start, development commands, and integration-test switches.
