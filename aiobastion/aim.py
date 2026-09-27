@@ -447,7 +447,6 @@ class EPV_AIM:
 
                     except (KeyError, ValueError, ContentTypeError) as err:
                         # http_error = HTTPStatus(req.status)
-                        print(await req.text())
                         details = EPV_AIM.handle_error_detail_info(url, params_new)
                         raise CyberarkException(
                             f"HTTP error {req.status}: {str(err)} || Additional Details : {details}") from err

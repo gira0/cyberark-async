@@ -64,10 +64,10 @@ class Api_options:
 
         if value:
             cls.deprecated_warning_enabled_ind = True
-            warnings.filterwarnings("module", category=DeprecationWarning, module='^aiobastion\.')
+            warnings.filterwarnings("module", category=DeprecationWarning, module=r'^aiobastion\.')
         else:
             cls.deprecated_warning_enabled_ind = False
-            warnings.filterwarnings("ignore", category=DeprecationWarning, module='^aiobastion\.')
+            warnings.filterwarnings("ignore", category=DeprecationWarning, module=r'^aiobastion\.')
 
         return cls.deprecated_warning_enabled_ind
 
