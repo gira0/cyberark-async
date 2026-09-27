@@ -17,7 +17,7 @@ maintainers = [
 ]
 
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 3 - Alpha",
 
   "Intended Audience :: Developers",
   "Intended Audience :: System Administrators",
@@ -62,6 +62,7 @@ test = [
 "Homepage" = "https://github.com/gira0/cyberark-async"
 "Bug Reports" = "https://github.com/gira0/cyberark-async/issues"
 "Source" = "https://github.com/gira0/cyberark-async/"
+"Changelog" = "https://github.com/gira0/cyberark-async/blob/main/CHANGELOG.md"
 
 [project.scripts]
 
