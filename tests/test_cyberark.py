@@ -2,7 +2,7 @@ import sys
 import asyncio
 import os
 import unittest
-from unittest import IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase, mock
 import aiobastion
 import tests
 
@@ -76,6 +76,50 @@ class TestEPV(IsolatedAsyncioTestCase):
             filter_func=lambda x: x['AgentUser'])
 
         self.assertFalse(ret)
+
+class _FakeResponse:
+    status = 200
+
+    async def read(self):
+        return b""
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
+
+
+class TestSerializedTokenOffline(IsolatedAsyncioTestCase):
+    """Offline regression tests for EPV instances built from a serialized token (issue #2)."""
+
+    async def test_check_token_sets_up_request_params(self):
+        vault = aiobastion.EPV(serialized={"api_host": "pvwa.example.invalid", "token": "abc"})
+        self.assertIsNone(vault.request_params)
+
+        calls = []
+
+        def fake_request(session, method, url, **kwargs):
+            calls.append((method, url, kwargs))
+            return _FakeResponse()
+
+        with mock.patch("aiohttp.ClientSession.request", new=fake_request):
+            try:
+                self.assertTrue(await vault.check_token())
+            finally:
+                await vault.close_session()
+
+        self.assertEqual(len(calls), 1)
+        method, url, kwargs = calls[0]
+        self.assertEqual(method, "get")
+        self.assertTrue(url.endswith("api/LoginsInfo"))
+        self.assertIn("ssl", kwargs)
+        self.assertIn("timeout", kwargs)
+
+    async def test_context_manager_with_valid_serialized_token(self):
+        with mock.patch("aiohttp.ClientSession.request", new=lambda *a, **kw: _FakeResponse()):
+            async with aiobastion.EPV(serialized={"api_host": "pvwa.example.invalid", "token": "abc"}) as vault:
+                self.assertIsNotNone(vault.request_params)
 
 if __name__ == '__main__':
     if sys.platform == 'win32':
