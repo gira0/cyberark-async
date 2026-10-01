@@ -17,6 +17,7 @@ and this project uses calendar versioning (`YYYY.MM.DD`, with PEP 440 pre-releas
 - The codebase is formatted with `ruff format` and passes `ruff check`; both checks now fail CI on new findings (#6)
 - GitHub Copilot code reviews now follow project-specific rules from `.github/copilot-instructions.md`, `.github/instructions/` and the `code-review` skill in `.github/skills/` (#24)
 - The README now presents the project as a fork of aiobastion, `docs/compatibility.rst` explains how to migrate from `aiobastion`, the package metadata says Alpha and links the changelog, and this changelog covers the two alpha releases (#9)
+- Dependabot's weekly uv updates now wait seven days after a release, matching the one-week `exclude-newer` cutoff in `uv.toml`, so they no longer fail on releases uv refuses to lock. Dependabot no longer updates setuptools, which it failed on; `uv.lock` now has setuptools 84.0.0 (#31)
 - CI now runs the repository's pre-commit hooks, and the files they flagged no longer have trailing whitespace or a missing final newline
 
 ### Bugfixes
