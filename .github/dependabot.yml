@@ -12,6 +12,15 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # uv.toml only lets uv resolve releases that are at least a week old (exclude-newer = "1 week").
+    # Without a matching cooldown Dependabot proposes newer releases that `uv lock` rejects.
+    cooldown:
+      default-days: 7
+    ignore:
+      # setuptools is only a build-system floor and a transitive dependency of check-manifest.
+      # Dependabot's uv updater fails on it with an unknown error, although `uv lock --upgrade-package
+      # setuptools` works; refresh it by hand when needed (#31).
+      - dependency-name: setuptools
 
   - package-ecosystem: npm
     directory: /
